@@ -14,8 +14,10 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            /* Aseguramos que ocupe toda la altura y quede centrado verticalmente */
             min-height: 100vh;
             margin: 0;
+            /* Scroll permitido */
             background-color: #f7f3ed; 
         }
 
@@ -24,16 +26,15 @@
             z-index: 10; 
             width: 100%;
             max-width: 400px;
-            aspect-ratio: 9 / 16;
-            padding: 3rem;
+            /* Usamos padding para asegurar que haya espacio en dispositivos muy pequeños */
+            padding: 3rem 1.5rem; 
             text-align: center;
             
-            background-image: url('https://image.pollinations.ai/prompt/two%20engagement%20rings,%20bokeh%20background,%20soft%20romantic%20lighting,%20creamy%20gold%20tones,%20dreamy%20atmosphere,%20minimalist,%20no%20text,%20no%20watermark?width=400&height=711'); 
+            background-image: url('https://image.pollinations.ai/prompt/two%20engagement%20rings,%20bokeh%20background,%20soft%20romantic%20lighting,%20creamy%20gold%20tones%20and%20roses,%20dreamy%20atmosphere,%20minimalist,%20no%20text,%20no%20watermark?width=400&height=711'); 
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
             
-            /* --- COLOR DE FONDO DE TARJETA CON MENOS OPACIDAD --- */
             background-color: rgba(245, 245, 245, 0.7); 
             background-blend-mode: overlay; 
 
@@ -114,7 +115,8 @@
 </head>
 <body>
     
-    <div class="invitation-frame">
+    <!-- ELIMINADO: mt-8 para que el contenido se centre verticalmente y suba en móvil, haciendo el botón visible -->
+    <div class="invitation-frame"> 
 
         
         <div class="leaf-detail top-left-leaf">
@@ -162,12 +164,11 @@
         <p class="animated-item step-2-5 text-4xl font-extrabold my-2 accent-color leading-tight">Y</p> 
         <h1 class="animated-item step-3 text-6xl font-normal text-gray-800 mt-0 mb-4 leading-tight">Carla</h1>
 
-        <!-- CAMBIO: mb-8 (2.5rem) para aumentar el espacio inferior -->
-        <p class="animated-item step-4 text-3xl font-bold mb-12 accent-color">
+        <p class="animated-item step-4 text-3xl font-bold mb-8 accent-color">
             31 · 10 · 2026
         </p>
 
-        <p class="animated-item step-5 text-xl mt-24 text-gray-700">
+        <p class="animated-item step-5 text-xl mt-12 mb-6 text-gray-700">
             Masia Mas Llombart<br>Sant Fost de Campsentelles, Barcelona
         </p>
 
@@ -176,7 +177,7 @@
         </p>
 
         <div class="animated-item step-7">
-            <a href="https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3" target="_blank" class="btn-details">
+            <a href="https://www.bodas.net/web/manel-y-carla/bienvenidos-1" target="_blank" class="btn-details">
                 Confirmar Asistencia
             </a>
         </div>
