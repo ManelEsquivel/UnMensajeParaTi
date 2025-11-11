@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Te quiero decir que... </title>
+    <title>Te quiero decir que...</title>
     <style>
         body {
             margin: 0;
@@ -11,8 +11,8 @@
             font-family: 'Georgia', serif;
             background: url('https://images.unsplash.com/photo-1529333166437-7750a6dd5a70?auto=format&fit=crop&w=1600&q=80') no-repeat center center fixed;
             background-size: cover;
-            animation: fadeIn 2s ease-in;
             color: #3e2f1c;
+            overflow: hidden;
         }
 
         .overlay {
@@ -25,6 +25,7 @@
             display: flex;
             justify-content: center;
             align-items: center;
+            animation: fadeIn 2s ease-in;
         }
 
         .message-box {
@@ -34,6 +35,7 @@
             text-align: center;
             box-shadow: 0 4px 12px rgba(0,0,0,0.2);
             max-width: 600px;
+            z-index: 2;
         }
 
         h1 {
@@ -45,15 +47,47 @@
             font-size: 18px;
         }
 
+        .fade-out {
+            animation: fadeOut 2s ease-in forwards;
+        }
+
         @keyframes fadeIn {
             from { opacity: 0; }
             to { opacity: 1; }
         }
+
+        @keyframes fadeOut {
+            from { opacity: 1; }
+            to { opacity: 0; }
+        }
+
+        .light-flash {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: radial-gradient(circle, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0) 70%);
+            animation: flash 2s ease-in forwards;
+            z-index: 1;
+        }
+
+        @keyframes flash {
+            0% { opacity: 0; }
+            50% { opacity: 1; }
+            100% { opacity: 0; }
+        }
     </style>
     <script>
         setTimeout(function() {
-            window.location.href = "https://manelesquivel.github.io/SaveTheDate/Card.html";
-        }, 8000);
+            document.querySelector('.overlay').classList.add('fade-out');
+            let flash = document.createElement('div');
+            flash.className = 'light-flash';
+            document.body.appendChild(flash);
+            setTimeout(function() {
+                window.location.href = "https://manelesquivel.github.io/SaveTheDate/Card.html";
+            }, 2000);
+        }, 5000);
     </script>
 </head>
 <body>
@@ -65,5 +99,6 @@
     </div>
 </body>
 </html>
+
 
 
