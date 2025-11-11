@@ -1,1 +1,38 @@
-
+[
+  {
+    "pregunta": "¿Dónde es la ceremonia?",
+    "respuesta": "Masia Mas Llombart"
+  },
+  {
+    "pregunta": "¿A qué hora empieza la boda?",
+    "respuesta": "A las 12:00 AM"
+  },
+  {
+    "pregunta": "¿Dónde es el banquete?",
+    "respuesta": "Se hará en el mismo recinto, será interior."
+  },
+  {
+    "pregunta": "¿Hay código de vestimenta?",
+    "respuesta": "Preferiblemente formal, sin ser de etiqueta"
+  },
+  {
+    "pregunta": "¿Hay opciones de alojamiento cerca?",
+    "respuesta": "Sí, hay varias opciones como por ejemplo: Villa Coliving Casa Rural, Celler Suites"
+  },
+  {
+    "pregunta": "¿Cómo llegar al lugar? (transporte o indicaciones)",
+    "respuesta": "Es bastante complejo, se tarda 1h y 30 min, pero te comento: desde Barcelona Sants tienes la opción de coger la R4, bajarte en Fabra I Puig, coger l’Estació d'Autobusos de Fabra i Puig (e21), y luego Av. de Burgos - Parc de Can Mulà (360)"
+  },
+  {
+    "pregunta": "¿Hay estacionamiento disponible?",
+    "respuesta": "Sí, en el mismo recinto"
+  },
+  {
+    "pregunta": "¿Qué tipo de comida se servirá?",
+    "respuesta": "Principalmente es comida mediterránea"
+  },
+  {
+    "pregunta": "¿Dónde puedo confirmar mi asistencia?",
+    "respuesta": "Si entras en https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3 , pon tu nombre en el buscador y seleccionate para confirmar"
+  }
+]
