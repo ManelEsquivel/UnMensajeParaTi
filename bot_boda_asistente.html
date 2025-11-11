@@ -2,164 +2,114 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8">
-  <title>Bot de Boda</title>
+  <title>Asistente de Boda</title>
   <style>
-    #chat-bubble {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background-color: #f7c6c7;
-      color: white;
-      font-size: 24px;
-      padding: 12px;
-      border-radius: 50%;
-      cursor: pointer;
-      box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-      z-index: 1000;
-    }
-    #chat-window {
-      display: none;
-      position: fixed;
-      bottom: 80px;
-      right: 20px;
-      width: 300px;
-      max-height: 400px;
-      background-color: white;
-      border: 2px solid #f7c6c7;
-      border-radius: 10px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
-      z-index: 1000;
-      overflow: hidden;
-      font-family: sans-serif;
-    }
-    #chat-header {
-      background-color: #f7c6c7;
-      color: white;
-      padding: 10px;
-      font-weight: bold;
-      text-align: center;
-    }
-    #chat-body {
-      padding: 10px;
-      height: 250px;
-      overflow-y: auto;
-    }
-    #chat-input {
-      padding: 10px;
-      border-top: 1px solid #eee;
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f4f4f9;
+      margin: 0;
+      padding: 0;
       display: flex;
+      flex-direction: column;
+      height: 100vh;
     }
-    #user-question {
+    #chat {
       flex: 1;
-      padding: 5px;
+      padding: 20px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
     }
-    #send-button {
-      background-color: #f7c6c7;
+    .mensaje {
+      max-width: 70%;
+      margin: 5px;
+      padding: 10px 15px;
+      border-radius: 20px;
+      line-height: 1.4;
+    }
+    .usuario {
+      align-self: flex-end;
+      background-color: #0078d4;
+      color: white;
+    }
+    .bot {
+      align-self: flex-start;
+      background-color: #e0e0e0;
+      color: black;
+    }
+    #entrada {
+      display: flex;
+      padding: 10px;
+      border-top: 1px solid #ccc;
+      background-color: white;
+    }
+    #pregunta {
+      flex: 1;
+      padding: 10px;
+      font-size: 16px;
+      border: 1px solid #ccc;
+      border-radius: 10px;
+    }
+    button {
+      margin-left: 10px;
+      padding: 10px 20px;
+      font-size: 16px;
+      background-color: #0078d4;
       color: white;
       border: none;
-      padding: 5px 10px;
-      margin-left: 5px;
-      border-radius: 5px;
+      border-radius: 10px;
       cursor: pointer;
     }
   </style>
 </head>
 <body>
-  <div id="chat-bubble" onclick="toggleChat()">💬</div>
-  <div id="chat-window">
-    <div id="chat-header">Bot de la Boda 💍</div>
-    <div id="chat-body">
-      <p>Hola, soy tu asistente para ayudarte con la boda de Manel y Carla 💕</p>
-    </div>
-    <div id="chat-input">
-      <input type="text" id="user-question" placeholder="Escribe tu pregunta...">
-      <button id="send-button" onclick="processQuestion()">Enviar</button>
-    </div>
+  <div id="chat"></div>
+  <div id="entrada">
+    <input type="text" id="pregunta" placeholder="Escribe tu pregunta...">
+    <button onclick="enviarPregunta()">Enviar</button>
   </div>
 
   <script>
-    const qa = {
-      "¿Dónde es la ceremonia?": "Masia Mas Llombart",
-      "¿A qué hora empieza la boda?": "A las 12:00 AM",
-      "¿Dónde es el banquete?": "Se hará en el mismo recinto, será interior.",
-      "¿Hay código de vestimenta?": "Preferiblemente formal, sin ser de etiqueta",
-      "¿Hay opciones de alojamiento cerca?": "Si, hay varias opciones como por ejemplo: Villa Coliving Casa Rural, Celler Suites",
-      "¿Cómo llegar al lugar?": "Desde Barcelona Sants: R4 → Fabra i Puig → Estació d'Autobusos (e21) → Av. de Burgos - Parc de Can Mulà (360)",
-      "¿Hay estacionamiento disponible?": "Sí, en el mismo recinto",
-      "¿Qué tipo de comida se servirá?": "Principalmente es comida mediterránea",
-      "¿Dónde puedo confirmar mi asistencia?": "En https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3"
-    };
-
-    function toggleChat() {
-      const chat = document.getElementById('chat-window');
-      chat.style.display = chat.style.display === 'none' ? 'block' : 'none';
-    }
-
-    function normalize(text) {
-      return text.toLowerCase()
-        .normalize("NFD").replace(/\p{Diacritic}/gu, "")
-        .replace(/[¿?¡!.,]/g, "")
-        .trim();
-    }
-
-    function getBestMatch(userInput) {
-      const input = normalize(userInput);
-      let bestMatch = null;
-      let highestScore = 0;
-      for (const question in qa) {
-        const normQuestion = normalize(question);
-        const score = similarity(input, normQuestion);
-        if (score > highestScore) {
-          highestScore = score;
-          bestMatch = question;
-        }
+    const chatDiv = document.getElementById('chat');
+    const historial = [
+      {
+        role: "system",
+        content: "Eres un asistente para una boda. Responde preguntas sobre ceremonia, banquete, transporte, alojamiento, comida, vestimenta y confirmación de asistencia."
       }
-      return highestScore > 0.5 ? qa[bestMatch] : "Lo siento, no tengo información sobre eso aún.";
+    ];
+
+    function agregarMensaje(texto, clase) {
+      const mensaje = document.createElement('div');
+      mensaje.className = 'mensaje ' + clase;
+      mensaje.textContent = texto;
+      chatDiv.appendChild(mensaje);
+      chatDiv.scrollTop = chatDiv.scrollHeight;
     }
 
-    function similarity(a, b) {
-      const longer = a.length > b.length ? a : b;
-      const shorter = a.length > b.length ? b : a;
-      const longerLength = longer.length;
-      if (longerLength === 0) return 1.0;
-      return (longerLength - editDistance(longer, shorter)) / longerLength;
-    }
+    async function enviarPregunta() {
+      const input = document.getElementById('pregunta');
+      const pregunta = input.value.trim();
+      if (!pregunta) return;
 
-    function editDistance(s1, s2) {
-      s1 = s1.toLowerCase();
-      s2 = s2.toLowerCase();
-      const costs = [];
-      for (let i = 0; i <= s1.length; i++) {
-        let lastValue = i;
-        for (let j = 0; j <= s2.length; j++) {
-          if (i === 0)
-            costs[j] = j;
-          else {
-            if (j > 0) {
-              let newValue = costs[j - 1];
-              if (s1.charAt(i - 1) !== s2.charAt(j - 1))
-                newValue = Math.min(Math.min(newValue, lastValue), costs[j]) + 1;
-              costs[j - 1] = lastValue;
-              lastValue = newValue;
-            }
-          }
-        }
-        if (i > 0)
-          costs[s2.length] = lastValue;
+      agregarMensaje(pregunta, 'usuario');
+      historial.push({ role: "user", content: pregunta });
+      input.value = "";
+
+      try {
+        const res = await fetch('/api/chat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ historial })
+        });
+
+        const data = await res.json();
+        const respuesta = data.respuesta || "Lo siento, no tengo información sobre eso.";
+        agregarMensaje(respuesta, 'bot');
+        historial.push({ role: "assistant", content: respuesta });
+      } catch (error) {
+        agregarMensaje("Error al conectar con el servidor.", 'bot');
       }
-      return costs[s2.length];
-    }
-
-    function processQuestion() {
-      const input = document.getElementById('user-question').value;
-      const response = getBestMatch(input);
-      const body = document.getElementById('chat-body');
-      body.innerHTML += `<p><strong>Tú:</strong> ${input}</p>`;
-      body.innerHTML += `<p><strong>Bot:</strong> ${response}</p>`;
-      document.getElementById('user-question').value = "";
-      body.scrollTop = body.scrollHeight;
     }
   </script>
 </body>
 </html>
-
