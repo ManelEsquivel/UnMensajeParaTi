@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Asistente de Boda</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f4f4;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 15px;
+    }
+    #chat-box {
+      width: 100%;
+      max-width: 400px;
+      height: 450px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      padding: 15px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    .bubble {
+      padding: 10px 14px;
+      margin: 6px;
+      border-radius: 18px;
+      max-width: 80%;
+      word-wrap: break-word;
+      font-size: 14px;
+      line-height: 1.4;
+    }
+    .user {
+      background: #d1e7dd;
+      color: #0f5132;
+      align-self: flex-end;
+      border-bottom-right-radius: 4px;
+    }
+    .bot {
+      background: #f8d7da;
+      color: #842029;
+      align-self: flex-start;
+      border-bottom-left-radius: 4px;
+    }
+    #controls {
+      display: flex;
+      justify-content: center;
+      margin-top: 12px;
+      width: 100%;
+      max-width: 400px;
+    }
+    #chat-input {
+      flex: 1;
+      padding: 10px;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      font-size: 14px;
+    }
+    #send-btn {
+      margin-left: 10px;
+      padding: 10px 15px;
+      border: none;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
+    }
+    #send-btn:hover {
+      background: #0056b3;
+    }
+  </style>
+</head>
+<body>
+  <h1>Asistente de Boda</h1>
+  <div id="chat-box"></div>
+  <div id="controls">
+    <input type="text" id="chat-input" placeholder="Escribe tu pregunta...">
+    <button id="send-btn">Enviar</button>
+  </div>
+
+  <!-- Llamada correcta al script -->
+  <script src="chat.js"></script>
+</body>
+</html>
