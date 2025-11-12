@@ -1,4 +1,6 @@
 // chat.js
+console.log("✅ chat.js cargado correctamente");
+
 let conversationHistory = [
   { role: "system", content: "Eres un asistente para una boda. Responde con claridad y amabilidad." }
 ];
@@ -51,6 +53,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const userMessage = input.value;
     if (!userMessage) return;
 
+    // Burbuja del usuario
     const userBubble = document.createElement("div");
     userBubble.className = "bubble user";
     userBubble.textContent = userMessage;
@@ -58,8 +61,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     input.value = "";
 
+    // Respuesta del bot
     const reply = await handleUserMessage(userMessage);
-
     const botBubble = document.createElement("div");
     botBubble.className = "bubble bot";
     botBubble.textContent = reply;
@@ -68,5 +71,4 @@ document.addEventListener("DOMContentLoaded", () => {
     chatBox.scrollTop = chatBox.scrollHeight;
   });
 });
-
 
