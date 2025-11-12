@@ -5,75 +5,89 @@
   <title>Asistente de Boda</title>
   <style>
     body {
-      font-family: 'Segoe UI', sans-serif;
-      background-color: #f4f4f9;
-      margin: 0;
-      padding: 0;
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: #f4f4f4;
       display: flex;
       flex-direction: column;
-      height: 100vh;
+      align-items: center;
+      margin: 0;
+      padding: 20px;
+    }
+    h1 {
+      color: #333;
+      margin-bottom: 15px;
     }
     #chat-box {
-      flex: 1;
-      padding: 20px;
+      width: 100%;
+      max-width: 400px;
+      height: 450px;
+      background: #fff;
+      border-radius: 12px;
+      border: 1px solid #ccc;
+      padding: 15px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     .bubble {
-      max-width: 70%;
-      margin: 5px;
-      padding: 10px 15px;
-      border-radius: 20px;
+      padding: 10px 14px;
+      margin: 6px;
+      border-radius: 18px;
+      max-width: 80%;
+      word-wrap: break-word;
+      font-size: 14px;
       line-height: 1.4;
-      font-size: 16px;
     }
     .user {
+      background: #d1e7dd;
+      color: #0f5132;
       align-self: flex-end;
-      background-color: #0078d4;
-      color: white;
+      border-bottom-right-radius: 4px;
     }
     .bot {
+      background: #f8d7da;
+      color: #842029;
       align-self: flex-start;
-      background-color: #e0e0e0;
-      color: black;
+      border-bottom-left-radius: 4px;
     }
-    #entrada {
+    #controls {
       display: flex;
-      padding: 10px;
-      border-top: 1px solid #ccc;
-      background-color: white;
+      justify-content: center;
+      margin-top: 12px;
+      width: 100%;
+      max-width: 400px;
     }
     #chat-input {
       flex: 1;
       padding: 10px;
-      font-size: 16px;
+      border-radius: 6px;
       border: 1px solid #ccc;
-      border-radius: 10px;
+      font-size: 14px;
     }
     #send-btn {
       margin-left: 10px;
-      padding: 10px 20px;
-      font-size: 16px;
-      background-color: #0078d4;
-      color: white;
+      padding: 10px 15px;
       border: none;
-      border-radius: 10px;
+      background: #007bff;
+      color: #fff;
+      border-radius: 6px;
       cursor: pointer;
+      font-size: 14px;
+      transition: background 0.3s ease;
     }
     #send-btn:hover {
-      background-color: #005fa3;
+      background: #0056b3;
     }
   </style>
 </head>
 <body>
+  <h1>Asistente de Boda</h1>
   <div id="chat-box"></div>
-  <div id="entrada">
+  <div id="controls">
     <input type="text" id="chat-input" placeholder="Escribe tu pregunta...">
     <button id="send-btn">Enviar</button>
   </div>
-
-  <!-- Aquí enlazamos el script externo -->
- <script>chat.js</script>
+  chat.js</script>
 </body>
 </html>
