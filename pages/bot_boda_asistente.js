@@ -6,7 +6,7 @@ export default function BotBodaAsistente() {
   const [messages, setMessages] = useState([]);
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
-  const chatBoxRef = useRef(null);
+  const lastMessageRef = useRef(null);
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -28,8 +28,8 @@ export default function BotBodaAsistente() {
   };
 
   useEffect(() => {
-    if (chatBoxRef.current) {
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
+    if (lastMessageRef.current) {
+      lastMessageRef.current.scrollIntoView({ behavior: "smooth" });
     }
   }, [messages, isTyping]);
 
@@ -43,14 +43,18 @@ export default function BotBodaAsistente() {
       <main style={styles.main}>
         <h1 style={styles.title}>Asistente de Boda</h1>
 
-        <div ref={chatBoxRef} style={styles.chatBox}>
+        <div style={styles.chatBox}>
           {messages.map((msg, i) => (
-            <div key={i} style={{ ...styles.bubble, ...(msg.role === "user" ? styles.userBubble : styles.assistantBubble) }}>
+            <div
+              key={i}
+              ref={i === messages.length - 1 ? lastMessageRef : null}
+              style={{ ...styles.bubble, ...(msg.role === "user" ? styles.userBubble : styles.assistantBubble) }}
+            >
               {msg.content}
             </div>
           ))}
           {isTyping && (
-            <div style={{ ...styles.bubble, ...styles.assistantBubble }}>
+            <div ref={lastMessageRef} style={{ ...styles.bubble, ...styles.assistantBubble }}>
               <span style={styles.typing}>Escribiendo</span>
             </div>
           )}
@@ -108,6 +112,7 @@ const styles = {
     wordWrap: "break-word",
     fontSize: "15px",
     lineHeight: "1.4",
+    transition: "background 0.3s ease",
   },
   userBubble: {
     alignSelf: "flex-end",
@@ -121,7 +126,7 @@ const styles = {
   },
   typing: {
     display: "inline-block",
-    animation: "typingDots 1s infinite",
+    animation: "dots 1s steps(3, end) infinite",
   },
   controls: {
     display: "flex",
@@ -136,6 +141,7 @@ const styles = {
     borderRadius: "6px",
     border: "1px solid #ccc",
     fontSize: "14px",
+    outline: "none",
   },
   button: {
     marginLeft: "10px",
@@ -148,4 +154,5 @@ const styles = {
     fontSize: "16px",
   },
 };
+
 
