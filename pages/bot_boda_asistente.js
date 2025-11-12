@@ -15,11 +15,10 @@ export default function BotBodaAsistente() {
     }
   }, [messages, isTyping]);
 
-  // ✅ Convierte Markdown y URLs en enlaces HTML
   const formatMessage = (text) => {
-    // Markdown Texto
-    let formatted = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank" rel="noopenerurlRegex = /(https?:\/\/[^\s]+)/g;
-    formatted = formatted.replace(urlRegex, (url) => `${url}${url}</a>`);
+    let formatted = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    formatted = formatted.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
     return formatted;
   };
 
@@ -41,7 +40,6 @@ export default function BotBodaAsistente() {
     const fullReply = data.reply;
     setIsTyping(false);
 
-    // Efecto de escritura letra por letra
     let currentText = "";
     const botMessage = { role: "assistant", content: "" };
     setMessages((prev) => [...prev, botMessage]);
@@ -100,7 +98,7 @@ export default function BotBodaAsistente() {
                   padding: "8px 12px",
                   borderRadius: "8px",
                   border: "1px solid #ccc",
-                  backgroundColor: msg.role === "user" ? "#d1e7dd" : "#cce5ff", // ✅ azul claro para IA
+                  backgroundColor: msg.role === "user" ? "#d1e7dd" : "#cce5ff",
                   maxWidth: "80%",
                   wordWrap: "break-word",
                 }}
@@ -111,7 +109,7 @@ export default function BotBodaAsistente() {
           {isTyping && <p>Escribiendo...</p>}
         </div>
 
-        <div style={{ maxWidth: "400px", margin: "10px auto", display: "flex" }}>
+        <div style={{ maxWidth: "400px", margin: "10px auto", display: "flex", flexDirection: "column" }}>
           <textarea
             ref={textAreaRef}
             value={input}
@@ -124,7 +122,6 @@ export default function BotBodaAsistente() {
             }}
             placeholder="Escribe tu mensaje..."
             style={{
-              flex: 1,
               resize: "none",
               height: textAreaHeight,
               maxHeight: "100px",
@@ -137,6 +134,7 @@ export default function BotBodaAsistente() {
               transition: "all 0.2s ease",
               background: "#fff",
               boxShadow: "0 1px 3px rgba(0,0,0,0.1) inset",
+              marginBottom: "10px",
             }}
           />
           <button
@@ -144,15 +142,16 @@ export default function BotBodaAsistente() {
             onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
             onClick={sendMessage}
             style={{
-              marginLeft: "10px",
-              padding: "10px 16px",
-              borderRadius: "10px",
-              border: "none",
+              padding: "12px 20px",
+              borderRadius: "12px",
+              border: "1px solid #007bff",
               backgroundColor: "#007bff",
               color: "#fff",
-              fontSize: "14px",
+              fontSize: "16px",
+              fontWeight: "bold",
               cursor: "pointer",
-              transition: "transform 0.2s ease",
+              boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+              transition: "transform 0.2s ease, background-color 0.3s ease",
             }}
           >
             Enviar
@@ -162,5 +161,6 @@ export default function BotBodaAsistente() {
     </>
   );
 }
+
 
 
