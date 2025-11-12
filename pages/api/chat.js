@@ -21,7 +21,7 @@ export default async function handler(req, res) {
     dressCode: "Formal, colores claros recomendados",
     transport: "Habrá parking gratuito y servicio de taxi disponible",
     accommodation: "Hoteles cercanos: Hotel Miramar y Hotel Sant Fost"
-  }; 
+  };  
 
   // ✅ Prompt dinámico
   const systemPrompt = `Eres un asistente de boda amable y servicial. Responde en español, de forma clara y breve.
