@@ -16,7 +16,7 @@ export default async function handler(req, res) {
     date: "31 de octubre de 2026",
     time: "12:00",
     location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
-    detailsUrl: "https://www.bodas.net/web/manel-y-carla/ubicacion-8",
+    detailUbisUrl: "https://www.bodas.net/web/manel-y-carla/ubicacion-8",
     banquet: "en el mismo recinto, justo después del aperitivo",
     dressCode: "Formal, colores claros recomendados",
     transport: "Habrá parking gratuito y servicio de taxi disponible",
@@ -26,7 +26,7 @@ export default async function handler(req, res) {
   // ✅ Prompt dinámico
   const systemPrompt = `Eres un asistente de boda amable y servicial. Responde en español, de forma clara y breve.
   La boda será el ${weddingInfo.date} a las ${weddingInfo.time} en ${weddingInfo.location}.
-  Más detalles: ${weddingInfo.detailsUrl}.
+  Más detalles de ubicación: ${weddingInfo.detailUbisUrl}.
   El banquete será ${weddingInfo.banquet}.
   Código de vestimenta: ${weddingInfo.dressCode}.
   Transporte: ${weddingInfo.transport}.
