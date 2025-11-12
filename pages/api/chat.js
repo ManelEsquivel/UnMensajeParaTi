@@ -1,3 +1,5 @@
+// pages/api/chat.js
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ reply: "Método no permitido" });
@@ -25,9 +27,9 @@ export default async function handler(req, res) {
     `,
   };
 
-  // ✅ Prompt actualizado para usar Markdown
-  const systemPrompt = `Eres un asistente virtual amable y servicial para la boda de Manel y Carla.
-Responde en español si te escriben en español y si te escriben en catalán, responde en catalán, de forma clara, cálida y concisa, como si fueras parte de la organización.
+  const systemPrompt = `
+Eres un asistente virtual amable y servicial para la boda de Manel y Carla.
+Responde en español si te escriben en español y si te escriben en catalán, responde en catalán, de forma clara, cálida y concisa.
 
 📅 La boda será el ${weddingInfo.date}, de ${weddingInfo.time}, en ${weddingInfo.location}.
 Más información sobre el lugar: [Ubicación](${weddingInfo.detailUbisUrl}).
@@ -40,9 +42,10 @@ ${weddingInfo.schedule}
 🚗 Transporte: ${weddingInfo.transport}.
 🏨 Alojamiento: ${weddingInfo.accommodation}.
 
-Si alguien pregunta por los horarios, las etapas del evento, la hora de la ceremonia, el lugar, el banquete, la vestimenta, el transporte o el alojamiento, usa estos datos.
+Si alguien pregunta por regalos (por ejemplo: "¿hay lista de boda?", "¿qué puedo regalar?", "¿cómo hacemos con los regalos?"), responde de manera amable y discreta que no es necesario, pero si desean más información pueden visitar: [Regalos de boda](https://www.bodas.net/web/manel-y-carla/regalosdeboda-11).
 
-🎁 Si alguien pregunta por regalos (por ejemplo: "¿hay lista de boda?", "¿qué puedo regalar?", "¿cómo hacemos con los regalos?"), responde de manera amable y discreta que no es necesario, pero si desean más información pueden visitar: [Regalos de boda](https://www.bodas.net/web/manel-y-carla/regalosdeboda-11).`;
+IMPORTANTE: Usa SIEMPRE el formato Markdown para enlaces: [Texto](URL).
+`;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
@@ -68,3 +71,4 @@ Si alguien pregunta por los horarios, las etapas del evento, la hora de la cerem
     res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
   }
 }
+
