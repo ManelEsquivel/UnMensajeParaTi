@@ -15,9 +15,15 @@ export default function BotBodaAsistente() {
     }
   }, [messages, isTyping]);
 
+  const makeLinksClickable = (text) => {
+    const urlRegex = /(https?:\/\/[^\s]+)/g;
+    return text.replace(urlRegex, (url) => {
+      return `${url}${url}</a>`;
+    });
+  };
+
   const sendMessage = async () => {
     if (!input.trim()) return;
-
     const userMessage = { role: "user", content: input };
     setMessages((prev) => [...prev, userMessage]);
     setInput("");
@@ -62,193 +68,67 @@ export default function BotBodaAsistente() {
     <>
       <Head>
         <title>Asistente de Boda</title>
-        <meta
-          name="description"
-          content="Asistente virtual para la boda de Manel y Carla"
-        />
       </Head>
-
-      <main
-        style={{
-          fontFamily: "'Segoe UI', Arial, sans-serif",
-          background: "linear-gradient(180deg, #fafafa 0%, #e6f0ff 100%)",
-          display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          justifyContent: "center",
-          minHeight: "100vh",
-          padding: "20px",
-        }}
-      >
-        <h1 style={{ color: "#333", marginBottom: "15px" }}>Asistente de Boda 💍</h1>
-
-        <div
-          ref={chatBoxRef}
-          id="chat-box"
-          style={{
-            width: "100%",
-            maxWidth: "420px",
-            height: "450px",
-            background: "#fff",
-            borderRadius: "16px",
-            padding: "15px",
-            overflowY: "auto",
-            display: "flex",
-            flexDirection: "column",
-            boxShadow: "0 6px 12px rgba(0,0,0,0.08)",
-            scrollBehavior: "smooth",
-          }}
-        >
+      <div>
+        <h1>Asistente de Boda 💍</h1>
+        <div ref={chatBoxRef}>
           {messages.map((msg, i) => (
             <div
               key={i}
               style={{
-                padding: "10px 14px",
-                margin: "6px 0",
-                borderRadius: "18px",
-                maxWidth: "80%",
-                alignSelf: msg.role === "user" ? "flex-end" : "flex-start",
-                background:
-                  msg.role === "user"
-                    ? "linear-gradient(135deg, #d1e7dd, #bcd9c9)"
-                    : "linear-gradient(135deg, #d6eaff, #b3d4ff)",
-                color: msg.role === "user" ? "#0f5132" : "#0b3d91",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                wordWrap: "break-word",
-                fontSize: "14px",
-                lineHeight: "1.5",
-                transition: "transform 0.2s ease-in-out",
+                textAlign: msg.role === "user" ? "right" : "left",
+                margin: "10px 0",
               }}
             >
-              {msg.content}
+              <div
+                style={{
+                  display: "inline-block",
+                  padding: "8px 12px",
+                  borderRadius: "8px",
+                  backgroundColor: msg.role === "user" ? "#d1e7dd" : "#f8d7da",
+                }}
+                dangerouslySetInnerHTML={{ __html: makeLinksClickable(msg.content) }}
+              />
             </div>
           ))}
-
-          {isTyping && (
-            <div
-              style={{
-                padding: "10px 14px",
-                margin: "6px 0",
-                borderRadius: "18px",
-                maxWidth: "60%",
-                alignSelf: "flex-start",
-                background: "linear-gradient(135deg, #d6eaff, #b3d4ff)",
-                color: "#0b3d91",
-                boxShadow: "0 2px 6px rgba(0,0,0,0.08)",
-                fontSize: "14px",
-                display: "flex",
-                alignItems: "center",
-                gap: "4px",
-              }}
-            >
-              <span>Escribiendo</span>
-              <span className="typing-dots" style={{ display: "inline-flex" }}>
-                <span
-                  style={{
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    background: "#0b3d91",
-                    margin: "0 1px",
-                    animation: "blink 1s infinite 0s",
-                  }}
-                ></span>
-                <span
-                  style={{
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    background: "#0b3d91",
-                    margin: "0 1px",
-                    animation: "blink 1s infinite 0.2s",
-                  }}
-                ></span>
-                <span
-                  style={{
-                    width: "6px",
-                    height: "6px",
-                    borderRadius: "50%",
-                    background: "#0b3d91",
-                    margin: "0 1px",
-                    animation: "blink 1s infinite 0.4s",
-                  }}
-                ></span>
-              </span>
-            </div>
-          )}
+          {isTyping && <p>Escribiendo...</p>}
         </div>
 
-        <style jsx>{`
-          @keyframes blink {
-            0%,
-            80%,
-            100% {
-              opacity: 0.2;
+        <textarea
+          ref={textAreaRef}
+          value={input}
+          onChange={handleInputChange}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && !e.shiftKey) {
+              e.preventDefault();
+              sendMessage();
             }
-            40% {
-              opacity: 1;
-            }
-          }
-        `}</style>
-
-        <div
-          id="controls"
-          style={{
-            display: "flex",
-            alignItems: "flex-end",
-            marginTop: "12px",
-            width: "100%",
-            maxWidth: "420px",
-            gap: "10px",
           }}
+          placeholder="Escribe tu mensaje..."
+          style={{
+            flex: 1,
+            resize: "none",
+            height: textAreaHeight,
+            maxHeight: "100px",
+            padding: "10px 12px",
+            borderRadius: "10px",
+            border: "none",
+            outline: "none",
+            fontSize: "14px",
+            lineHeight: "1.4",
+            transition: "all 0.2s ease",
+            background: "#fff",
+            boxShadow: "0 1px 3px rgba(0,0,0,0.1) inset",
+          }}
+        />
+        <button
+          onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.96)")}
+          onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
+          onClick={sendMessage}
         >
-          <textarea
-            ref={textAreaRef}
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={(e) =>
-              e.key === "Enter" && !e.shiftKey && (e.preventDefault(), sendMessage())
-            }
-            placeholder="Escribe tu mensaje..."
-            style={{
-              flex: 1,
-              resize: "none",
-              height: textAreaHeight,
-              maxHeight: "100px",
-              padding: "10px 12px",
-              borderRadius: "10px",
-              border: "none", // 🔹 sin borde
-              outline: "none", // 🔹 sin contorno al hacer clic
-              fontSize: "14px",
-              lineHeight: "1.4",
-              transition: "all 0.2s ease",
-              background: "#fff",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1) inset",
-            }}
-          />
-          <button
-            onClick={sendMessage}
-            style={{
-              padding: "10px 15px",
-              border: "none",
-              background: "linear-gradient(135deg, #3b82f6, #2563eb)",
-              color: "#fff",
-              borderRadius: "10px",
-              cursor: "pointer",
-              fontSize: "14px",
-              fontWeight: "600",
-              boxShadow: "0 3px 8px rgba(59,130,246,0.3)",
-              transition: "transform 0.15s ease",
-            }}
-            onMouseDown={(e) =>
-              (e.currentTarget.style.transform = "scale(0.96)")
-            }
-            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-          >
-            Enviar
-          </button>
-        </div>
-      </main>
+          Enviar
+        </button>
+      </div>
     </>
   );
 }
