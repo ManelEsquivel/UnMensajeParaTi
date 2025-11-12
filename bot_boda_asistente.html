@@ -13,21 +13,22 @@
       flex-direction: column;
       height: 100vh;
     }
-    #chat {
+    #chat-box {
       flex: 1;
       padding: 20px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
     }
-    .mensaje {
+    .bubble {
       max-width: 70%;
       margin: 5px;
       padding: 10px 15px;
       border-radius: 20px;
       line-height: 1.4;
+      font-size: 16px;
     }
-    .usuario {
+    .user {
       align-self: flex-end;
       background-color: #0078d4;
       color: white;
@@ -43,14 +44,14 @@
       border-top: 1px solid #ccc;
       background-color: white;
     }
-    #pregunta {
+    #chat-input {
       flex: 1;
       padding: 10px;
       font-size: 16px;
       border: 1px solid #ccc;
       border-radius: 10px;
     }
-    button {
+    #send-btn {
       margin-left: 10px;
       padding: 10px 20px;
       font-size: 16px;
@@ -60,56 +61,19 @@
       border-radius: 10px;
       cursor: pointer;
     }
+    #send-btn:hover {
+      background-color: #005fa3;
+    }
   </style>
 </head>
 <body>
-  <div id="chat"></div>
+  <div id="chat-box"></div>
   <div id="entrada">
-    <input type="text" id="pregunta" placeholder="Escribe tu pregunta...">
-    <button onclick="enviarPregunta()">Enviar</button>
+    <input type="text" id="chat-input" placeholder="Escribe tu pregunta...">
+    <button id="send-btn">Enviar</button>
   </div>
 
-  <script>
-    const chatDiv = document.getElementById('chat');
-    const historial = [
-      {
-        role: "system",
-        content: "Eres un asistente para una boda. Responde preguntas sobre ceremonia, banquete, transporte, alojamiento, comida, vestimenta y confirmación de asistencia."
-      }
-    ];
-
-    function agregarMensaje(texto, clase) {
-      const mensaje = document.createElement('div');
-      mensaje.className = 'mensaje ' + clase;
-      mensaje.textContent = texto;
-      chatDiv.appendChild(mensaje);
-      chatDiv.scrollTop = chatDiv.scrollHeight;
-    }
-
-    async function enviarPregunta() {
-      const input = document.getElementById('pregunta');
-      const pregunta = input.value.trim();
-      if (!pregunta) return;
-
-      agregarMensaje(pregunta, 'usuario');
-      historial.push({ role: "user", content: pregunta });
-      input.value = "";
-
-      try {
-        const res = await fetch('/api/chat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ historial })
-        });
-
-        const data = await res.json();
-        const respuesta = data.respuesta || "Lo siento, no tengo información sobre eso.";
-        agregarMensaje(respuesta, 'bot');
-        historial.push({ role: "assistant", content: respuesta });
-      } catch (error) {
-        agregarMensaje("Error al conectar con el servidor.", 'bot');
-      }
-    }
-  </script>
+  <!-- Aquí enlazamos el script externo -->
+  chat.js</script>
 </body>
 </html>
