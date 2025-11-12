@@ -1,4 +1,5 @@
 // pages/api/chat.js
+// pages/api/chat.js
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -15,23 +16,22 @@ export default async function handler(req, res) {
     date: "31 de octubre de 2026",
     time: "12:00",
     location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
-    detailUbisUrl: "https://www.bodas.net/web/manel-y-carla/ubicacion-8",
-    banquete: "El banquete será en el mismo recinto, justo después del aperitivo"
-    asistencia: "https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3"  
-    regalo: "El banquete será en el mismo recinto, justo después del aperitivo"
+    detailsUrl: "https://www.bodas.net/web/manel-y-carla/ubicacion-8",
+    banquet: "en el mismo recinto, justo después del aperitivo",
+    dressCode: "Formal, colores claros recomendados",
+    transport: "Habrá parking gratuito y servicio de taxi disponible",
+    accommodation: "Hoteles cercanos: Hotel Miramar y Hotel Sant Fost"
   };
 
   // ✅ Prompt dinámico
   const systemPrompt = `Eres un asistente de boda amable y servicial. Responde en español, de forma clara y breve.
   La boda será el ${weddingInfo.date} a las ${weddingInfo.time} en ${weddingInfo.location}.
-  Más detalles de ubicación: ${weddingInfo.detailUbisUrl}.
-  Confirmar asistencia: ${weddingInfo.asistencia}
-  El banquete será ${weddingInfo.banquete}.
-  
-  Si alguien pregunta por la hora, el lugar o el banquete, responde con estos datos.
-  Para regalos: tu presencia es lo más importante, pero si deseas colaborar, agradecemos una aportación económica para nuestra nueva etapa juntos.
-  Si alguien pregunta por la vestimenta, resoponde que es principalmente formal.`;
-
+  Más detalles: ${weddingInfo.detailsUrl}.
+  El banquete será ${weddingInfo.banquet}.
+  Código de vestimenta: ${weddingInfo.dressCode}.
+  Transporte: ${weddingInfo.transport}.
+  Alojamiento: ${weddingInfo.accommodation}.
+  Si alguien pregunta por la hora, el lugar, el banquete, la vestimenta, transporte o alojamiento, responde con estos datos.`;
 
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
