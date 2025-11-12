@@ -1,11 +1,8 @@
-// chat.js - Lógica del chatbot en el frontend
-
-// Historial de conversación para mantener contexto
+// chat.js
 let conversationHistory = [
   { role: "system", content: "Eres un asistente para una boda. Responde con claridad y amabilidad." }
 ];
 
-// Preguntas frecuentes (fallback)
 const faq = {
   "¿dónde es la ceremonia?": "La ceremonia será en la Iglesia San Pedro, a las 12:00.",
   "¿dónde es el banquete?": "El banquete será en el Restaurante El Jardín, a las 14:00.",
@@ -14,7 +11,6 @@ const faq = {
   "¿hay alojamiento?": "Sí, hemos reservado habitaciones en el Hotel Central. Contacta con nosotros para más detalles."
 };
 
-// Función para enviar mensaje al backend seguro (API route en Vercel)
 async function sendMessageToAI(userMessage) {
   conversationHistory.push({ role: "user", content: userMessage });
 
@@ -31,7 +27,6 @@ async function sendMessageToAI(userMessage) {
   return aiReply;
 }
 
-// Función principal para manejar el chat
 async function handleUserMessage(userMessage) {
   const normalized = userMessage.toLowerCase().trim();
 
@@ -40,15 +35,13 @@ async function handleUserMessage(userMessage) {
   }
 
   try {
-    const aiReply = await sendMessageToAI(userMessage);
-    return aiReply;
+    return await sendMessageToAI(userMessage);
   } catch (error) {
     console.error("Error al conectar con el backend:", error);
     return "Lo siento, hubo un problema al procesar tu pregunta. Intenta de nuevo.";
   }
 }
 
-// Integración con HTML
 document.addEventListener("DOMContentLoaded", () => {
   const input = document.getElementById("chat-input");
   const sendBtn = document.getElementById("send-btn");
@@ -58,7 +51,6 @@ document.addEventListener("DOMContentLoaded", () => {
     const userMessage = input.value;
     if (!userMessage) return;
 
-    // Mostrar mensaje del usuario
     const userBubble = document.createElement("div");
     userBubble.className = "bubble user";
     userBubble.textContent = userMessage;
@@ -66,10 +58,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
     input.value = "";
 
-    // Obtener respuesta
     const reply = await handleUserMessage(userMessage);
 
-    // Mostrar respuesta del bot
     const botBubble = document.createElement("div");
     botBubble.className = "bubble bot";
     botBubble.textContent = reply;
@@ -78,3 +68,4 @@ document.addEventListener("DOMContentLoaded", () => {
     chatBox.scrollTop = chatBox.scrollHeight;
   });
 });
+
