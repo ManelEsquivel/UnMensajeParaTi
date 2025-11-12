@@ -31,7 +31,7 @@ export default async function handler(req, res) {
         "Authorization": `Bearer ${process.env.OPENAI_API_KEY}`,
       },
       body: JSON.stringify({
-        model: "gpt-4o-mini", // Puedes cambiar a gpt-4o si prefieres más calidad
+        model: "gpt-4o-mini",
         messages: [
           { role: "system", content: "Eres un asistente de boda amable y servicial. Responde en español, de forma clara y breve." },
           ...(history || []),
