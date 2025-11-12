@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 
@@ -38,6 +37,8 @@ export default function BotBodaAsistente() {
       <Head>
         <title>Asistente de Boda</title>
         <meta name="description" content="Asistente virtual para la boda de Manel y Carla" />
+        {/* Evitar zoom en móviles */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
       </Head>
 
       <main style={styles.main}>
@@ -83,22 +84,22 @@ const styles = {
     display: "flex",
     flexDirection: "column",
     alignItems: "center",
-    padding: "20px",
+    padding: "10px",
     minHeight: "100vh",
   },
   title: {
     color: "#333",
-    marginBottom: "15px",
-    fontSize: "24px",
+    marginBottom: "10px",
+    fontSize: "20px",
   },
   chatBox: {
     width: "100%",
-    maxWidth: "450px",
-    height: "500px",
+    maxWidth: "500px",
+    height: "70vh",
     background: "#fff",
     borderRadius: "12px",
     border: "1px solid #ddd",
-    padding: "15px",
+    padding: "10px",
     overflowY: "auto",
     display: "flex",
     flexDirection: "column",
@@ -112,7 +113,6 @@ const styles = {
     wordWrap: "break-word",
     fontSize: "15px",
     lineHeight: "1.4",
-    transition: "background 0.3s ease",
   },
   userBubble: {
     alignSelf: "flex-end",
@@ -133,26 +133,25 @@ const styles = {
     justifyContent: "center",
     marginTop: "12px",
     width: "100%",
-    maxWidth: "450px",
+    maxWidth: "500px",
   },
   input: {
     flex: 1,
-    padding: "10px",
-    borderRadius: "6px",
+    padding: "12px",
+    borderRadius: "8px",
     border: "1px solid #ccc",
-    fontSize: "14px",
+    fontSize: "16px", // tamaño fijo para evitar zoom
     outline: "none",
   },
   button: {
     marginLeft: "10px",
-    padding: "10px 15px",
+    padding: "12px 16px",
     border: "none",
     background: "#007bff",
     color: "#fff",
-    borderRadius: "6px",
+    borderRadius: "8px",
     cursor: "pointer",
-    fontSize: "16px",
+    fontSize: "18px",
   },
 };
-
 
