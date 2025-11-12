@@ -1,6 +1,4 @@
 // pages/api/chat.js
-
-// pages/api/chat.js
 export default async function handler(req, res) {
   // Comprobación de la variable en logs
   console.log("¿OPENAI_API_KEY existe?", !!process.env.OPENAI_API_KEY);
@@ -21,7 +19,10 @@ export default async function handler(req, res) {
   const { message, history } = req.body;
   if (!message) {
     return res.status(400).json({ reply: "No se recibió ningún mensaje." });
-  const response = await fetch("https://api.openai.com/v1/chat/completions", {
+  }
+
+  try {
+    const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
