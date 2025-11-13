@@ -85,6 +85,9 @@ Didac,,PENDIENTE
 Mujer,Didac,PENDIENTE
 `;
 
+  // --- CÁLCULO DE CONFIRMADOS (Actualizar si la lista cambia) ---
+  const confirmedGuestsCount = 2; // Manel y Carla (por defecto)
+
   // --- DATA CLAVE PARA APERITIVO ---
   const aperitivoPrincipalesFormatoLista = `
 * Roll de salmón ahumado, con crema de anchoas y brotes de albahaca crujiente
@@ -204,6 +207,9 @@ ${guestList}
     
 4.  **No Encontrado:** Si el nombre/apellido no tiene ninguna coincidencia en la lista, debes responder: "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla."
     
+
+## 📊 STATUS
+- **INSTRUCCIÓN CLAVE (CONFIRMADOS):** Si preguntan cuánta gente o cuántos invitados han confirmado, DEBES responder ÚNICAMENTE: "Hasta el momento, un total de **${confirmedGuestsCount} invitados** han confirmado su asistencia."
 
 ## 👨‍👩‍👧‍👦 Familias
 - Si preguntan por los padres de Manel, son **${weddingInfo.padresManel}**.
