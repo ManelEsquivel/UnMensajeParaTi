@@ -11,6 +11,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ reply: "No se recibió ningún mensaje." });
   }
 
+  // Función de normalización de texto: quita tildes, convierte a minúsculas y limpia espacios
+  const normalize = (str) => {
+    if (!str) return '';
+    return str.toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .trim();
+  };
+
   // --- LISTA DE INVITADOS (NOMBRE, APELLIDO, CONFIRMADO) ---
   const guestList = `
 NOMBRE,APELLIDOS,CONFIRMADO
@@ -101,49 +110,45 @@ Mujer,Didac,PENDIENTE
     urlConfirmacion: "https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3"
   };
 
-  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (Anti-Bucle) ---
+  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (Anti-Bucle y Desambiguación) ---
 
-  const normalizedMessage = message.toLowerCase();
+  const normalizedMessage = normalize(message);
   const messageWords = normalizedMessage
     .replace(/[.,;:!?¡¿'"()]/g, "")
     .split(/\s+/)
     .filter(Boolean);
-
-  const messageString = messageWords.join(' '); 
 
   const guestEntries = guestList
     .trim()
     .split("\n")
     .slice(1)
     .map(line => {
-      const parts = line.split(",").map(x => (x || "").trim().toLowerCase());
+      const parts = line.split(",").map(x => (x || "").trim());
       const nombre = parts[0];
       const apellido = parts[1];
       const confirmado = parts[2];
-      const fullName = `${nombre} ${apellido}`.trim(); 
-      return { nombre, apellido, confirmado, fullName };
+      return { 
+        nombre, 
+        apellido, 
+        confirmado, 
+        nombre_norm: normalize(nombre),
+        apellido_norm: normalize(apellido),
+      };
     });
 
-  // 1. Find all guests that match any single word or partial name (for Ambiguity)
+  // 1. Encuentra todos los matches (Coincidencia Parcial o Completa)
   const matches = guestEntries.filter(g => 
       messageWords.some(word => 
-          word === g.nombre || 
-          word === g.apellido || 
-          g.nombre.startsWith(word) 
+          g.nombre_norm.includes(word) || // Coincide si el nombre contiene la palabra (Alex en Alex Espada)
+          g.apellido_norm.includes(word) || // Coincide si el apellido contiene la palabra (Espada en Alex Espada)
+          (g.nombre_norm + ' ' + g.apellido_norm).includes(normalizedMessage) // Coincidencia de nombre completo
       )
   );
 
-  // 2. Find guests that match the exact input string (for Unique Match resolution)
-  const exactMatches = guestEntries.filter(g => 
-      g.fullName === messageString
-  );
-
-
-  // 3. Heurística de detección (activar el bloqueo JS si parece un intento de nombre)
+  // 2. Heurística de detección (Solo si no hay coincidencia, pero parece una pregunta de nombre)
   const isLikelyNameQuery = messageWords.length > 0 && (
-      exactMatches.length > 0 || // Si hay coincidencia exacta (ej: "alex espada"), es una consulta de nombre.
-      matches.length > 0 || // Si hay alguna coincidencia parcial.
-      messageWords.length <= 3 || // Si es una frase muy corta (ej: "soy Alex" o "García").
+      matches.length > 0 || 
+      messageWords.length <= 3 || 
       /\b(soy|me llamo|mi nombre es|yo soy|invitado|lista)\b/i.test(normalizedMessage)
   );
   
@@ -151,33 +156,29 @@ Mujer,Didac,PENDIENTE
 
   if (isLikelyNameQuery) {
       
-      // PRIORITY A: Coincidencia Única Exacta (pasa a la IA para aplicar reglas especiales)
-      if (exactMatches.length === 1) {
-          // Si hay una coincidencia exacta de nombre completo, dejamos que el flujo siga a la IA
-          // para que aplique las reglas especiales (2.A-2.L) y luego la general (3).
-      } 
-      // PRIORITY B: Ambüedad (Múltiples coincidencias parciales)
-      else if (matches.length > 1) {
+      // Caso B: Ambigüedad (Múltiples coincidencias, p.ej. "Alex" o "Lopez")
+      if (matches.length > 1) {
           const replyText =
             "Hay varias personas en la lista con un nombre o apellido similar. ¿Me podrías indicar tu nombre completo (Nombre y Apellido) por favor?";
           return res.status(200).json({ reply: marked.parse(replyText) });
       } 
-      // PRIORITY C: Coincidencia Única Parcial (pasa a la IA para aplicar reglas especiales)
-      else if (matches.length === 1) {
-          // Si hay solo 1 coincidencia parcial, es probablemente la persona correcta. Pasa a la IA.
-      } 
-      // PRIORITY D: No hay coincidencias (FIN DEL BUUCLE asegurado)
-      else { // matches.length === 0, pero isLikelyNameQuery es true (ej: "García" o "Pedro Pérez")
+      
+      // Caso C: No hay coincidencias (p.ej. "Pedro García")
+      else if (matches.length === 0) { 
           const replyText =
             "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
           return res.status(200).json({ reply: marked.parse(replyText) });
       }
+      
+      // Caso A: Coincidencia Única (matches.length === 1) -> Pasa a la IA.
+      // Si llegamos aquí, el mensaje contiene una única coincidencia validada.
   }
   
   // --- FIN DE PROCESAMIENTO DE NOMBRES EN JAVASCRIPT ---
 
 
   // --- DATA CLAVE PARA APERITIVO ---
+  // ... (Se mantiene el código del aperitivo sin cambios) ...
   const aperitivoPrincipalesFormatoLista = `
 * Roll de salmón ahumado, con crema de anchoas y brotes de albahaca crujiente
 * Crostini de escalivada asada con ventresca de atún
@@ -236,6 +237,11 @@ Responde en español si te escriben en español y si te escriben en catalán, re
 - **INSTRUCCIÓN CLAVE (PRIVACIDAD):** Si se pregunta por los datos almacenados o la privacidad, DEBES responder ÚNICAMENTE: "El sistema solo almacena el nombre y apellido de los invitados de la lista provista por los novios. No se recoge, divulga ni almacena ningún otro dato personal o sensible, respetando totalmente la privacidad y el RGPD."
 
 ## 🤵👰 VERIFICACIÓN DE INVITADOS
+- **INSTRUCCIÓN CLAVE (Detección de Nombres - ¡IRROMPIBLE!):** Al procesar un mensaje que parece contener un nombre (cualquier mensaje que el JavaScript NO haya interceptado y respondido por Ambigüedad o No-Coincidencia), **DEBES** hacer lo siguiente:
+    1.  **Busca la Coincidencia:** Busca el nombre o apellido en el mensaje del usuario y compáralo con la ${guestList} que está abajo, **IGNORANDO mayúsculas, minúsculas y tildes**.
+    2.  **Aplica Regla:** Si encuentras una coincidencia única, aplica la regla especial (2.A a 2.J) o la regla general (3).
+    3.  **GARANTÍA DE RESPUESTA:** **NUNCA** vuelvas a preguntar el nombre completo si el mensaje del usuario ya está aquí (el JS ya desambiguó). **NUNCA** respondas que no encuentras el nombre si la persona está en la lista. **SIEMPRE** aplica una regla de confirmación (2.A-2.L o 3) si encuentras el nombre.
+
 - **LISTA DE INVITADOS (NOMBRE, APELLIDOS, CONFIRMADO):**
 ${guestList}
 
