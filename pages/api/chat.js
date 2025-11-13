@@ -134,9 +134,11 @@ Mujer,Didac,PENDIENTE
   
   const matches = findMatches(messageWords);
   
-  // Check if the user is asking to be checked/is identifying
+  // Heurística de detección: Un intento de verificación si hay coincidencia, o si es una respuesta corta
+  // (para atrapar el apellido sin palabras clave), o si incluye las palabras clave.
   const isLikelyNameQuery = messageWords.length > 0 && (
       matches.length > 0 ||
+      messageWords.length <= 2 || // <-- CLAVE: Esto atrapa respuestas cortas como "García"
       /\b(soy|me llamo|mi nombre es|yo soy|invitado|lista)\b/i.test(normalizedMessage)
   );
   
@@ -153,14 +155,14 @@ Mujer,Didac,PENDIENTE
     }
 
     // Escenario C: No hay coincidencias (FIN DEL BUCLE asegurado)
-    if (matches.length === 0 && messageWords.length > 1) { // Requires a few words to confirm they are trying to provide a name
+    if (matches.length === 0) { // Si ya fue marcado como LikelyNameQuery y no hay matches
       const replyText =
         "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
       // Retorno JSON directo, saltando OpenAI
       return res.status(200).json({ reply: marked.parse(replyText) });
     }
     
-    // Escenario D: Solicitud inicial para verificación - redirigir a la IA para empezar
+    // Escenario D: Solicitud inicial para verificación - redirigir a la IA para obtener la Regla 1
     if (matches.length === 0 && (normalizedMessage.includes("invitado") || normalizedMessage.includes("lista") || normalizedMessage.includes("soy"))) {
         // Permitir que pase a la IA para obtener la Regla 1 (pedir nombre)
     }
@@ -268,11 +270,12 @@ ${guestList}
         * **Si el estado es PENDIENTE:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Sin embargo, tu asistencia se encuentra **PENDIENTE** de confirmación. Por favor, confírmala en la web: [Confirmar Asistencia Aquí](${weddingInfo.urlConfirmacion}). ¡Te esperamos con mucha ilusión!".
     
 
+// ... (Resto de las Reglas sin cambios) ...
+
 ## 📊 STATUS
 - **INSTRUCCIÓN CLAVE (CONFIRMADOS/PRIVACIDAD):** Si preguntan cuánta gente o cuántos invitados han confirmado, DEBES responder ÚNICAMENTE: "Hasta el momento, un total de **${confirmedGuestsCount} invitados** han confirmado su asistencia."
   Si el usuario pregunta por los **nombres** o **detalles específicos** de los confirmados, DEBES añadir al final de tu respuesta (después del número): "Para más detalles sobre los invitados, lo mejor es que contactes directamente con Manel o Carla."
 
-// ... (Resto de las Reglas sin cambios) ...
 
 ## 👨‍👩‍👧‍👦 Familias
 - Si preguntan por los padres de Manel, son **Manuel y Maria Dolors**.
@@ -400,4 +403,3 @@ Responde: "¡Sí! Los novios tendrán un detalle para todos los invitados. Si qu
     res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
   }
 }
-
