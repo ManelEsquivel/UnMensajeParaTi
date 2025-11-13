@@ -3,7 +3,7 @@ import { marked } from "marked";
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
-    return res.status(405).json({ reply: "Método no permitido" });
+    return res.status(405).json({ reply: "Método no permitido" }); 
   }
 
   const { message } = req.body;
