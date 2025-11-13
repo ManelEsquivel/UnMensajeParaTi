@@ -76,7 +76,6 @@ Mujer Didac,
 `;
 
   // --- DATA CLAVE PARA APERITIVO ---
-  // 🟢 AJUSTE CLAVE: USAMOS FORMATO DE LISTA MARKDOWN (* o -) DENTRO DE LA VARIABLE
   const aperitivoPrincipalesFormatoLista = `
 * Roll de salmón ahumado, con crema de anchoas y brotes de albahaca crujiente
 * Crostini de escalivada asada con ventresca de atún
@@ -102,7 +101,7 @@ Además, tendremos Showcooking y Corte:
 * Zamburiñas, almejas y navajas
 `;
   
-  // 🟢 RESPUESTA COMPLETA Y PRE-FORMATEADA para la pregunta general del aperitivo
+  // RESPUESTA COMPLETA Y PRE-FORMATEADA para la pregunta general del aperitivo
   const aperitivoResponseCompleta = `¡Claro! Para el aperitivo, habrá una gran variedad de platos deliciosos. 🍽️
 ${aperitivoPrincipalesFormatoLista}
 
@@ -111,7 +110,7 @@ ${aperitivoAdicionales}
 ¡Una variedad exquisita para disfrutar!
 `;
 
-  // RESPUESTA PARA VEGETARIANOS/INTOLERANCIAS (SIN CAMBIOS)
+  // RESPUESTA PARA VEGETARIANOS/INTOLERANCIAS
   const aperitivoVegetarianoResponse = `
   ¡Por supuesto! Para los invitados vegetarianos, los platos principales disponibles en el aperitivo (excluyendo carne, pescado y marisco) son:
   
@@ -140,7 +139,11 @@ ${aperitivoAdicionales}
       - Banquete: de 15:30 a 19:00
       - Fiesta y barra libre: de 19:00 a 21:00
     `,
-    fiestaActividades: "Para la fiesta (después del banquete) tendremos un **Videomatón 360º** y un **Fotomatón** para que todos se lleven un gran recuerdo.",
+    // 🟢 VARIABLE REVISADA: Incluye ahora la barra libre
+    fiestaActividades: `Para la fiesta (de 19:00 a 21:00) tendremos un **Videomatón 360º** y un **Fotomatón** para que todos se lleven un gran recuerdo. 
+    
+    Además, habrá barra libre durante **2 horas**.`,
+    
     padresManel: "Manuel y Maria Dolors",
     padresCarla: "Jordi y Eva",
   };
@@ -155,7 +158,7 @@ Responde en español si te escriben en español y si te escriben en catalán, re
 - **LISTA DE INVITADOS (NOMBRE, APELLIDO):**
 ${guestList}
 
-- **INSTRUCCIONES CLAVE (REVISADAS):**
+- **INSTRUCCIONES CLAVE:**
 1.  Si el usuario pregunta: "¿Estoy invitado?" o similar, debes pedir amablemente su **Nombre y Apellido** para verificar la lista.
 2.  Si el usuario da un nombre que **coincide exactamente con UNA única persona** en la lista (NOMBRE y/o APELLIDO), responde: "Sí, estás en la lista de invitados. ¡Te esperamos con mucha ilusión!".
 3.  Si el usuario da un nombre que **coincide con MÁS de una persona** (ej: "Alex" aparece con Espada y Ferré), debes preguntar: "¿Me podrías indicar tu apellido, por favor? Tenemos varias personas con ese nombre en la lista."
@@ -184,7 +187,7 @@ ${aperitivoVegetarianoResponse}
 ${weddingInfo.schedule}
 
 ## 🥳 Fiesta
-- Si preguntan por la fiesta o actividades después del banquete:
+- **INSTRUCCIÓN CLAVE (FIESTA/BARRA LIBRE):** Si preguntan por la fiesta, las actividades o la barra libre, DEBES usar el siguiente texto, mencionando explícitamente la barra libre de 2 horas:
 **${weddingInfo.fiestaActividades}**
 
 ## 👗 Otros Datos
@@ -199,7 +202,7 @@ ${weddingInfo.schedule}
 Responde de manera amable que pueden ver toda la información en este enlace: [Número de Cuenta](https://www.bodas.net/web/manel-y-carla/regalosdeboda-11).
 
 - Si alguien pregunta por **regalos** en general, o por la lista de boda:
-Responde de manera amable y discreta que no es necesario, pero si desean más información pueden visitar: [Regalos de boda](https://www.bodas.net/web/manel-y-carla/regalosdeboda-11).
+Responde de manera amable y discreta que no es necesario, pero si desean más información pueden visitar: [Regalos de boda](https://www.bodas.net/web/manel-y-carla/regalos-8).
 
 
 ---
