@@ -43,7 +43,7 @@ ${weddingInfo.schedule}
 🚗 Transporte: ${weddingInfo.transport}.
 🏨 Alojamiento: ${weddingInfo.accommodation}.
 
-Si alguien pregunta por regalos (por ejemplo: "¿hay lista de boda?", "¿qué puedo regalar?", "¿cómo hacemos con los regalos?"), responde de manera amable y discreta que no es necesario, pero si desean más información pueden visitar: [Regalos de boda](https://www.bodas.net/web/manel-y-carla/regalos-8).
+Si alguien pregunta por regalos (por ejemplo: "¿hay lista de boda?", "¿qué puedo regalar?", "¿cómo hacemos con los regalos?"), responde de manera amable y discreta que no es necesario, pero si desean más información pueden visitar: [Regalos de boda](https://www.bodas.net/web/manel-y-carla/regalosdeboda-11).
 
 IMPORTANTE:
 - Usa SIEMPRE el formato Markdown correcto para enlaces: [Texto](URL)
