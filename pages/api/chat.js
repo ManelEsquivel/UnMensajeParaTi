@@ -11,6 +11,15 @@ export default async function handler(req, res) {
     return res.status(400).json({ reply: "No se recibió ningún mensaje." });
   }
 
+  // Función de normalización de texto: quita tildes, convierte a minúsculas y limpia espacios
+  const normalize = (str) => {
+    if (!str) return '';
+    return str.toLowerCase()
+              .normalize("NFD")
+              .replace(/[\u0300-\u036f]/g, "")
+              .trim();
+  };
+
   // --- LISTA DE INVITADOS (NOMBRE, APELLIDO, CONFIRMADO) ---
   const guestList = `
 NOMBRE,APELLIDOS,CONFIRMADO
@@ -88,6 +97,132 @@ Mujer,Didac,PENDIENTE
   // --- CÁLCULO DE CONFIRMADOS (Actualizar si la lista cambia) ---
   const confirmedGuestsCount = 2; // Manel y Carla (por defecto)
 
+  // --- INFO GENERAL BODA ---
+  const weddingInfo = {
+    date: "31 de octubre de 2026",
+    time: "de 12:00 a 21:00 aproximadamente",
+    location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
+    detailUbisUrl: "https://www.bodas.net/web/manel-y-carla/ubicacion-8",
+    banquet: "en el mismo recinto, justo después del aperitivo",
+    dressCode: "Formal",
+    transport: "Habrá parking gratuito y servicio de taxi disponible",
+    accommodation: "Hoteles cercanos: Celler Suites y Villas Coliving",
+    urlConfirmacion: "https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3"
+  };
+
+  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (Anti-Bucle y Desambiguación) ---
+
+  const normalizedMessage = normalize(message);
+  const messageWords = normalizedMessage
+    .replace(/[.,;:!?¡¿'"()]/g, "")
+    .split(/\s+/)
+    .filter(Boolean);
+
+  const guestEntries = guestList
+    .trim()
+    .split("\n")
+    .slice(1)
+    .map(line => {
+      const parts = line.split(",").map(x => (x || "").trim());
+      const nombre = parts[0];
+      const apellido = parts[1];
+      const confirmado = parts[2];
+      const nombre_norm = normalize(nombre);
+      const apellido_norm = normalize(apellido);
+      return { 
+        nombre, 
+        apellido, 
+        confirmado, 
+        nombre_norm,
+        apellido_norm,
+        fullName_norm: `${nombre_norm} ${apellido_norm}`.trim()
+      };
+    });
+
+  // 1. Encuentra coincidencias exactas (Nombre Completo)
+  const exactFullNameMatches = guestEntries.filter(g => 
+      g.fullName_norm === normalizedMessage
+  );
+
+  // 2. Encuentra coincidencias por palabra (para ambigüedad, solo si no hay coincidencia exacta)
+  let wordMatches = [];
+  if (exactFullNameMatches.length === 0) {
+      wordMatches = guestEntries.filter(g => 
+          messageWords.some(word => 
+              g.nombre_norm.split(' ').includes(word) || 
+              g.apellido_norm.includes(word)
+          )
+      );
+  }
+
+  let forcedGuest = null;
+  const isLikelyNameQuery = messageWords.length > 0 && (
+      exactFullNameMatches.length > 0 ||
+      wordMatches.length > 0 || 
+      messageWords.length <= 3 || 
+      /\b(soy|me llamo|mi nombre es|yo soy|invitado|lista)\b/i.test(normalizedMessage)
+  );
+
+  // --- ESCENARIOS DE RESPUESTA DIRECTA (Anti-Bucle) ---
+
+  if (isLikelyNameQuery) {
+      
+      // PRIORITY A: Coincidencia Única (Exacta o Parcial y Única) -> PASA A LA IA Y FUERZA REGLA
+      if (exactFullNameMatches.length >= 1) {
+          // El nombre completo SIEMPRE debe ser un match único, tomamos el primero.
+          forcedGuest = exactFullNameMatches[0];
+      } else if (wordMatches.length === 1) {
+          // Coincidencia parcial, pero única (ej. "Marta" -> Marta Oliver)
+          forcedGuest = wordMatches[0];
+      } 
+      
+      if (forcedGuest) {
+          // Unique match found, flow continues to AI.
+      }
+      
+      // PRIORITY B: Ambigüedad (Múltiples coincidencias parciales)
+      else if (wordMatches.length > 1) {
+          const replyText =
+            "Hay varias personas en la lista con un nombre o apellido similar. ¿Me podrías indicar tu nombre completo (Nombre y Apellido) por favor?";
+          return res.status(200).json({ reply: marked.parse(replyText) });
+      } 
+      
+      // PRIORITY C: No hay coincidencias
+      else { // exactFullNameMatches.length === 0 AND wordMatches.length === 0
+          const replyText =
+            "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
+          return res.status(200).json({ reply: marked.parse(replyText) });
+      }
+  }
+  
+  // --- FIN DE PROCESAMIENTO DE NOMBRES EN JAVASCRIPT ---
+
+  // --- CONDICIONAL PROMPT INJECTION (FORZAR LA REGLA) ---
+  let aiForcedInstruction = "";
+  if (forcedGuest) {
+      const guestName = forcedGuest.nombre;
+      const guestSurname = forcedGuest.apellido;
+      const guestStatus = forcedGuest.confirmado;
+      const fullName = `${guestName} ${guestSurname}`.trim();
+      
+      // Forzar a la IA a usar el nombre identificado y aplicar las reglas especiales o la general.
+      aiForcedInstruction = `
+      ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
+      El mensaje del usuario ha sido analizado por el backend y se ha identificado a un ÚNICO invitado:
+      - Nombre Completo: **${fullName}**
+      - Estado: **${guestStatus}**
+      
+      **TU TAREA ES SIMPLE:** IGNORA la Regla 1 y TODAS las Reglas 2.K y 4.
+      BUSCA la coincidencia para "${fullName}" SÓLO en las Reglas Especiales (2.A a 2.J).
+      - **Si encuentras una coincidencia en 2.A-2.J (usando "${fullName}"), APLICA esa regla ÚNICAMENTE.**
+      - **Si NO encuentras una coincidencia en 2.A-2.J, APLICA la Regla 3 usando el estado "${guestStatus}" y el nombre "${fullName}" para generar la respuesta (reemplazando [Nombre] [Apellido] y [Estado]).**
+      
+      ¡NO vuelvas a preguntar el nombre ni digas que no lo encuentras!
+      `;
+  }
+  // --- FIN DE INYECCIÓN ---
+
+
   // --- DATA CLAVE PARA APERITIVO ---
   const aperitivoPrincipalesFormatoLista = `
 * Roll de salmón ahumado, con crema de anchoas y brotes de albahaca crujiente
@@ -137,7 +272,8 @@ ${aperitivoAdicionales}
   `;
   // --- FIN DATA APERITIVO ---
 
-  const weddingInfo = {
+  // --- INFO GENERAL BODA (Replicated from user's file to ensure consistency) ---
+  const weddingInfoFromUserFile = {
     date: "31 de octubre de 2026",
     time: "de 12:00 a 21:00 aproximadamente",
     location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
@@ -161,21 +297,29 @@ ${aperitivoAdicionales}
     urlConfirmacion: "https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3"
   };
 
+
   const systemPrompt = `
 Eres un asistente virtual amable y servicial para la boda de Manel y Carla.
 Responde en español si te escriben en español y si te escriben en catalán, responde en catalán, de forma clara, cálida y concisa.
 
 ---
 
+## 🔒 DECLARACIÓN DE PRIVACIDAD
+- **INSTRUCCIÓN CLAVE (PRIVACIDAD):** Si se pregunta por los datos almacenados o la privacidad, DEBES responder ÚNICAMENTE: "El sistema solo almacena el nombre y apellido de los invitados de la lista provista por los novios. No se recoge, divulga ni almacena ningún otro dato personal o sensible, respetando totalmente la privacidad y el RGPD."
+
 ## 🤵👰 VERIFICACIÓN DE INVITADOS
+${aiForcedInstruction}
+
 - **LISTA DE INVITADOS (NOMBRE, APELLIDOS, CONFIRMADO):**
 ${guestList}
 
 - **INSTRUCCIONES CLAVE (FINAL - Lógica secuencial con 11 Reglas Especiales de Prioridad):**
+// Las Reglas 2.K (Ambigüedad) y 4 (No Encontrado) se resuelven casi siempre en JavaScript.
+// El bloque de INSTRUCCIÓN DE PRIORIDAD ABSOLUTA de arriba SIEMPRE tiene preferencia sobre estas reglas.
 
 1.  **Si NO se menciona ningún nombre (Inicio):** Si el usuario pregunta "¿Estoy invitado?" o similar, **DEBES** responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
 
-2.  **Si se proporciona un nombre (en cualquier turno):** Si el mensaje del usuario contiene un nombre y/o apellido, **DEBES ignorar la Regla 1** e ir directamente a buscar coincidencias.
+2.  **Si se proporciona un nombre (en cualquier turno):**
     
     * **2.A. 🟢 PRIORIDAD ESPECIAL (Broma para Antonio Escartín):** Si el nombre o nombre y apellido proporcionado es "Antonio" o "Antonio Escartín" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Antonio! Estás en la lista, pero... ¡tu invitación es condicional! Solo te dejamos entrar si traes la guitarra y nos cantas una de Estopa. Si cumples, tu asistencia está **PENDIENTE** de confirmación aquí: [Confirmar Asistencia Aquí](${weddingInfo.urlConfirmacion}). ¡Sabes que te queremos! 😉"
     
@@ -212,36 +356,71 @@ ${guestList}
 - **INSTRUCCIÓN CLAVE (CONFIRMADOS):** Si preguntan cuánta gente o cuántos invitados han confirmado, DEBES responder ÚNICAMENTE: "Hasta el momento, un total de **${confirmedGuestsCount} invitados** han confirmado su asistencia."
 
 ## 👨‍👩‍👧‍👦 Familias
-- Si preguntan por los padres de Manel, son **${weddingInfo.padresManel}**.
-- Si preguntan por los padres de Carla, son **${weddingInfo.padresCarla}**.
+- Si preguntan por los padres de Manel, son **Manuel y Maria Dolors**.
+- Si preguntan por los padres de Carla, son **Jordi y Eva**.
 
 ## 🍽️ Aperitivo y Opciones Especiales
-- El banquete será **${weddingInfo.banquet}**.
+- El banquete será **en el mismo recinto, justo después del aperitivo**.
 
 - **INSTRUCCIÓN CLAVE (APERTIVO COMPLETO):** Si preguntan por el **Aperitivo** (la lista de platos, el menú del aperitivo, etc.), DEBES responder ÚNICAMENTE con el siguiente texto, SIN AÑADIR NI OMITIR NINGUNA PALABRA:
-${aperitivoResponseCompleta}
+¡Claro! Para el aperitivo, habrá una gran variedad de platos deliciosos. 🍽️
+* Roll de salmón ahumado, con crema de anchoas y brotes de albahaca crujiente
+* Crostini de escalivada asada con ventresca de atún
+* Mini tacos de vegetales a la parrilla
+* Trufa de foie con crocante de almendra tostada
+* Cazuela gourmet de pasta con relleno de ragú boloñesa con queso fundido y albahaca
+* Rol de requesón y nueces envuelto en calabacín asado
+* Mini ensalada de algas con perlas de yuzu y semillas de amapora
+* Chupito de mazamorra cordobesa con tropicales y mousse de ventresca
+* Croquetas de pulpo gallego
+* Simulacro de calamar con patata paja
+* Patatas bravas con alioli y su toque de valentina
+* Trilogía de hamburguesas de pollo, ternera y quinoa
+* Tiras de calamar crujiente en tempura
+* Bocado de jamón de guijuelo en croqueta cremosa
+* Vasito de romesco
+
+Además, tendremos Showcooking y Corte:
+* Jamón al corte
+* Showcooking de carnes a la brasa
+* Zamburiñas, almejas y navajas
+
+¡Una variedad exquisita para disfrutar!
 
 - **INSTRUCCIÓN CLAVE (VEGETARIANOS/INTOLERANCIAS):** Si preguntan por opciones **vegetarianas**, **alergias** o **intolerancias**, DEBES responder ÚNICAMENTE con el siguiente texto, SIN AÑADIR NI OMITIR NINGUNA PALABRA:
-${aperitivoVegetarianoResponse}
+  ¡Por supuesto! Para los invitados vegetarianos, los platos principales disponibles en el aperitivo (excluyendo carne, pescado y marisco) son:
+  
+  * **Mini tacos de vegetales a la parrilla**
+  * **Rol de requesón y nueces envuelto en calabacín asado**
+  * **Mini ensalada de algas con perlas de yuzu y semillas de amapola**
+  * **Patatas bravas con alioli y su toque de valentina**
+  * **Vasito de romesco**
+  
+  Si tienes alguna intolerancia alimentaria o alergia específica (gluten, lactosa, etc.), por favor, ponte en contacto con Manel o Carla directamente antes del día de la boda para que puedan asegurar un menú adaptado y seguro para ti. ¡Gracias!
 
 - **INSTRUCCIÓN CLAVE (CATERING):** Si preguntan por la empresa de catering, DEBES responder ÚNICAMENTE: "La empresa de catering es la misma Masía Mas Llombart, ellos se encargan de todo."
 
 
 ## 📅 Detalles Generales
-- La boda será el **${weddingInfo.date}**, de **${weddingInfo.time}**, en **${weddingInfo.location}**.
-- Más información sobre el lugar: [Ubicación](${weddingInfo.detailUbisUrl}).
+- La boda será el **31 de octubre de 2026**, de **12:00 a 21:00 aproximadamente**, en **Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona**.
+- Más información sobre el lugar: [Ubicación](https://www.bodas.net/web/manel-y-carla/ubicacion-8).
 
 ## 🕒 Horario
-${weddingInfo.schedule}
+- Ceremonia: de 12:30 a 13:30
+- Aperitivo: de 13:30 a 15:30
+- Banquete: de 15:30 a 19:00
+- Fiesta y barra libre: de 19:00 a 21:00
 
 ## 🥳 Fiesta
 - **INSTRUCCIÓN CLAVE (FIESTA/BARRA LIBRE):** Si preguntan por la fiesta, las actividades o la barra libre, DEBES usar el siguiente texto, mencionando explícitamente la barra libre de 2 horas:
-**${weddingInfo.fiestaActividades}**
+Para la fiesta (de 19:00 a 21:00) tendremos un **Videomatón 360º** y un **Fotomatón** para que todos se lleven un gran recuerdo. 
+    
+Además, habrá barra libre durante **2 horas**.
 
 ## 👗 Otros Datos
-- Código de vestimenta: ${weddingInfo.dressCode}.
-- Transporte: ${weddingInfo.transport}.
-- Alojamiento: ${weddingInfo.accommodation}.
+- Código de vestimenta: Formal.
+- Transporte: Habrá parking gratuito y servicio de taxi disponible.
+- Alojamiento: Hoteles cercanos: Celler Suites y Villas Coliving.
 
 ---
 
