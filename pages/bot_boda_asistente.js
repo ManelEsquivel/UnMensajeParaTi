@@ -15,12 +15,8 @@ export default function BotBodaAsistente() {
     }
   }, [messages, isTyping]);
 
-  const formatMessage = (text) => {
-    let formatted = text.replace(/\[([^\]]+)\]\((https?:\/\/[^\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>');
-    const urlRegex = /(https?:\/\/[^\s]+)/g;
-    formatted = formatted.replace(urlRegex, (url) => `<a href="${url}" target="_blank" rel="noopener noreferrer">${url}</a>`);
-    return formatted;
-  };
+  // 🔴 ELIMINAMOS LA FUNCIÓN formatMessage. 
+  // Ahora el backend se encarga de generar el HTML limpio.
 
   const sendMessage = async () => {
     if (!input.trim()) return;
@@ -30,10 +26,13 @@ export default function BotBodaAsistente() {
     setTextAreaHeight("40px");
     setIsTyping(true);
 
+    // Nota: Es mejor pasar un historial simple, no el estado completo de React
+    const history = messages.map(msg => ({ role: msg.role, content: msg.content }));
+
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: input, history: messages }),
+      body: JSON.stringify({ message: input, history: history }),
     });
 
     const data = await res.json();
@@ -44,7 +43,19 @@ export default function BotBodaAsistente() {
     const botMessage = { role: "assistant", content: "" };
     setMessages((prev) => [...prev, botMessage]);
 
-    for (let i = 0; i < fullReply.length; i++) {
+    // 🔴 NOTA: La animación de "escritura" lenta carácter por carácter NO funciona bien con HTML.
+    // Para resolver el problema de los enlaces rápidamente, cargaremos el mensaje completo de golpe.
+    // Si quieres la animación, debes investigar cómo animar mensajes que contienen HTML.
+    
+    // Mostramos el mensaje completo (HTML) de golpe:
+    setMessages((prev) => {
+      const updated = [...prev];
+      updated[updated.length - 1] = { role: "assistant", content: fullReply };
+      return updated;
+    });
+    
+    // Eliminamos el bucle de escritura lenta
+    /* for (let i = 0; i < fullReply.length; i++) {
       await new Promise((resolve) => setTimeout(resolve, 25));
       currentText += fullReply[i];
       setMessages((prev) => {
@@ -52,7 +63,8 @@ export default function BotBodaAsistente() {
         updated[updated.length - 1] = { role: "assistant", content: currentText };
         return updated;
       });
-    }
+    } 
+    */
   };
 
   const handleInputChange = (e) => {
@@ -102,7 +114,8 @@ export default function BotBodaAsistente() {
                   maxWidth: "80%",
                   wordWrap: "break-word",
                 }}
-                dangerouslySetInnerHTML={{ __html: formatMessage(msg.content) }}
+                // 🟢 CAMBIO CLAVE: Usamos el contenido HTML directo sin el formateador.
+                dangerouslySetInnerHTML={{ __html: msg.content }} 
               />
             </div>
           ))}
