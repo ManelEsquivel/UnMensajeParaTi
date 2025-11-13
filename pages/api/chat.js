@@ -72,18 +72,15 @@ IMPORTANTE:
     let aiReplyRaw =
       data?.choices?.[0]?.message?.content || "No tengo una respuesta en este momento.";
       
-    // 🔴 1. PASO DE LIMPIEZA ADICIONAL (Pre-marked)
-    // Limpieza de atributos persistentes que el modelo añade.
+    // 1. Limpieza de atributos persistentes que el modelo añade.
     aiReplyRaw = aiReplyRaw.replace(/["']\s*target="_blank"\s*rel="noopener noreferrer">\s*/gi, " ");
     
-    
-    // 🟢 2. CONFIGURACIÓN CLAVE: Forzar la conversión a HTML con sanitización
-    // Sobrescribimos el renderer de marked.js para ASEGURAR que solo genera enlaces limpios.
+    // 2. CONFIGURACIÓN CLAVE: Forzar la conversión a HTML con target="_blank"
     marked.use({
       renderer: {
         link(href, title, text) {
-          // Si el href existe (no es vacío), crea un enlace simple SIN atributos target/rel
-          return `<a href="${href}">${text}</a>`;
+          // 🟢 CAMBIO AQUÍ: Incluimos target="_blank" para abrir en una nueva pestaña.
+          return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
         }
       }
     });
