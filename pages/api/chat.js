@@ -109,6 +109,8 @@ Mujer,Didac,PENDIENTE
     .split(/\s+/)
     .filter(Boolean);
 
+  const messageString = messageWords.join(' '); 
+
   const guestEntries = guestList
     .trim()
     .split("\n")
@@ -118,29 +120,30 @@ Mujer,Didac,PENDIENTE
       const nombre = parts[0];
       const apellido = parts[1];
       const confirmado = parts[2];
-      return { nombre, apellido, confirmado };
+      const fullName = `${nombre} ${apellido}`.trim(); 
+      return { nombre, apellido, confirmado, fullName };
     });
 
-  // Function to find guests matching any word in the message
-  const findMatches = (words) => {
-    return guestEntries.filter(g => 
-        words.some(word => 
-            word === g.nombre || 
-            word === g.apellido || 
-            (g.nombre.includes(word) && g.nombre.split(' ').includes(word)) // Match multi-word names like "Maria Dolors"
-        )
-    );
-  };
-  
-  const matches = findMatches(messageWords);
-  
-  // Heurística de detección: Marcar como intento de nombre si:
-  // 1. Hay alguna coincidencia (matches.length > 0)
-  // 2. Es una respuesta corta (1 o 2 palabras) - ¡ESTO ARREGLA EL PROBLEMA DEL APELLIDO SOLO!
-  // 3. Incluye palabras clave de inicio.
+  // 1. Find all guests that match any single word or partial name (for Ambiguity)
+  const matches = guestEntries.filter(g => 
+      messageWords.some(word => 
+          word === g.nombre || 
+          word === g.apellido || 
+          g.nombre.startsWith(word) 
+      )
+  );
+
+  // 2. Find guests that match the exact input string (for Unique Match resolution)
+  const exactMatches = guestEntries.filter(g => 
+      g.fullName === messageString
+  );
+
+
+  // 3. Heurística de detección (activar el bloqueo JS si parece un intento de nombre)
   const isLikelyNameQuery = messageWords.length > 0 && (
-      matches.length > 0 ||
-      messageWords.length <= 2 || 
+      exactMatches.length > 0 || // Si hay coincidencia exacta (ej: "alex espada"), es una consulta de nombre.
+      matches.length > 0 || // Si hay alguna coincidencia parcial.
+      messageWords.length <= 3 || // Si es una frase muy corta (ej: "soy Alex" o "García").
       /\b(soy|me llamo|mi nombre es|yo soy|invitado|lista)\b/i.test(normalizedMessage)
   );
   
@@ -148,25 +151,27 @@ Mujer,Didac,PENDIENTE
 
   if (isLikelyNameQuery) {
       
-    // Escenario B: Ambigüedad (Múltiples coincidencias)
-    if (matches.length > 1) {
-      const replyText =
-        "Hay varias personas en la lista con un nombre o apellido similar. ¿Me podrías indicar tu nombre completo (Nombre y Apellido) por favor?";
-      // Retorno JSON directo, saltando OpenAI
-      return res.status(200).json({ reply: marked.parse(replyText) });
-    }
-
-    // Escenario C: No hay coincidencias (FIN DEL BUUCLE asegurado)
-    // Esto se activa si el usuario dice "García" (corto) o "Pedro Pérez" (no coincidente).
-    if (matches.length === 0) { 
-      const replyText =
-        "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
-      // Retorno JSON directo, saltando OpenAI
-      return res.status(200).json({ reply: marked.parse(replyText) });
-    }
-    
-    // Si llegamos aquí con matches.length === 1, se deja que la IA lo resuelva (Escenario A)
-
+      // PRIORITY A: Coincidencia Única Exacta (pasa a la IA para aplicar reglas especiales)
+      if (exactMatches.length === 1) {
+          // Si hay una coincidencia exacta de nombre completo, dejamos que el flujo siga a la IA
+          // para que aplique las reglas especiales (2.A-2.L) y luego la general (3).
+      } 
+      // PRIORITY B: Ambüedad (Múltiples coincidencias parciales)
+      else if (matches.length > 1) {
+          const replyText =
+            "Hay varias personas en la lista con un nombre o apellido similar. ¿Me podrías indicar tu nombre completo (Nombre y Apellido) por favor?";
+          return res.status(200).json({ reply: marked.parse(replyText) });
+      } 
+      // PRIORITY C: Coincidencia Única Parcial (pasa a la IA para aplicar reglas especiales)
+      else if (matches.length === 1) {
+          // Si hay solo 1 coincidencia parcial, es probablemente la persona correcta. Pasa a la IA.
+      } 
+      // PRIORITY D: No hay coincidencias (FIN DEL BUUCLE asegurado)
+      else { // matches.length === 0, pero isLikelyNameQuery es true (ej: "García" o "Pedro Pérez")
+          const replyText =
+            "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
+          return res.status(200).json({ reply: marked.parse(replyText) });
+      }
   }
   
   // --- FIN DE PROCESAMIENTO DE NOMBRES EN JAVASCRIPT ---
