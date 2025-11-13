@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import Head from "next/head";
+import Head from "next/head";  
 
 export default function BotBodaAsistente() {
   const [messages, setMessages] = useState([]);
