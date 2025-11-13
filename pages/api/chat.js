@@ -1,6 +1,8 @@
 // pages/api/chat.js
 import { marked } from "marked";
 
+// Importante: Asegúrate de que este archivo incluye la configuración de marked.use para los enlaces si la tenías antes
+
 export default async function handler(req, res) {
   if (req.method !== "POST") {
     return res.status(405).json({ reply: "Método no permitido" }); 
@@ -24,28 +26,66 @@ export default async function handler(req, res) {
       - Ceremonia: de 12:30 a 13:30
       - Aperitivo: de 13:30 a 15:30
       - Banquete: de 15:30 a 19:00
-      - Fiesta y barra libre: de 19:00 a 21:00
+      - Fiesta con barra libre: de 19:00 a 21:00
     `,
+    // 🟢 LISTADO DE APERITIVO CON FORMATO LIMPIO
+    aperitivoPrincipales: `
+* Roll de salmón ahumado, con crema de anchoas y brotes de albahaca crujiente
+* Crostini de escalivada asada con ventresca de atún
+* Mini tacos de vegetales a la parrilla
+* Trufa de foie con crocante de almendra tostada
+* Cazuela gourmet de pasta con relleno de ragú boloñesa con queso fundido y albahaca
+* Rol de requesón y nueces envuelto en calabacín asado
+* Mini ensalada de algas con perlas de yuzu y semillas de amapola
+* Chupito de mazamorra cordobesa con tropicales y mousse de ventresca
+* Croquetas de pulpo gallego
+* Simulacro de calamar con patata paja
+* Patatas bravas con alioli y su toque de valentina
+* Trilogía de hamburguesas de pollo, ternera y quinoa
+* Tiras de calamar crujiente en tempura
+* Bocado de jamón de guijuelo en croqueta cremosa
+* Vasito de romesco
+    `,
+    aperitivoAdicionales: "Además, habrá jamón al corte, Showcooking de carnes a la brasa, zamburiñas, almejas y navajas.",
+    fiestaActividades: "Para la fiesta (después del banquete) tendremos un **Videomatón 360º** y un **Fotomatón** para que todos se lleven un gran recuerdo.",
   };
 
   const systemPrompt = `
 Eres un asistente virtual amable y servicial para la boda de Manel y Carla.
 Responde en español si te escriben en español y si te escriben en catalán, responde en catalán, de forma clara, cálida y concisa.
 
-📅 La boda será el ${weddingInfo.date}, de ${weddingInfo.time}, en ${weddingInfo.location}.
-Más información sobre el lugar: [Ubicación](${weddingInfo.detailUbisUrl}).
+---
 
-🕒 Horario aproximado del evento:
+## 📅 Detalles Generales
+- La boda será el **${weddingInfo.date}**, de **${weddingInfo.time}**, en **${weddingInfo.location}**.
+- Más información sobre el lugar: [Ubicación](${weddingInfo.detailUbisUrl}).
+
+## 🕒 Horario
 ${weddingInfo.schedule}
 
-🍽️ El banquete será ${weddingInfo.banquet}.
-👗 Código de vestimenta: ${weddingInfo.dressCode}.
-🚗 Transporte: ${weddingInfo.transport}.
-🏨 Alojamiento: ${weddingInfo.accommodation}.
+## 🍽️ Aperitivo y Banquete
+- El banquete será **${weddingInfo.banquet}**.
+- Si preguntan por el **Aperitivo**, estos son los principales:
+${weddingInfo.aperitivoPrincipales}
+- Como añadidos del aperitivo: **${weddingInfo.aperitivoAdicionales}**
 
-Si alguien pregunta por regalos (por ejemplo: "¿hay lista de boda?", "¿qué puedo regalar?", "¿cómo hacemos con los regalos?"), responde de manera amable y discreta que no es necesario, pero si desean más información pueden visitar: [Regalos de boda](https://www.bodas.net/web/manel-y-carla/regalosdeboda-11).
+## 🥳 Fiesta
+- Si preguntan por la fiesta o actividades después del banquete:
+**${weddingInfo.fiestaActividades}**
 
-IMPORTANTE:
+## 👗 Otros Datos
+- Código de vestimenta: ${weddingInfo.dressCode}.
+- Transporte: ${weddingInfo.transport}.
+- Alojamiento: ${weddingInfo.accommodation}.
+
+---
+
+## 🎁 Regalos
+Si alguien pregunta por regalos, responde que no es necesario, pero si desean más información pueden visitar: [Regalos de boda](https://www.bodas.net/web/manel-y-carla/regalos-8).
+
+---
+
+## ⚠️ Formato
 - Usa SIEMPRE el formato Markdown correcto para enlaces: [Texto](URL)
 - NO uses etiquetas HTML (<a>, target, rel, etc.)
 - No devuelvas ningún otro formato que no sea texto o Markdown.
@@ -72,20 +112,17 @@ IMPORTANTE:
     let aiReplyRaw =
       data?.choices?.[0]?.message?.content || "No tengo una respuesta en este momento.";
       
-    // 1. Limpieza de atributos persistentes que el modelo añade.
-    aiReplyRaw = aiReplyRaw.replace(/["']\s*target="_blank"\s*rel="noopener noreferrer">\s*/gi, " ");
-    
-    // 2. CONFIGURACIÓN CLAVE: Forzar la conversión a HTML con target="_blank"
+    // 🟢 CONFIGURACIÓN CLAVE: Asegurar que los enlaces se abran en nueva pestaña (si usas 'marked')
     marked.use({
       renderer: {
         link(href, title, text) {
-          // 🟢 CAMBIO AQUÍ: Incluimos target="_blank" para abrir en una nueva pestaña.
+          // Devolvemos el enlace con target="_blank" para abrir en una nueva pestaña.
           return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
         }
       }
     });
 
-    // Convertir Markdown a HTML limpio y saneado
+    // Convertir Markdown a HTML limpio y saneado para el frontend
     const aiReplyHTML = marked.parse(aiReplyRaw);
 
     // 3. Devolvemos el HTML completo.
