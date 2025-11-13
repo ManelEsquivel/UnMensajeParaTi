@@ -12,9 +12,10 @@ export default async function handler(req, res) {
   }
 
   // --- LISTA DE INVITADOS (NOMBRE, APELLIDO, CONFIRMADO) ---
+  // 🟢 AJUSTE: Se han limpiado los espacios extra en los nombres para mejorar la coincidencia.
   const guestList = `
 NOMBRE,APELLIDOS,CONFIRMADO
-Manel ,Esquivel,CONFIRMADO
+Manel,Esquivel,CONFIRMADO
 Carla,Bartual,CONFIRMADO
 Beatriz Esquivel,Esquivel,PENDIENTE
 Manuel Esquivel,Esquivel,PENDIENTE
@@ -22,7 +23,7 @@ Eva Lopez,Lopez,PENDIENTE
 Marc Genes,Genes,PENDIENTE
 Maria Dolors,Dolors,PENDIENTE
 Jordi Bartual,,PENDIENTE
-Anna Bernal ,Bernal ,PENDIENTE
+Anna Bernal,Bernal,PENDIENTE
 Alex Espada,Espada,PENDIENTE
 Victor Lopez,Lopez,PENDIENTE
 Carlos Barceló,Barceló,PENDIENTE
@@ -78,7 +79,7 @@ Laura Cester,Cester,PENDIENTE
 Monica Falguera,Falguera,PENDIENTE
 Noa,,PENDIENTE
 Mujer Carlos Rodrigu,,PENDIENTE
-Narcis Vidal ,Vidal ,PENDIENTE
+Narcis Vidal,Vidal,PENDIENTE
 Montse Asociación,,PENDIENTE
 Marido Montse,Asociación,PENDIENTE
 Didac,,PENDIENTE
@@ -167,19 +168,20 @@ Responde en español si te escriben en español y si te escriben en catalán, re
 - **LISTA DE INVITADOS (NOMBRE, APELLIDOS, CONFIRMADO):**
 ${guestList}
 
-- **INSTRUCCIONES CLAVE (REVISADAS para incluir el estado de CONFIRMACIÓN):**
+- **INSTRUCCIONES CLAVE (AJUSTADAS para priorizar la verificación de Nombre + Apellido):**
 
 1.  **RESPUESTA OBLIGATORIA al preguntar por la invitación:** Si el usuario pregunta "¿Estoy invitado?", "¿Están invitados [Yo/Nosotros]?" o similar **sin dar su nombre**, DEBES responder únicamente: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
 
 2.  **Verificación y Estado de Confirmación:** Una vez que el usuario te da un nombre:
-    * Si el nombre **coincide con MÁS de una persona** (ej: "Alex" aparece con Espada y Ferré), debes preguntar: "¿Me podrías indicar tu apellido, por favor? Tenemos varias personas con ese nombre en la lista."
-    * Si el nombre y/o apellido **coincide exactamente con UNA única persona**, verifica el estado de CONFIRMACIÓN y responde:
+    * **Prioridad (Nombre + Apellido):** Si el usuario proporciona **dos o más palabras** (tratadas como Nombre y Apellido), y ese par **coincide exactamente con UNA persona** en la lista (ej: "Alex Ferré"), DEBES pasar directamente a confirmar su estado (Punto 3).
+    * **Ambigüedad (Solo Nombre):** Si el usuario proporciona **solo una palabra** (tratada como Nombre), y esa palabra **coincide con MÁS de una persona** (ej: "Alex" con Espada y Ferré), debes preguntar: "¿Me podrías indicar tu apellido, por favor? Tenemos varias personas con ese nombre en la lista."
+    
+3.  **Respuesta Final de Confirmación (Si el invitado está en la lista):** Si el invitado se encuentra en la lista (ya sea por nombre o nombre y apellido):
         * **Si el estado es CONFIRMADO:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Tu asistencia está **CONFIRMADA**. ¡Te esperamos con mucha ilusión!".
         * **Si el estado es PENDIENTE:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Sin embargo, tu asistencia se encuentra **PENDIENTE** de confirmación. Por favor, asegúrate de contactar con Manel o Carla para confirmar tu asistencia. ¡Te esperamos con mucha ilusión!".
     
-3.  **No Encontrado:** Si el usuario te da un nombre (o nombre y apellido) y **NO hay ninguna coincidencia con la lista de invitados** (después de una o dos interacciones), debes responder: "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla."
+4.  **No Encontrado:** Si el usuario te da un nombre (o nombre y apellido) y **NO hay ninguna coincidencia con la lista de invitados** (después de una o dos interacciones), debes responder: "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla."
     
-    *Nota: Si el usuario dice solo un nombre ambiguo que no está en la lista, debes aplicar la respuesta de 'NO está en la lista' (punto 3), sin pedir el apellido de nuevo.*
 
 ## 👨‍👩‍👧‍👦 Familias
 - Si preguntan por los padres de Manel, son **${weddingInfo.padresManel}**.
