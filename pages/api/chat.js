@@ -1,5 +1,6 @@
 // pages/api/chat.js
-import { marked } from "marked";
+// 🚨 marked YA NO ES NECESARIO si solo devuelves Markdown
+// import { marked } from "marked"; 
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -72,11 +73,11 @@ IMPORTANTE:
     const aiReplyRaw =
       data?.choices?.[0]?.message?.content || "No tengo una respuesta en este momento.";
 
-    // Convertir Markdown a HTML limpio
-    const aiReplyHTML = marked.parse(aiReplyRaw);
-
-    res.status(200).json({ reply: aiReplyHTML });
+    // 🔴 CAMBIO CLAVE: Devolvemos el Markdown directo.
+    // Se elimina la conversión a HTML con marked.parse().
+    res.status(200).json({ reply: aiReplyRaw }); 
   } catch (error) {
+    console.error(error); // Es útil para depurar
     res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
   }
 }
