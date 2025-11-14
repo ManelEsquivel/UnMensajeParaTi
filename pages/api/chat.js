@@ -327,7 +327,7 @@ ${aperitivoVegetarianoResponse}
 
 ## 📅 Detalles Generales
 - La boda será el **31 de octubre de 2026**, de **12:00 a 21:00 aproximadamente**, en **Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona**.
-- La ceremonia será a las 12:30 en los **jardines de la Masia Mas Llombart**. Dispondremos de sillas, servicio de agua, limonada, naranjada y cocktails de cava.
+- **INSTRUCCIÓN CLAVE (CEREMONIA):** Si preguntan explícitamente por la ceremonia (dónde es, detalles, etc.), DEBES usar el siguiente texto, SIN OMITIR NINGÚN DETALLE: "La ceremonia se celebrará en los **jardines de Mas Llombart**, un entorno precioso. Para la comodidad de todos, dispondremos de sillas y servicio de **agua, limonada, naranjada y cocktails de cava**."
 - Más información sobre el lugar: [Ubicación](${detailUbisUrlInPrompt}).
 
 ## 🕒 Horario
