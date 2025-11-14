@@ -109,7 +109,7 @@ Mujer,Didac,PENDIENTE
     accommodation: "Hoteles cercanos: Celler Suites y Villas Coliving",
     urlConfirmacion: "https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3",
     urlRegalosdeboda: "https://www.bodas.net/web/manel-y-carla/regalosdeboda-11",
-    urlRegalos: "https://www.bodas.net/web/manel-y-carla/regalos-8"
+    urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
 
   // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (Solo para INYECCIÓN de Prioridad Absoluta) ---
@@ -189,17 +189,19 @@ ${NO_NAME_VERIFICATION_NEEDED}
       const guestStatus = forcedGuest.confirmado;
       const fullName = `${guestName} ${guestSurname}`.trim();
       
-      // Forzar a la IA a usar el nombre identificado y aplicar las reglas especiales o la general.
+      // *** INSTRUCCIÓN LIMPIA: SÓLO PARA CONFIRMACIÓN DE NOMBRE (EL QUIZ ES UNIVERSAL Y ES GESTIONADO POR REGLA CERO) ***
       aiForcedInstruction = `
       ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
       El mensaje del usuario ha sido analizado por el backend y se ha identificado a un ÚNICO invitado:
       - Nombre Completo: **${fullName}**
       - Estado: **${guestStatus}**
       
-      **TU TAREA ES SIMPLE:** IGNORA la Regla 1 y TODAS las Reglas 2.K y 4.
-      BUSCA la coincidencia para "${fullName}" SÓLO en las Reglas Especiales (2.A a 2.J).
-      - **Si encuentras una coincidencia en 2.A-2.J (usando el nombre COMPLETO y/o apellido "${fullName}"), APLICA esa regla ÚNICAMENTE.**
-      - **Si NO encuentras una coincidencia en 2.A-2.J, APLICA la Regla 3 usando el estado "${guestStatus}" y el nombre "${fullName}" para generar la respuesta (reemplazando [Nombre] [Apellido] y [Estado]).**
+      **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
+      
+      1.  IGNORA la Regla 1, Regla Cero, Regla 2.K y Regla 4.
+      2.  BUSCA la coincidencia para "${fullName}" SÓLO en las Reglas Especiales (2.A a 2.J).
+      3.  **Si encuentras una coincidencia en 2.A-2.J, APLICA esa regla ÚNICAMENTE.**
+      4.  Si NO encuentras una coincidencia en 2.A-2.J, APLICA la Regla 3 usando el estado "${guestStatus}" y el nombre "${fullName}" para generar la respuesta.
       
       ¡NO vuelvas a preguntar el nombre ni digas que no lo encuentras!
       `;
@@ -329,13 +331,12 @@ ${guestList}
 
 1.  **Si NO se menciona ningún nombre (Inicio):** Si el usuario pregunta "¿Estoy invitado?" o similar, **DEBES** responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
 
-// *** REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA) ***
+// *** REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA UNIVERSAL) ***
 
-## 🎮 REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA)
+## 🎮 REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA UNIVERSAL)
 
-- **INSTRUCCIÓN CLAVE (QUIZ):** Si el mensaje del usuario contiene palabras clave como **"jugar"**, **"juego"**, **"quiz"** o **"test"**, DEBES seguir esta estricta lógica (Ignorando el resto de Reglas, *excepto la de Privacidad*):
-    - **A. Acceso Confirmado:** Si la **INSTRUCCIÓN DE PRIORIDAD ABSOLUTA** contiene la frase **"se ha identificado a un ÚNICO invitado"**, Responde ÚNICAMENTE: "¡Prepárate, ${forcedGuest ? forcedGuest.nombre : 'amigo'}! El QUIZ está cargando... 🕹️ ¡Te toca demostrar cuánto sabes de Manel y Carla! Si aciertas, tendrás una sorpresa. **¡Mucha suerte!** [EMPEZAR QUIZ](https://bodamanelcarla.vercel.app/quizboda)".
-    - **B. Acceso Denegado/Verificación Necesaria:** Si la **INSTRUCCIÓN DE PRIORIDAD ABSOLUTA** contiene la frase **"¡VERIFICACIÓN DE NOMBRE REQUERIDA PARA ACCESO AL QUIZ!"**, Responde ÚNICAMENTE: "¡Genial! Para acceder al quiz y registrar tu participación, ¿podrías indicarme tu **nombre completo** (Nombre y Apellido)? Solo los invitados tienen acceso a la sorpresa final. 😉"
+- **INSTRUCCIÓN CLAVE (QUIZ):** Si el mensaje del usuario contiene palabras clave como **"jugar"**, **"juego"**, **"quiz"** o **"test"**, DEBES **IGNORAR TODAS LAS OTRAS REGLAS** (incluyendo 1, 2, 3, 4) y APLICAR **ÚNICAMENTE** la respuesta de la **Regla Cero, A.**
+    - **A. Acceso General:** Responde ÚNICAMENTE: "¡Prepárate, amigo/a! El QUIZ está cargando... 🕹️ ¡Te toca demostrar cuánto sabes de Manel y Carla! Si aciertas, tendrás una sorpresa. **¡Mucha suerte!** [EMPEZAR QUIZ](https://bodamanelcarla.vercel.app/quizboda)"
 
 // *** FIN DE LA REGLA CERO ***
 
