@@ -1,190 +1,130 @@
-import { useState, useRef, useEffect } from "react";
-import Head from "next/head";
+// pages/quizboda.js (Versión con FIX de Estilos Globales)
 
-export default function BotBodaAsistente() {
-  const [messages, setMessages] = useState([]);
-  const [input, setInput] = useState("");
-  const [textAreaHeight, setTextAreaHeight] = useState("40px");
-  const [isTyping, setIsTyping] = useState(false);
-  const chatBoxRef = useRef(null);
-  const textAreaRef = useRef(null);
+import React from 'react';
+import Head from 'next/head';
 
-  useEffect(() => {
-    if (chatBoxRef.current) {
-      chatBoxRef.current.scrollTop = chatBoxRef.current.scrollHeight;
-    }
-  }, [messages, isTyping]);
+// ⚠️ IMPORTANTE: PEGA AQUÍ EL ENLACE REAL DE TU GOOGLE FORM
+const GOOGLE_FORM_URL = "PEGA_AQUÍ_TU_ENLACE_REAL_DE_GOOGLE_FORMS";
 
-  const sendMessage = async () => {
-    if (!input.trim()) return;
-    const userMessage = { role: "user", content: input };
-    
-    // 1. Añadimos el mensaje del usuario y el placeholder del bot (VACÍO)
-    setMessages((prev) => [...prev, userMessage, { role: "assistant", content: "" }]);
-    
-    setInput("");
-    setTextAreaHeight("40px");
-    
-    // 2. INICIAMOS EL INDICADOR (Necesario para el useEffect del scroll)
-    setIsTyping(true);
+const QuizBodaPage = () => {
 
-    const history = messages.map(msg => ({ role: msg.role, content: msg.content }));
+    // --- FIX: Aplicar Estilos del BODY al montar el componente ---
+    React.useEffect(() => {
+        // Estilos del Body (Fondo, Fuente, Color Neón, Sombra de texto)
+        document.body.style.fontFamily = "'VT323', monospace";
+        document.body.style.backgroundColor = "#000033"; 
+        document.body.style.backgroundImage = `
+            repeating-linear-gradient(0deg, rgba(0,255,0,.05), rgba(0,255,0,.05) 1px, transparent 1px, transparent 2px),
+            linear-gradient(to bottom, #000033 0%, #1a0044 100%)
+        `;
+        document.body.style.color = "#00ff99";
+        document.body.style.textShadow = "0 0 5px #00ff99";
+        document.body.style.display = "flex";
+        document.body.style.justifyContent = "center";
+        document.body.style.alignItems = "center";
+        document.body.style.minHeight = "100vh";
+        document.body.style.margin = "0";
+        document.body.style.textAlign = "center";
+        document.body.style.padding = "20px";
+    }, []); 
+    // -------------------------------------------------------------
 
-    // Llamada a la API
-    const res = await fetch("/api/chat", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ message: input, history: history }),
-    });
+    // --- Función para manejar el clic del botón ---
+    const handleClick = () => {
+        // Redirige a Google Forms en una nueva pestaña
+        window.open(GOOGLE_FORM_URL, '_blank');
+    };
 
-    const data = await res.json();
-    const fullReplyHTML = data.reply;
-    
-    // 3. Simulación de escritura carácter a carácter
-    const replyForTyping = fullReplyHTML.replace(/<br\s*\/?>/gi, '\n'); // Reemplazamos <br> por saltos de línea
-    
-    let currentText = "";
-    
-    for (let i = 0; i < replyForTyping.length; i++) {
-        const char = replyForTyping[i];
-        
-        // Lógica para saltar tags HTML (como <a> o </div>) y que no se vean escritos.
-        if (char === '<' && replyForTyping.substring(i, i + 10).match(/<\/?[a-z][^>]*>/i)) {
-             // Si encontramos un tag HTML, avanzamos el índice hasta después del tag y añadimos todo el tag.
-             const endIndex = replyForTyping.indexOf('>', i) + 1;
-             currentText += replyForTyping.substring(i, endIndex);
-             i = endIndex - 1; 
-        } else {
-             // Si es un carácter normal, lo escribimos con un delay.
-             await new Promise((resolve) => setTimeout(resolve, 30)); // 30ms por carácter
-             currentText += char;
-        }
+    return (
+        <>
+            <Head>
+                <title>Manel & Carla: Misión Quiz Iniciada 🕹️</title>
+                {/* Cargamos las fuentes de Videojuego */}
+                <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap" rel="stylesheet" />
+            </Head>
+            
+            <style jsx>{`
+                /* Estilos Específicos de la Tarjeta (No necesitan el FIX) */
+                .quiz-card {
+                    background-color: rgba(0, 0, 0, 0.85);
+                    padding: 40px;
+                    border-radius: 0;
+                    box-shadow: 0 0 20px #ff00ff, 0 0 10px #00ff99;
+                    max-width: 600px;
+                    width: 100%;
+                    border: 3px solid #ff00ff;
+                }
+                
+                h1 {
+                    font-family: 'Press Start 2P', cursive;
+                    color: #00ff99;
+                    font-size: 1.5em;
+                    margin-bottom: 20px;
+                    line-height: 1.5;
+                    text-shadow: 0 0 8px #00ff99;
+                }
+                
+                .subtitle, .instructions {
+                    font-family: 'VT323', monospace;
+                    font-size: 1.8em;
+                    color: #ffffff;
+                    margin-bottom: 15px;
+                    text-shadow: none;
+                }
+                
+                .emoji {
+                    font-size: 3em;
+                    margin-bottom: 20px;
+                    display: block;
+                    filter: drop-shadow(0 0 5px #ff00ff);
+                }
+                
+                /* Estilo del Botón CTA */
+                .cta-button {
+                    background-color: #ff00ff;
+                    color: #000000;
+                    padding: 10px 30px;
+                    text-decoration: none;
+                    border-radius: 4px;
+                    font-size: 1.3em;
+                    font-weight: 700;
+                    transition: all 0.1s linear;
+                    box-shadow: 0 5px 0 0 #00ff99;
+                    border: 2px solid #00ff99;
+                    cursor: pointer;
+                    font-family: 'Press Start 2P', cursive;
+                }
 
-        // Actualizamos el último mensaje (el placeholder) con el texto animado
-        setMessages((prev) => {
-            const updated = [...prev];
-            updated[prev.length - 1] = { role: "assistant", content: currentText }; 
-            return updated;
-        });
-    }
+                .cta-button:hover {
+                    background-color: #00ff99;
+                    color: #000000;
+                    box-shadow: 0 5px 0 0 #ff00ff;
+                    transform: translateY(-1px); 
+                }
 
-    // 4. DETENEMOS EL INDICADOR
-    setIsTyping(false); 
+                .cta-button:active {
+                    box-shadow: 0 2px 0 0 #00ff99;
+                    transform: translateY(3px); 
+                }
+            `}</style>
 
-    // 5. REEMPLAZAMOS EL TEXTO TEMPORAL CON EL HTML COMPLETO FINAL
-    setMessages((prev) => {
-        const updated = [...prev];
-        updated[prev.length - 1] = { role: "assistant", content: fullReplyHTML }; 
-        return updated;
-    });
-  };
-
-  const handleInputChange = (e) => {
-    setInput(e.target.value);
-    const el = textAreaRef.current;
-    el.style.height = "auto";
-    el.style.height = Math.min(el.scrollHeight, 100) + "px";
-    setTextAreaHeight(el.style.height);
-  };
-
-  return (
-    <>
-      <Head>
-        <title>Asistente de Boda</title>
-      </Head>
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
-        <h1>Asistente de Boda 💍</h1>
-        <div
-          ref={chatBoxRef}
-          style={{
-            maxWidth: "400px",
-            // Altura ligeramente reducida
-            height: "280px", 
-            overflowY: "auto",
-            border: "1px solid #ccc",
-            borderRadius: "10px",
-            padding: "10px",
-            backgroundColor: "#fff",
-            boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-            margin: "20px auto",
-          }}
-        >
-          {messages.map((msg, i) => (
-            <div
-              key={i}
-              style={{
-                textAlign: msg.role === "user" ? "right" : "left",
-                margin: "10px 0",
-              }}
-            >
-              <div
-                style={{
-                  display: "inline-block",
-                  padding: "8px 12px",
-                  borderRadius: "8px",
-                  border: "1px solid #ccc",
-                  backgroundColor: msg.role === "user" ? "#d1e7dd" : "#cce5ff",
-                  maxWidth: "80%",
-                  wordWrap: "break-word",
-                }}
-                dangerouslySetInnerHTML={{ __html: msg.content }} 
-              />
+            <div className="quiz-card">
+                <span className="emoji">👾💖</span>
+                
+                <h1>MANEL & CARLA: MISIÓN QUIZ INICIADA</h1>
+                <p className="subtitle">Cargando Nivel 1...</p>
+                
+                <p className="instructions">¡Inserte 1 Crédito para Jugar! Si logra la Puntuación Perfecta, se desbloqueará un Nivel de Premio Especial (PREMIO) a su nombre. ¡LISTO/A JUGADOR/A UNO!</p>
+                
+                <button 
+                    className="cta-button"
+                    onClick={handleClick}
+                >
+                    START GAME
+                </button>
             </div>
-          ))}
-          {/* El indicador "Escribiendo..." se reemplaza por el efecto visual de tipeo */}
-          {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
-        </div>
+        </>
+    );
+};
 
-        <div style={{ maxWidth: "400px", margin: "10px auto", display: "flex", flexDirection: "column" }}>
-          <textarea
-            ref={textAreaRef}
-            value={input}
-            onChange={handleInputChange}
-            onKeyDown={(e) => {
-              if (e.key === "Enter" && !e.shiftKey) {
-                e.preventDefault();
-                sendMessage();
-              }
-            }}
-            placeholder="Escribe tu mensaje..."
-            style={{
-              resize: "none",
-              height: textAreaHeight,
-              maxHeight: "100px",
-              padding: "10px 12px",
-              borderRadius: "10px",
-              border: "1px solid #ccc",
-              outline: "none",
-              // Font-size 16px para evitar el zoom en móviles
-              fontSize: "16px", 
-              lineHeight: "1.4",
-              transition: "all 0.2s ease",
-              background: "#fff",
-              boxShadow: "0 1px 3px rgba(0,0,0,0.1) inset",
-              marginBottom: "10px",
-            }}
-          />
-          <button
-            onMouseDown={(e) => (e.currentTarget.style.transform = "scale(0.96)")}
-            onMouseUp={(e) => (e.currentTarget.style.transform = "scale(1)")}
-            onClick={sendMessage}
-            style={{
-              padding: "12px 20px",
-              borderRadius: "12px",
-              border: "1px solid #007bff",
-              backgroundColor: "#007bff",
-              color: "#fff",
-              fontSize: "16px",
-              fontWeight: "bold",
-              cursor: "pointer",
-              boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-              transition: "transform 0.2s ease, background-color 0.3s ease",
-            }}
-          >
-            Enviar
-          </button>
-        </div>
-      </div>
-    </>
-  );
-}
+export default QuizBodaPage;
