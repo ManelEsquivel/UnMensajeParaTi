@@ -252,6 +252,29 @@ Además, tendremos Showcooking y Corte:
   Si tienes alguna intolerancia alimentaria o alergia específica (gluten, lactosa, etc.), por favor, ponte en contacto con Manel o Carla directamente antes del día de la boda para que puedan asegurar un menú adaptado y seguro para ti. ¡Gracias!
   `;
   
+  // Respuesta Menú Principal para inyección
+  const menuPrincipalResponse = `El banquete comenzará tras el aperitivo (cuya lista puedes consultar por separado preguntandome por el aperitivo). Respecto a los **platos principales**, los novios están pendientes de realizar la prueba de menú entre las siguientes opciones. ¡Estarán deliciosas!
+  
+**PRIMEROS PLATOS (a elegir por los novios):**
+* Caldereta de bogavante con patata confitada y crujiente de puerro
+* Filete de dorada con carne de vieira, reducción de cítricos con albahaca y chips de remolacha
+* Suquet de rape con langostinos, cigalas y almejas
+
+**SEGUNDOS PLATOS (a elegir por los novios):**
+* Entrecotte de Nebraska con salsa café París infusionada con hierbas frescas, ajo y mantequilla aromatizada
+* Costillar black angus a baja temperatura envuelto en crujiente de pasta brick, salsa tártara y orejones
+* Medallón de solomillo de ternera relleno de foie y reducción de Oporto
+
+**POSTRES (a elegir por los novios):**
+* Semifrío de pasión y crumble de Oreo con lágrima de pistacho
+* Lingote de Ferrero Rocher con pralinè, esferas de chocolate al Frangelico y tierra de galleta
+* Cheesecake de galleta lotus con su ganache cremoso
+
+**IMPORTANTE:** Los platos definitivos (primero, segundo y postre) **aún están pendientes de la decisión final de los novios** tras la prueba de menú.`;
+
+  // Respuesta Menú Completo para inyección
+  const menuCompletoResponse = `${aperitivoCompletoResponse}\n\n---\n\n${menuPrincipalResponse}`;
+  
   // --- SYSTEM PROMPT ---
   const systemPrompt = `
 Eres un asistente virtual amable y servicial para la boda de Manel y Carla.
@@ -323,28 +346,16 @@ ${guestList}
 ## 🍽️ Aperitivo y Opciones Especiales
 - El banquete será **en el mismo recinto, justo después del aperitivo**.
 
-- **INSTRUCCIÓN CLAVE (APERTIVO COMPLETO):** Si preguntan por el **Aperitivo** (la lista de platos, el menú del aperitivo, etc.), DEBES responder ÚNICAMENTE con el siguiente texto, SIN AÑADIR NI OMITIR NINGUNA PALABRA:
+- **INSTRUCCIÓN CLAVE (MENU GENERAL - Inicio):** Si preguntan en general por la **comida**, el **menú** o **que hay para comer/cenar** o palabras clave similares, DEBES responder ÚNICAMENTE: "¿Qué te interesa saber? ¿El listado del **aperitivo** o el menú de la **comida banquete**? ¿O quizás quieres ver **todo**?"
+
+- **INSTRUCCIÓN CLAVE (APERTIVO COMPLETO - Detalle):** Si preguntan por el **Aperitivo** o la lista del aperitivo o usan la palabra **"aperitivo"** tras la pregunta general, DEBES responder ÚNICAMENTE con el siguiente texto, SIN AÑADIR NI OMITIR NINGUNA PALABRA:
 ${aperitivoCompletoResponse}
 
-- **INSTRUCCIÓN CLAVE (MENU PRINCIPAL):** Si preguntan por los **platos principales** o el **menú del banquete** (o "comida" en general), DEBES usar el siguiente texto, mencionando el aperitivo y la fase de decisión:
-"El banquete comenzará tras el aperitivo (cuya lista puedes consultar por separado preguntandome por el aperitivo). Respecto a los **platos principales**, los novios están pendientes de realizar la prueba de menú entre las siguientes opciones. ¡Estarán deliciosas!
-  
-**PRIMEROS PLATOS (a elegir por los novios):**
-* Caldereta de bogavante con patata confitada y crujiente de puerro
-* Filete de dorada con carne de vieira, reducción de cítricos con albahaca y chips de remolacha
-* Suquet de rape con langostinos, cigalas y almejas
+- **INSTRUCCIÓN CLAVE (MENU BANQUETE - Detalle):** Si preguntan por la **Comida Banquete**, **platos principales** o usan las palabras **"comida banquete"** tras la pregunta general, DEBES responder ÚNICAMENTE con el siguiente texto, SIN AÑADIR NI OMITIR NINGUNA PALABRA:
+${menuPrincipalResponse}
 
-**SEGUNDOS PLATOS (a elegir por los novios):**
-* Entrecotte de Nebraska con salsa café París infusionada con hierbas frescas, ajo y mantequilla aromatizada
-* Costillar black angus a baja temperatura envuelto en crujiente de pasta brick, salsa tártara y orejones
-* Medallón de solomillo de ternera relleno de foie y reducción de Oporto
-
-**POSTRES (a elegir por los novios):**
-* Semifrío de pasión y crumble de Oreo con lágrima de pistacho
-* Lingote de Ferrero Rocher con pralinè, esferas de chocolate al Frangelico y tierra de galleta
-* Cheesecake de galleta lotus con su ganache cremoso
-
-**IMPORTANTE:** Los platos definitivos (primero, segundo y postre) **aún están pendientes de la decisión final de los novios** tras la prueba de menú."
+- **INSTRUCCIÓN CLAVE (MENU COMPLETO - Detalle):** Si preguntan por **Todo** o usan la palabra **"todo"** tras la pregunta general, DEBES responder ÚNICAMENTE con el siguiente texto, SIN AÑADIR NI OMITIR NINGUNA PALABRA:
+${menuCompletoResponse}
 
 - **INSTRUCCIÓN CLAVE (VEGETARIANOS/INTOLERANCIAS):** Si preguntan por opciones **vegetarianas**, **alergias** o **intolerancias**, DEBES responder ÚNICAMENTE con el siguiente texto, SIN AÑADIR NI OMITIR NINGUNA PALABRA:
 ${aperitivoVegetarianoResponse}
