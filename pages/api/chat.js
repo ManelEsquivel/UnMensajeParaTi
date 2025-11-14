@@ -203,7 +203,7 @@ Mujer,Didac,PENDIENTE
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS ---
   const confirmedGuestsCountInPrompt = confirmedGuestsCount;
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
-  const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl;
+  const detailUbisUrlInPrompt = weddingInfo.urlConfirmacion;
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
   const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
@@ -281,7 +281,7 @@ ${guestList}
     
     * **2.C. 🟢 PRIORIDAD ESPECIAL ( Alex Espada y Anna Bernal - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Alex Espada"** **O** **"Anna Bernal"** (o similar a cualquiera de los dos, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Alex y Anna! Estáis invitados, por supuesto. **¡Enhorabuena por vuestro compromiso!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!"
     
-    * **2.D. 🟢 PRIORIDAD ESPECIAL (Jordi Bartual - Padre de la Novia):** Si el nombre o nombre y apellido proporcionado es "Jordi Bartual" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Jordi! Está claro que estás invitado, no podría ser de otra forma, ¡el padre de la novia tiene que estar en primera fila! Tu asistencia se encuentra **PENDIENTE** de confirmación aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Te esperamos!"
+    * **2.D. 🟢 PRIORIDAD ESPECIAL (Jordi Bartual - Padre de la Novia):** Si el nombre o nombre y apellido proporcionado es "Jordi Bartual" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Jordi! No podría ser de otra forma, el padre de la novia,  Está claro que estás invitado, no podría ser de otra forma, ¡El padre de la novia tiene que estar en primera fila!. Por cierto este año el Espanyol va muy bien 😉.  Tu asistencia se encuentra **PENDIENTE** de confirmación aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Te esperamos!"
 
     * **2.E. 🟢 PRIORIDAD ESPECIAL (Eva Lopez - Madre de la Novia):** Si el nombre o nombre y apellido proporcionado es "Eva Lopez" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Eva! Por supuesto que estás invitada. ¡La madre de la novia es fundamental en este día! Tu asistencia se encuentra **PENDIENTE** de confirmación aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Te esperamos!"
 
@@ -300,6 +300,8 @@ ${guestList}
     * **2.L. Coincidencia Única (General):** Si el nombre proporcionado (una o dos palabras) **coincide con UNA única persona** en la lista (y no se activó ninguna regla especial previa), DEBES pasar al **Punto 3**.
     
     * **2.M. 🟢 PRIORIDAD ESPECIAL ( Anna Bernal - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Anna Bernal"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Anna! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Alex!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!"
+
+    * **2.N. 🟢 PRIORIDAD ESPECIAL ( Alex Espada - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Alex Espada"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Alex! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Anna!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!"
     
 3.  **Respuesta Final de Confirmación (Coincidencia Única General):**
         * **Si el estado es CONFIRMADO:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Tu asistencia está **CONFIRMADA**. ¡Te esperamos con mucha ilusión!".
@@ -351,6 +353,9 @@ Además, habrá barra libre durante **2 horas**, y contaremos con un **Candy Bar
 
 ## 🌧️ Plan B (Lluvia)
 - **INSTRUCCIÓN CLAVE (LLUVIA):** Si preguntan qué pasa si llueve, DEBES responder ÚNICAMENTE: "¡No te preocupes por la lluvia! La magia de la boda continuará en el interior de la Masia Mas Llombart. Tenemos un Plan B asegurado y esperamos que esté a la altura de las expectativas."
+
+## 😂 Preguntas Graciosas (No-serias)
+- **INSTRUCCIÓN CLAVE (PREGUNTAS GRACIOSAS):** Si preguntan por **solteras, solteros, chicas, chicos o chicas de compañía**, DEBES responder con humor ÚNICAMENTE: "¡Qué pregunta! 😄 Esto es una boda, no Tinder. El objetivo principal no es encontrar pareja... aunque nunca se sabe dónde saltará la chispa. De momento, ¡céntrate en disfrutar de la fiesta y la barra libre!"
 
 ## 👗 Otros Datos
 - Código de vestimenta: Formal.
