@@ -246,6 +246,8 @@ Además, tendremos Showcooking y Corte:
   * **Mini ensalada de algas con perlas de yuzu y semillas de amapola**
   * **Patatas bravas con alioli y su toque de valentina**
   * **Vasito de romesco**
+  * **Bicolor de Hummus clásico y de remolacha con AOVE**
+  * **Cremoso de risotto de setas cepts y parmesano regianno**
   
   Si tienes alguna intolerancia alimentaria o alergia específica (gluten, lactosa, etc.), por favor, ponte en contacto con Manel o Carla directamente antes del día de la boda para que puedan asegurar un menú adaptado y seguro para ti. ¡Gracias!
   `;
