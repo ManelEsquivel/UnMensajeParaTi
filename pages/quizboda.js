@@ -1,7 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 
-const GOOGLE_FORM_URL = "URL_DE_GOOGLE_FORM"; // Reemplaza con tu URL real
+const GOOGLE_FORM_URL = "https://forms.gle/QAhfjGxzTGafDmpz5"; // Reemplaza con tu URL real
 
 const QuizBodaPage = () => {
   return (
