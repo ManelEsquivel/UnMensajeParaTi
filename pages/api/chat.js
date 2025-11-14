@@ -176,10 +176,12 @@ Mujer,Didac,PENDIENTE
   }
 
   // --- CONDICIONAL PROMPT INJECTION (FORZAR LA REGLA) ---
+  const NO_NAME_VERIFICATION_NEEDED = "¡VERIFICACIÓN DE NOMBRE REQUERIDA PARA ACCESO AL QUIZ!";
+
   let aiForcedInstruction = `
 ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-El backend ha determinado que NO se ha identificado un nombre de invitado único.
-`; // <-- MENSAJE CLARO PARA CUANDO NO SE ENCUENTRA INVITADO.
+${NO_NAME_VERIFICATION_NEEDED}
+`; // <-- MENSAJE CLARO Y ÚNICO PARA CUANDO NO SE ENCUENTRA INVITADO.
 
   if (forcedGuest) {
       const guestName = forcedGuest.nombre;
@@ -332,8 +334,8 @@ ${guestList}
 ## 🎮 REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA)
 
 - **INSTRUCCIÓN CLAVE (QUIZ):** Si el mensaje del usuario contiene palabras clave como **"jugar"**, **"juego"**, **"quiz"** o **"test"**, DEBES seguir esta estricta lógica (Ignorando el resto de Reglas, *excepto la de Privacidad*):
-    - **A. Si la INSTRUCCIÓN DE PRIORIDAD ABSOLUTA contiene la frase "se ha identificado a un ÚNICO invitado":** Responde ÚNICAMENTE: "¡Prepárate, ${forcedGuest ? forcedGuest.nombre : 'amigo'}! El QUIZ está cargando... 🕹️ ¡Te toca demostrar cuánto sabes de Manel y Carla! Si aciertas, tendrás una sorpresa. **¡Mucha suerte!** [EMPEZAR QUIZ](https://bodamanelcarla.vercel.app/quizboda)".
-    - **B. Si la INSTRUCCIÓN DE PRIORIDAD ABSOLUTA contiene la frase "NO se ha identificado un nombre de invitado":** Responde ÚNICAMENTE: "¡Genial! Para acceder al quiz y registrar tu participación, ¿podrías indicarme tu **nombre completo** (Nombre y Apellido)? Solo los invitados tienen acceso a la sorpresa final. 😉"
+    - **A. Acceso Confirmado:** Si la **INSTRUCCIÓN DE PRIORIDAD ABSOLUTA** contiene la frase **"se ha identificado a un ÚNICO invitado"**, Responde ÚNICAMENTE: "¡Prepárate, ${forcedGuest ? forcedGuest.nombre : 'amigo'}! El QUIZ está cargando... 🕹️ ¡Te toca demostrar cuánto sabes de Manel y Carla! Si aciertas, tendrás una sorpresa. **¡Mucha suerte!** [EMPEZAR QUIZ](https://bodamanelcarla.vercel.app/quizboda)".
+    - **B. Acceso Denegado/Verificación Necesaria:** Si la **INSTRUCCIÓN DE PRIORIDAD ABSOLUTA** contiene la frase **"¡VERIFICACIÓN DE NOMBRE REQUERIDA PARA ACCESO AL QUIZ!"**, Responde ÚNICAMENTE: "¡Genial! Para acceder al quiz y registrar tu participación, ¿podrías indicarme tu **nombre completo** (Nombre y Apellido)? Solo los invitados tienen acceso a la sorpresa final. 😉"
 
 // *** FIN DE LA REGLA CERO ***
 
