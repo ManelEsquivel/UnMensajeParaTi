@@ -103,7 +103,7 @@ Kike Masgrau,Masgrau,PENDIENTE
     date: "31 de octubre de 2026",
     time: "de 12:00 a 21:00 aproximadamente",
     location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
-    detailUbisUrl: "https://www.bodas.net/web/manel-y-carla/ubicacion-8",
+    detailUbisUrl: "google.com/maps/search/?api=1&query=41.5019378662,2.2404661179",
     banquet: "en el mismo recinto, justo después del aperitivo",
     dressCode: "Formal",
     transport: "Habrá parking gratuito y servicio de taxi disponible",
