@@ -103,7 +103,7 @@ Kike Masgrau,Masgrau,PENDIENTE
     date: "31 de octubre de 2026",
     time: "de 12:00 a 21:00 aproximadamente",
     location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
-    detailUbisUrl: "google.com/maps/search/?api=1&query=41.5019378662,2.2404661179",
+    detailUbisUrl: "https://www.bodas.net/web/manel-y-carla/ubicacion-8",
     banquet: "en el mismo recinto, justo después del aperitivo",
     dressCode: "Formal",
     transport: "Habrá parking gratuito y servicio de taxi disponible",
@@ -212,7 +212,7 @@ ${NO_NAME_VERIFICATION_NEEDED}
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (COMIDA) ---
   const confirmedGuestsCountInPrompt = confirmedGuestsCount;
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
-  const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl;
+  const detailUbisUrlInPrompt = weddingInfo.urlConfirmacion;
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
   const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
@@ -368,9 +368,9 @@ ${guestList}
     
     * **2.L. Coincidencia Única (General):** Si el nombre proporcionado (una o dos palabras) **coincide con UNA única persona** en la lista (y no se activó ninguna regla especial previa), DEBES pasar al **Punto 3**.
     
-    * **2.M. 🟢 PRIORIDAD ESPECIAL ( Anna Bernal - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Anna Bernal"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Anna! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Alex!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!".  ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
+    * **2.M. 🟢 PRIORIDAD ESPECIAL ( Anna Bernal - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Anna Bernal"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Anna! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Alex!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!"
 
-    * **2.N. 🟢 PRIORIDAD ESPECIAL ( Alex espada - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Alex espada"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Anna! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Anna!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!".   ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
+    * **2.N. 🟢 PRIORIDAD ESPECIAL ( Alex espada - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Alex espada"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Anna! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Anna!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!"
     
     * **2.O. 🟢 PRIORIDAD ESPECIAL (Manel Esquivel):** Si el nombre o nombre y apellido proporcionado es **"Manel Esquivel"** (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Manel! Eres el novio, ¡claro que estás invitado! Tu asistencia está **CONFIRMADA**. ¡Nos vemos en el altar! 😉"
     
