@@ -212,7 +212,7 @@ ${NO_NAME_VERIFICATION_NEEDED}
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (COMIDA) ---
   const confirmedGuestsCountInPrompt = confirmedGuestsCount;
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
-  const detailUbisUrlInPrompt = weddingInfo.urlConfirmacion;
+  const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl;
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
   const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
