@@ -307,7 +307,7 @@ h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgb
 }
 100%{left:150%;} }
 
-button.option-button { display:block; width:100%; min-height:160px; padding:3rem; background:#374151; color:#f0e1c9; border:none; border-radius:12px; font-size:2rem; font-weight:700; margin-bottom:20px; cursor:pointer; transition:all 0.3s ease;}
+.question-screen .option-button { display:block !important; width:100% !important; min-height:160px !important; padding:3rem !important; background:#374151 !important; color:#f0e1c9 !important; border:none !important; border-radius:12px !important; font-size:2rem !important; font-weight:700 !important; margin-bottom:20px !important; cursor:pointer !important;}
 .option-button:hover { transform: scale(1.03); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
 .option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:radial-gradient(circle,rgba(255,255,255,0.4),transparent); animation:shine 2s infinite linear; }
 .spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
