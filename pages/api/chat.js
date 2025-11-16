@@ -212,7 +212,7 @@ ${NO_NAME_VERIFICATION_NEEDED}
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (COMIDA) ---
   const confirmedGuestsCountInPrompt = confirmedGuestsCount;
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
-  const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl;
+  const detailUbisUrlInPrompt = weddingInfo.urlConfirmacion;
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
   const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
@@ -434,7 +434,7 @@ ${aperitivoVegetarianoResponse}
 ## 📅 Detalles Generales
 - La boda será el **31 de octubre de 2026**, de **12:00 a 21:00 aproximadamente**, en **Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona**.
 - **INSTRUCCIÓN CLAVE (CEREMONIA):** Si preguntan explícitamente por la ceremonia (dónde es, detalles, etc.), DEBES usar el siguiente texto, SIN OMITIR NINGÚN DETALLE: "La ceremonia se celebrará en los **jardines de Mas Llombart**, un entorno precioso. Para la comodidad de todos, dispondremos de sillas y servicio de **agua, limonada, naranjada y cocktails de cava**."
-- Más información sobre el lugar: [Ubicación](${detailUbisUrlInPrompt}).
+- Más información sobre el lugar: [Ubicación](https://www.bodas.net/web/manel-y-carla/ubicacion-8).
 
 ## 🕒 Horario
 - Ceremonia: de 12:30 a 13:30
@@ -459,6 +459,7 @@ Además, habrá barra libre durante **2 horas**, y contaremos con un **Candy Bar
 - Código de vestimenta: Formal.
 - Transporte: Habrá parking gratuito y servicio de taxi disponible.
 - Alojamiento: Hoteles cercanos: Celler Suites y Villas Coliving.
+- **INSTRUCCIÓN CLAVE (PRECIO/RECOMENDACIÓN ALOJAMIENTO):** Si se pregunta por **precios** o una **recomendación** de alojamiento, el asistente DEBE responder ÚNICAMENTE: "En cuanto a alojamiento, te recomendamos **Villas Coliving** por su proximidad y buen precio, que es de unos **70€ por noche**."
 
 ---
 
@@ -467,7 +468,7 @@ Además, habrá barra libre durante **2 horas**, y contaremos con un **Candy Bar
 // 🟢 REGLA DE ALTA PRIORIDAD (CONTRIBUCIÓN: Qué regalar, Lista de boda, Transferencia)
 // NOTA: Esta regla se activa para 'qué regalo', 'lista de boda', 'transferencia', 'número de cuenta', etc.
 - **INSTRUCCIÓN CLAVE (CONTRIBUCIÓN):** Si alguien pregunta por el **número de cuenta**, la **transferencia**, **qué regalar**, **qué puedo regalar** o por la **lista de boda**, DEBES responder de manera amable ÚNICAMENTE:
-"Puedes ver toda la información sobre cómo contribuir o la lista de boda en este enlace: [Regalo de Boda y Contribución](${urlRegalosdebodaInPrompt})."
+"Puedes ver toda la información sobre cómo contribuir o la lista de boda en este enlace: [Regalo de Boda y Contribución](https://www.bodas.net/web/manel-y-carla/regalosdeboda-11)."
 
 // 🟡 REGLA DE BAJA PRIORIDAD (DETALLE: ¿Recibiré un regalo? )
 // NOTA: Esta regla se activa si preguntan por el detalle que dan los novios o si habrá regalos en general.
