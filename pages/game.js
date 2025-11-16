@@ -309,7 +309,7 @@ h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgb
 
 .option-button { min-height: 180px; padding: 3rem; background:#374151; color:#f0e1c9; border-radius:16px; font-size:2rem; font-weight:700; transition:all 0.4s ease; position:relative; overflow:hidden; margin-bottom:20px; animation:pulse 2s infinite ease-in-out; }
 .option-button:hover { transform: scale(1.12); box-shadow: 0 12px 30px rgba(0,0,0,0.5); background:#4b5563; }
-.option-button::after { content:''; position:absolute; top:0; left:-150%; width:200%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.3), transparent); animation:shine 2.5s infinite linear; }
+.option-button::after { content:''; position:absolute; top:0; left:-150%; width:200%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.4), transparent); animation:shine 2.5s infinite linear; z-index:1; pointer-events:none; }
 @keyframes pulse { 0%{transform:scale(1);}50%{transform:scale(1.05);}100%{transform:scale(1);} }
 @keyframes shine { 0%{left:-150%;}100%{left:150%;} }
 .spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
@@ -320,5 +320,3 @@ h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgb
 };
 
 export default QuizBodaPage;
-
-
