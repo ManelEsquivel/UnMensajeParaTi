@@ -240,8 +240,8 @@ const QuizBodaPage = () => {
             <style jsx global>{`
                  /* Importamos fuentes épicas y legibles */
                  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap'); 
-            .question-screen .options-grid { display:grid !important; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)) !important; gap:12px !important; }
-.question-screen button.option-button { display:block !important; width:100% !important; min-height:70px !important; padding:0.8rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:10px !important; font-size:1.1rem !important; font-weight:600 !important; cursor:pointer !important; position:relative !important; overflow:hidden !important;}
+            .question-screen .options-grid { display:grid !important; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)) !important; gap:10px !important; }
+.question-screen button.option-button { display:block !important; width:100% !important; min-height:60px !important; padding:0.6rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:8px !important; font-size:1rem !important; font-weight:600 !important; cursor:pointer !important; position:relative !important; overflow:hidden !important;}
 .question-screen button.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.4), transparent); animation:shine 3s infinite linear; pointer-events:none; }
 @keyframes shine { 0%{left:-100%;} 100%{left:100%;} }
 `}</style>
@@ -316,8 +316,8 @@ h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgb
 .option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:radial-gradient(circle,rgba(255,255,255,0.4),transparent); animation:shine 2s infinite linear; }
 .spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
 @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
-.question-screen .options-grid { display:grid !important; grid-template-columns:repeat(auto-fit, minmax(140px, 1fr)) !important; gap:12px !important; }
-.question-screen button.option-button { display:block !important; width:100% !important; min-height:70px !important; padding:0.8rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:10px !important; font-size:1.1rem !important; font-weight:600 !important; cursor:pointer !important; position:relative !important; overflow:hidden !important;}
+.question-screen .options-grid { display:grid !important; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)) !important; gap:10px !important; }
+.question-screen button.option-button { display:block !important; width:100% !important; min-height:60px !important; padding:0.6rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:8px !important; font-size:1rem !important; font-weight:600 !important; cursor:pointer !important; position:relative !important; overflow:hidden !important;}
 .question-screen button.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.4), transparent); animation:shine 3s infinite linear; pointer-events:none; }
 @keyframes shine { 0%{left:-100%;} 100%{left:100%;} }
 `}</style>
