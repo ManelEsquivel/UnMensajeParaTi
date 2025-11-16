@@ -2,11 +2,10 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 
 // *******************************************************************
-// ⚠️ TUS IDENTIFICADORES REALES (RESTAURANDO EL NOMBRE) ⚠️
+// ⚠️ TUS IDENTIFICADORES REALES (NO CAMBIAN) ⚠️
 // *******************************************************************
 const BASE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfd6X0a5VGjQW_y7e3IYqTh64HLrh1yA6CWJEGJZu4HxENr3Q/formResponse";
 
-// IDs (Nombre + 5 Preguntas)
 const ENTRY_NAME = "entry.1745994476"; 
 const ENTRY_Q1 = "entry.1000057";      
 const ENTRY_Q2 = "entry.1509074265";   
@@ -48,8 +47,9 @@ const QuizBodaPage = () => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCompleted, setIsCompleted] = useState(false); 
 
-    const optionLetters = ['A', 'B', 'C', 'D'];
-    const currentQuestionIndex = currentStep - 2; // Índice ajustado para el Step 1 (Nombre)
+    // (Eliminamos optionLetters ya que no se usan)
+    // const optionLetters = ['A', 'B', 'C', 'D'];
+    const currentQuestionIndex = currentStep - 2; 
     const currentQuestion = ALL_QUESTIONS[currentQuestionIndex];
 
     useEffect(() => {
@@ -89,15 +89,14 @@ const QuizBodaPage = () => {
         
         // 1. Construir la URL de Envío (GET Request)
         let submissionUrl = `${BASE_FORM_URL}?`;
-        submissionUrl += `&${entryMap.guestName}=${encodeURIComponent(finalAnswers.guestName)}`; // <-- NOMBRE AÑADIDO
+        submissionUrl += `&${entryMap.guestName}=${encodeURIComponent(finalAnswers.guestName)}`; 
         submissionUrl += `&${entryMap.q1}=${encodeURIComponent(finalAnswers.q1)}`;
         submissionUrl += `&${entryMap.q2}=${encodeURIComponent(finalAnswers.q2)}`;
         submissionUrl += `&${entryMap.q3}=${encodeURIComponent(finalAnswers.q3)}`;
         submissionUrl += `&${entryMap.q4}=${encodeURIComponent(finalAnswers.q4)}`;
         submissionUrl += `&${entryMap.q5}=${encodeURIComponent(finalAnswers.q5)}`;
-        submissionUrl += `&submit=Submit`; // Parámetro final de envío
+        submissionUrl += `&submit=Submit`; 
 
-        // Limpiar el primer '&'
         submissionUrl = submissionUrl.replace('?&', '?');
 
         // 2. Abrir la URL en una nueva pestaña (El método que funcionó)
@@ -127,7 +126,7 @@ const QuizBodaPage = () => {
                     <p>¡Vuestro conocimiento sobre Manel y Carla ha sido registrado, **{answers.guestName || 'invitado/a'}**!</p>
                     <p>Vuestras respuestas han sido validadas. Si habéis acertado las preguntas o sois de las personas con mayor acierto, **¡tendréis un Detalle Especial!**</p>
                     <p>¡Gracias por jugar y nos vemos muy pronto en la boda!</p>
-                    <p style={{ marginTop: '20px', fontWeight: 'bold', fontSize: '1.2rem', color: '#ffcc00' }}>Con cariño, Manel y Carla.</p>
+                    <p style={{ marginTop: '20px', fontWeight: 'bold', fontSize: '1.2rem', color: '#f0e1c9' }}>Con cariño, Manel y Carla.</p>
                 </div>
              );
         }
@@ -187,11 +186,11 @@ const QuizBodaPage = () => {
                             {currentQuestion.options.map((option, index) => (
                                 <button
                                     key={index}
-                                    className={`option-button option-${optionLetters[index]}`}
+                                    className="option-button" // <-- Eliminada la clase de letra A, B, C
                                     onClick={() => handleAnswerSelect(option, currentQuestion.id)}
                                     disabled={isSubmitting}
                                 >
-                                    <span className="option-letter">{optionLetters[index]}</span>
+                                    {/* 🎯 ELIMINADO EL SPAN DE LA LETRA */}
                                     <span className="option-text">{option}</span>
                                 </button>
                             ))}
@@ -238,10 +237,10 @@ const QuizBodaPage = () => {
                 </div>
             </div>
 
-            {/* --- ESTILOS ESTILO MILLONARIO/VIDEOJUEGO --- */}
+            {/* --- 🎯 ESTILOS DE VIDEOJUEGO MODERNO/FANTASÍA --- */}
             <style jsx global>{`
-                 /* 🎯 NUEVA FUENTE DE VIDEOJUEGO */
-                 @import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Roboto+Mono:wght@700&display=swap'); 
+                 /* Importamos fuentes épicas y legibles */
+                 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap'); 
             `}</style>
             <style jsx>{`
                 .container {
@@ -249,9 +248,9 @@ const QuizBodaPage = () => {
                     justify-content: center;
                     align-items: center;
                     min-height: 100vh;
-                    background: #111827; 
-                    /* 🎯 NUEVA FUENTE BASE (PIXEL) */
-                    font-family: 'Press Start 2P', monospace, sans-serif;
+                    /* Fondo degradado oscuro (morado/azul noche) */
+                    background: linear-gradient(135deg, #23074d, #440a5b);
+                    font-family: 'Lato', sans-serif; /* Fuente base legible */
                     padding: 20px;
                 }
                 .card { 
@@ -259,7 +258,9 @@ const QuizBodaPage = () => {
                     color: #fff; 
                     padding: 3rem; 
                     border-radius: 16px; 
-                    box-shadow: 0 0 25px rgba(0, 0, 0, 0.5); 
+                    /* Borde y brillo dorado sutil */
+                    border: 2px solid #a88a53; 
+                    box-shadow: 0 0 25px rgba(168, 138, 83, 0.3); 
                     text-align: center; 
                     max-width: 700px; 
                     width: 100%; 
@@ -269,100 +270,121 @@ const QuizBodaPage = () => {
                     justify-content: space-between; 
                 }
                 
-                /* 🎯 TEXTOS DE RESPUESTAS (MÁS LEGIBLES) */
-                p, .option-text, .success-screen p {
-                    font-family: 'Roboto Mono', monospace;
-                    font-size: 1.1rem;
-                    line-height: 1.6;
-                    color: #e5e7eb;
-                }
-                .progress-text {
-                     font-family: 'Roboto Mono', monospace;
-                }
-                
-                h1 { 
-                    color: #ffcc00; 
-                    margin-bottom: 1rem; 
-                    font-size: 2.2rem; /* Ajuste ligero para la fuente pixel */
-                    text-shadow: 0 0 10px rgba(255, 204, 0, 0.5); 
+                /* Títulos con fuente épica */
+                h1, h2 { 
+                    font-family: 'Cinzel', serif;
+                    color: #f0e1c9; /* Dorado pálido */
+                    text-shadow: 0 0 10px rgba(240, 225, 201, 0.3);
                     line-height: 1.4;
                 }
-                h2 { 
-                    color: #fff; 
-                    font-size: 1.3rem; /* Ajuste ligero para la fuente pixel */
+                h1 { font-size: 2.2rem; margin-bottom: 1rem; }
+                h2 { font-size: 1.5rem; margin-bottom: 2rem; border-bottom: 2px solid #374151; padding-bottom: 1rem; }
+
+                p { 
+                    color: #e5e7eb; 
+                    font-size: 1.1rem; 
                     margin-bottom: 2rem; 
-                    border-bottom: 2px solid #374151; 
-                    padding-bottom: 1rem; 
-                    line-height: 1.5;
+                    line-height: 1.6;
                 }
-                
+
+                /* 🎯 BOTÓN DE BIENVENIDA (EMPEZAR A JUGAR) */
                 .button { 
                     display: inline-block; 
-                    padding: 1rem 2rem; 
-                    background-color: #ffcc00; 
+                    padding: 1rem 2.5rem; 
+                    /* Gradiente dorado */
+                    background: linear-gradient(145deg, #d4af37, #b8860b);
                     color: #1f2937; 
                     border: none; 
-                    border-radius: 8px; 
+                    border-radius: 50px; /* Muy redondeado */
                     text-decoration: none; 
-                    font-weight: bold; 
-                    font-size: 1.1rem; 
+                    font-weight: 700; 
+                    font-size: 1.2rem; 
                     cursor: pointer; 
                     transition: all 0.2s ease; 
-                    box-shadow: 0 4px 0 #cc9900; 
+                    box-shadow: 0 4px 0 #8c690a; 
                     text-transform: uppercase;
-                    /* 🎯 NUEVA FUENTE DE VIDEOJUEGO */
-                    font-family: 'Press Start 2P', monospace;
-                    /* 🎯 NUEVA ANIMACIÓN DE PULSO */
-                    animation: pulse 1.5s infinite;
+                    font-family: 'Cinzel', serif;
+                    /* Animación de pulso */
+                    animation: pulse-gold 2s infinite;
                 }
                 
-                /* 🎯 ANIMACIÓN DE PULSO */
-                @keyframes pulse {
-                    0% { transform: scale(1); box-shadow: 0 4px 0 #cc9900; }
-                    50% { transform: scale(1.05); box-shadow: 0 6px 0 #cc9900; }
-                    100% { transform: scale(1); box-shadow: 0 4px 0 #cc9900; }
+                @keyframes pulse-gold {
+                    0% { transform: scale(1); box-shadow: 0 4px 0 #8c690a, 0 0 10px rgba(212,175,55,0.2); }
+                    50% { transform: scale(1.05); box-shadow: 0 6px 0 #8c690a, 0 0 20px rgba(212,175,55,0.7); }
+                    100% { transform: scale(1); box-shadow: 0 4px 0 #8c690a, 0 0 10px rgba(212,175,55,0.2); }
                 }
 
                 .button:hover { 
-                    background-color: #ffdd44; 
-                    transform: translateY(-2px) scale(1.05); /* Escala en hover */
-                    box-shadow: 0 6px 0 #cc9900; 
+                    background: linear-gradient(145deg, #e7c85f, #d4af37); 
+                    transform: translateY(-2px) scale(1.05); 
+                    box-shadow: 0 6px 0 #8c690a; 
                     animation: none; /* Detener pulso en hover */
                 }
                 
+                /* 🎯 INPUT DE IDENTIFICACIÓN (MÁS BONITO) */
                 .name-screen label { 
                     display: block; 
                     margin-bottom: 10px; 
-                    color: #ffcc00; 
-                    font-weight: bold; 
-                    font-size: 1rem;
+                    color: #d4af37; 
+                    font-weight: 700; 
+                    font-family: 'Cinzel', serif;
+                    font-size: 1.2rem;
                 }
                 .name-screen input { 
                     width: 100%; 
-                    padding: 12px; 
-                    border: 2px solid #ffcc00; 
+                    padding: 14px; 
+                    border: 2px solid #5a6475; /* Borde neutral */
                     border-radius: 8px; 
                     background: #2d3748; 
                     color: #fff; 
                     font-size: 1.1rem; 
                     margin-bottom: 20px;
-                    /* 🎯 FUENTE LEGIBLE PARA EL INPUT */
-                    font-family: 'Roboto Mono', monospace;
+                    font-family: 'Lato', sans-serif;
+                    box-shadow: 0 0 0px rgba(212,175,55,0);
+                    transition: border-color 0.3s, box-shadow 0.3s;
+                    box-sizing: border-box;
+                }
+                /* Efecto "Glow" al hacer focus */
+                .name-screen input:focus {
+                    border-color: #d4af37;
+                    box-shadow: 0 0 15px rgba(212,175,55,0.5);
+                    outline: none;
                 }
                 
+                /* 🎯 BOTÓN SIGUIENTE (MÁS VISTOSO Y GRANDE) */
                 .next-button { 
-                    width: auto; 
-                    min-width: 250px; 
+                    width: 100%; /* 100% Ancho */
+                    font-size: 1.2rem;
+                    padding: 1rem;
                     margin-top: 10px;
-                    animation: none; /* El botón de siguiente no necesita pulsar */
+                    background: linear-gradient(145deg, #a88a53, #8c690a); /* Dorado más oscuro */
+                    animation: none; /* Sin pulso, pero con brillo */
+                    position: relative;
+                    overflow: hidden;
+                }
+                
+                /* Animación de Brillo Deslizante */
+                .next-button::before {
+                    content: '';
+                    position: absolute;
+                    top: 0;
+                    left: -100%;
+                    width: 50%;
+                    height: 100%;
+                    background: linear-gradient(100deg, transparent, rgba(255,255,255,0.3), transparent);
+                    transform: skewX(-30deg);
+                    animation: shine 3s infinite linear;
+                }
+                
+                @keyframes shine {
+                    0% { left: -100%; }
+                    100% { left: 150%; }
                 }
 
-                /* --- 🎯 NUEVO DISEÑO DE OPCIONES (MÁS GRANDE) --- */
-
+                /* --- 🎯 BOTONES DE PREGUNTAS (MÁS GRANDES, SIN LETRAS) --- */
                 .options-grid {
                     display: flex;
                     flex-direction: column; /* Apilado vertical */
-                    flex-wrap: wrap;
                     gap: 15px;
                     justify-content: center;
                     margin-top: 20px;
@@ -371,65 +393,41 @@ const QuizBodaPage = () => {
                 .option-button {
                     display: flex;
                     align-items: center;
-                    width: 100%; /* 🎯 BOTONES 100% ANCHO */
+                    justify-content: center; /* Centrar texto */
+                    width: 100%; /* 100% Ancho */
                     min-height: 70px;
-                    padding: 15px 20px;
+                    padding: 1.2rem; /* Más grande */
                     background-color: #374151; 
-                    color: #fff;
+                    color: #f0e1c9; /* Texto dorado pálido */
                     border: 2px solid #5a6475; 
-                    border-radius: 35px; 
-                    text-align: left;
+                    border-radius: 8px; /* Bordes modernos */
+                    text-align: center;
                     transition: all 0.2s ease;
                     box-shadow: 0 4px 0 #2d3748;
                     cursor: pointer;
+                    font-family: 'Lato', sans-serif;
+                    font-weight: 700;
+                    font-size: 1.1rem;
                 }
 
-                /* 🎯 NUEVO HOVER ESTILO MILLONARIO (INVERTIDO) */
                 .option-button:hover {
-                    background-color: #ffcc00; /* Fondo dorado */
-                    border-color: #ffcc00;
-                    transform: translateY(-2px);
+                    background: #d4af37; /* Fondo dorado */
+                    color: #1f2937; /* Texto oscuro */
+                    border-color: #f0e1c9; /* Borde dorado claro */
+                    transform: scale(1.03); /* Efecto Pop */
                     box-shadow: 0 6px 0 #2d3748;
                 }
                 
-                .option-letter { 
-                    background: #ffcc00; 
-                    color: #1f2937; 
-                    font-weight: bold; 
-                    width: 30px; 
-                    height: 30px; 
-                    border-radius: 50%; 
-                    display: flex; 
-                    justify-content: center; 
-                    align-items: center; 
-                    margin-right: 15px; 
-                    flex-shrink: 0;
-                    font-family: 'Press Start 2P', monospace; /* Letra A, B C pixelada */
-                    transition: all 0.2s ease;
-                }
-                
-                /* 🎯 NUEVO HOVER (INVERTIDO) */
-                .option-button:hover .option-letter {
-                    background: #1f2937;
-                    color: #ffcc00;
-                }
-                .option-button:hover .option-text {
-                    color: #1f2937; /* Texto oscuro en hover */
-                }
-                
                 .option-text { 
-                    flex-grow: 1; 
-                    font-family: 'Roboto Mono', monospace;
-                    font-weight: bold;
-                    font-size: 1.1rem;
-                    transition: color 0.2s ease;
+                    flex-grow: 0; /* No necesita crecer, ya que está centrado */
                 }
                 
+                /* --- (Resto de estilos de progreso y spinner sin cambios) --- */
                 .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #ffcc00; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
                 @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
                 .progress-bar-container { width: 90%; height: 15px; background: #374151; border-radius: 10px; overflow: hidden; margin: 20px auto 0; box-shadow: 0 2px 5px rgba(0,0,0,0.3) inset; }
-                .progress-bar { height: 100%; background: linear-gradient(90deg, #ffcc00, #ff8c00); transition: width 0.5s ease-in-out; border-radius: 10px; }
-                .progress-text { margin-top: 5px; font-size: 0.9rem; color: #ffcc00; font-family: 'Roboto Mono', monospace; }
+                .progress-bar { height: 100%; background: linear-gradient(90deg, #d4af37, #b8860b); transition: width 0.5s ease-in-out; border-radius: 10px; }
+                .progress-text { margin-top: 5px; font-size: 0.9rem; color: #d4af37; font-family: 'Lato', sans-serif; }
                 .success-screen h2 { color: #70e000; text-shadow: 0 0 5px #70e000; font-size: 1.8rem; }
             `}</style>
         </>
