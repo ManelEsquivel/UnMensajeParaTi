@@ -485,7 +485,7 @@ ${aperitivoVegetarianoResponse}
 
 ## 🥂 Bebidas
 
-- **INSTRUCCIÓN CLAVE (BEBIDAS TODO - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todo"** O **"todas"** (refiriéndose a bebidas) O **"ambos"** (refiriéndose a bebidas), DEBES responder ÚNICAMENTE con el contenido de ${allDrinksResponse}.
+- **INSTRUCCIÓN CLAVE (BEBIDAS TODO - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todas"** O **"bebidas completas"** (refiriéndose a bebidas) O **"ambos"** (refiriéndose a bebidas), DEBES responder ÚNICAMENTE con el contenido de ${allDrinksResponse}.
 
 - **INSTRUCCIÓN CLAVE (VINOS - ALTA PRIORIDAD):** Si el mensaje del usuario contiene la palabra clave **"vinos"**, DEBES responder ÚNICAMENTE con el contenido de ${winesResponse}.
 
