@@ -284,10 +284,12 @@ const QuizBodaPage = () => {
                     line-height: 1.6;
                 }
 
-                /* 🎯 BOTÓN DE BIENVENIDA (EMPEZAR A JUGAR) */
+                /* 🎯 BOTÓN DE BIENVENIDA (EMPEZAR A JUGAR) - MÁS GRANDE Y MÁS LLAMATIVO */
                 .button { 
                     display: inline-block; 
-                    padding: 1rem 2.5rem; 
+                    /* MUCHO MÁS GRANDE */
+                    padding: 1.5rem 3.5rem; 
+                    
                     /* Gradiente dorado */
                     background: linear-gradient(145deg, #d4af37, #b8860b);
                     color: #1f2937; 
@@ -295,27 +297,28 @@ const QuizBodaPage = () => {
                     border-radius: 50px; /* Muy redondeado */
                     text-decoration: none; 
                     font-weight: 700; 
-                    font-size: 1.2rem; 
+                    /* Fuente más grande */
+                    font-size: 1.4rem; 
                     cursor: pointer; 
                     transition: all 0.2s ease; 
-                    box-shadow: 0 4px 0 #8c690a; 
+                    box-shadow: 0 6px 0 #8c690a; /* Sombra más pronunciada */
                     text-transform: uppercase;
                     font-family: 'Cinzel', serif;
-                    /* Animación de pulso */
-                    animation: pulse-gold 2s infinite;
+                    /* Animación de pulso más intensa */
+                    animation: pulse-gold 1.5s infinite;
                 }
                 
                 @keyframes pulse-gold {
-                    0% { transform: scale(1); box-shadow: 0 4px 0 #8c690a, 0 0 10px rgba(212,175,55,0.2); }
-                    50% { transform: scale(1.05); box-shadow: 0 6px 0 #8c690a, 0 0 20px rgba(212,175,55,0.7); }
-                    100% { transform: scale(1); box-shadow: 0 4px 0 #8c690a, 0 0 10px rgba(212,175,55,0.2); }
+                    0% { transform: scale(1); box-shadow: 0 6px 0 #8c690a, 0 0 15px rgba(212,175,55,0.4); }
+                    50% { transform: scale(1.08); box-shadow: 0 8px 0 #8c690a, 0 0 30px rgba(212,175,55,1); } /* Escala más grande y brillo más fuerte */
+                    100% { transform: scale(1); box-shadow: 0 6px 0 #8c690a, 0 0 15px rgba(212,175,55,0.4); }
                 }
 
                 .button:hover { 
                     background: linear-gradient(145deg, #e7c85f, #d4af37); 
-                    transform: translateY(-2px) scale(1.05); 
-                    box-shadow: 0 6px 0 #8c690a; 
-                    animation: none; /* Detener pulso en hover */
+                    transform: translateY(-2px) scale(1.1); /* Escala en hover */
+                    box-shadow: 0 8px 0 #8c690a; 
+                    animation: none; 
                 }
                 
                 /* 🎯 INPUT DE IDENTIFICACIÓN */
@@ -355,7 +358,7 @@ const QuizBodaPage = () => {
                     padding: 1rem;
                     margin-top: 10px;
                     background: linear-gradient(145deg, #a88a53, #8c690a); /* Dorado más oscuro */
-                    animation: none; /* Sin pulso, pero con brillo */
+                    animation: none; 
                     position: relative;
                     overflow: hidden;
                 }
@@ -378,7 +381,7 @@ const QuizBodaPage = () => {
                     100% { left: 150%; }
                 }
 
-                /* --- 🎯 BOTONES DE PREGUNTAS (RESPUESTAS) - GRANDES Y MODERNOS --- */
+                /* --- 🎯 BOTONES DE PREGUNTAS (RESPUESTAS) - MÁS GRANDES Y MODERNOS --- */
                 .options-grid {
                     display: flex;
                     flex-direction: column; 
@@ -392,16 +395,16 @@ const QuizBodaPage = () => {
                     align-items: center;
                     justify-content: center; 
                     width: 100%; 
-                    /* 🎯 Hacemos el botón MÁS GRANDE Y ALTO */
-                    min-height: 80px;
-                    padding: 1.5rem; 
+                    /* 🎯 Aumento de tamaño para que se noten más */
+                    min-height: 90px;
+                    padding: 1.8rem; /* Más padding para hacerlo más grueso */
                     
                     background-color: #374151; 
                     color: #f0e1c9; 
                     
-                    /* 🎯 Borde moderno y sombra suave */
+                    /* Borde moderno y sombra suave */
                     border: 1px solid #5a6475; 
-                    border-radius: 12px; /* Más redondeado */
+                    border-radius: 12px; 
                     box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); 
                     
                     text-align: center;
@@ -409,15 +412,15 @@ const QuizBodaPage = () => {
                     cursor: pointer;
                     font-family: 'Lato', sans-serif;
                     font-weight: 700;
-                    font-size: 1.2rem; /* Fuente un poco más grande */
+                    font-size: 1.3rem; /* Fuente más grande para acompañar */
                 }
 
                 .option-button:hover {
                     background: #d4af37; 
                     color: #1f2937; 
                     border-color: #f0e1c9; 
-                    transform: scale(1.03); /* Efecto Pop */
-                    box-shadow: 0 6px 15px rgba(212, 175, 55, 0.5); /* Sombra de brillo en hover */
+                    transform: scale(1.03); 
+                    box-shadow: 0 6px 15px rgba(212, 175, 55, 0.5); 
                 }
                 
                 .option-text { 
