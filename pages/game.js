@@ -240,7 +240,9 @@ const QuizBodaPage = () => {
             <style jsx global>{`
                  /* Importamos fuentes épicas y legibles */
                  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap'); 
-            .question-screen button.option-button { display:block !important; width:100% !important; min-height:160px !important; padding:3rem !important; background:#374151 !important; color:#f0e1c9 !important; border:none !important; border-radius:12px !important; font-size:2rem !important; font-weight:700 !important; margin-bottom:20px !important; cursor:pointer !important;}
+            .question-screen button.option-button { display:block !important; width:100% !important; min-height:160px !important; padding:3rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:16px !important; font-size:2rem !important; font-weight:700 !important; margin-bottom:20px !important; cursor:pointer !important; position:relative !important; overflow:hidden !important;}
+.question-screen button.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.4), transparent); animation:shine 3s infinite linear; pointer-events:none; }
+@keyframes shine { 0%{left:-100%;} 100%{left:100%;} }
 `}</style>
             <style jsx global>{`
 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap');
@@ -313,10 +315,13 @@ h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgb
 .option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:radial-gradient(circle,rgba(255,255,255,0.4),transparent); animation:shine 2s infinite linear; }
 .spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
 @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
-.question-screen button.option-button { display:block !important; width:100% !important; min-height:160px !important; padding:3rem !important; background:#374151 !important; color:#f0e1c9 !important; border:none !important; border-radius:12px !important; font-size:2rem !important; font-weight:700 !important; margin-bottom:20px !important; cursor:pointer !important;}
+.question-screen button.option-button { display:block !important; width:100% !important; min-height:160px !important; padding:3rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:16px !important; font-size:2rem !important; font-weight:700 !important; margin-bottom:20px !important; cursor:pointer !important; position:relative !important; overflow:hidden !important;}
+.question-screen button.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.4), transparent); animation:shine 3s infinite linear; pointer-events:none; }
+@keyframes shine { 0%{left:-100%;} 100%{left:100%;} }
 `}</style>
         </>
     );
 };
 
 export default QuizBodaPage;
+
