@@ -239,64 +239,193 @@ const QuizBodaPage = () => {
                  /* Importamos fuentes épicas y legibles */
                  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap'); 
             `}</style>
-            <style jsx global>{`
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap');
+            <style jsx>{`
+                .container {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    /* Fondo degradado oscuro (morado/azul noche) */
+                    background: linear-gradient(135deg, #23074d, #440a5b);
+                    font-family: 'Lato', sans-serif; /* Fuente base legible */
+                    padding: 20px;
+                }
+                .card { 
+                    background: #1f2937; 
+                    color: #fff; 
+                    padding: 3rem; 
+                    border-radius: 16px; 
+                    /* Borde y brillo dorado sutil */
+                    border: 2px solid #a88a53; 
+                    box-shadow: 0 0 25px rgba(168, 138, 83, 0.3); 
+                    text-align: center; 
+                    max-width: 700px; 
+                    width: 100%; 
+                    min-height: 500px; 
+                    display: flex; 
+                    flex-direction: column; 
+                    justify-content: space-between; 
+                }
+                
+                /* Títulos con fuente épica */
+                h1, h2 { 
+                    font-family: 'Cinzel', serif;
+                    color: #f0e1c9; /* Dorado pálido */
+                    text-shadow: 0 0 10px rgba(240, 225, 201, 0.3);
+                    line-height: 1.4;
+                }
+                h1 { font-size: 2.2rem; margin-bottom: 1rem; }
+                h2 { font-size: 1.5rem; margin-bottom: 2rem; border-bottom: 2px solid #374151; padding-bottom: 1rem; }
 
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #23074d, #440a5b);
-  font-family: 'Lato', sans-serif;
-  padding: 20px;
-}
-.card {
-  background: #1f2937;
-  color: #fff;
-  padding: 3rem;
-  border-radius: 16px;
-  border: 2px solid #a88a53;
-  box-shadow: 0 0 25px rgba(168,138,83,0.3);
-  text-align: center;
-  max-width: 700px;
+                p { 
+                    color: #e5e7eb; 
+                    font-size: 1.1rem; 
+                    margin-bottom: 2rem; 
+                    line-height: 1.6;
+                }
+
+                /* 🎯 BOTÓN DE BIENVENIDA (EMPEZAR A JUGAR) - AHORA MUCHO MÁS GRANDE Y LLAMATIVO */
+                .button { 
+                    display: inline-block; 
+                    /* MUCHO MÁS GRANDE */
+                    padding: 1.5rem 3.5rem; 
+                    
+                    /* Gradiente dorado */
+                    background: linear-gradient(145deg, #d4af37, #b8860b);
+                    color: #1f2937; 
+                    border: none; 
+                    border-radius: 50px; 
+                    text-decoration: none; 
+                    font-weight: 700; 
+                    /* Fuente más grande */
+                    font-size: 1.4rem; 
+                    cursor: pointer; 
+                    transition: all 0.2s ease; 
+                    box-shadow: 0 6px 0 #8c690a; /* Sombra más pronunciada */
+                    text-transform: uppercase;
+                    font-family: 'Cinzel', serif;
+                    /* Animación de pulso más intensa y visible */
+                    animation: pulse-gold 1.5s infinite;
+                }
+                
+                @keyframes pulse-gold {
+                    0% { transform: scale(1); box-shadow: 0 6px 0 #8c690a, 0 0 15px rgba(212,175,55,0.4); }
+                    50% { transform: scale(1.08); box-shadow: 0 8px 0 #8c690a, 0 0 30px rgba(212,175,55,1); } /* Escala más grande y brillo más fuerte */
+                    100% { transform: scale(1); box-shadow: 0 6px 0 #8c690a, 0 0 15px rgba(212,175,55,0.4); }
+                }
+
+                .button:hover { 
+                    background: linear-gradient(145deg, #e7c85f, #d4af37); 
+                    transform: translateY(-2px) scale(1.1); 
+                    box-shadow: 0 8px 0 #8c690a; 
+                    animation: none; 
+                }
+                
+                /* 🎯 INPUT DE IDENTIFICACIÓN */
+                .name-screen label { 
+                    display: block; 
+                    margin-bottom: 10px; 
+                    color: #d4af37; 
+                    font-weight: 700; 
+                    font-family: 'Cinzel', serif;
+                    font-size: 1.2rem;
+                }
+                .name-screen input { 
+                    width: 100%; 
+                    padding: 14px; 
+                    border: 2px solid #5a6475; 
+                    border-radius: 8px; 
+                    background: #2d3748; 
+                    color: #fff; 
+                    font-size: 1.1rem; 
+                    margin-bottom: 20px;
+                    font-family: 'Lato', sans-serif;
+                    box-shadow: 0 0 0px rgba(212,175,55,0);
+                    transition: border-color 0.3s, box-shadow 0.3s;
+                    box-sizing: border-box;
+                }
+                /* Efecto "Glow" al hacer focus */
+                .name-screen input:focus {
+                    border-color: #d4af37;
+                    box-shadow: 0 0 15px rgba(212,175,55,0.5);
+                    outline: none;
+                }
+                
+                /* 🎯 BOTÓN SIGUIENTE (MÁS VISTOSO Y GRANDE) */
+                .next-button {
   width: 100%;
-  animation: fadeIn 0.8s ease-in-out;
-}
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95);} to { opacity: 1; transform: scale(1);} }
-
-h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgba(240,225,201,0.3); }
-.button {
-  display: inline-block;
-  padding: 1.5rem 3.5rem;
-  background: linear-gradient(145deg, #d4af37, #b8860b);
-  color: #1f2937;
-  border: none;
-  border-radius: 50px;
-  font-weight: 700;
-  font-size: 1.4rem;
+  font-size: 1.2rem;
+  padding: 1rem;
+  margin-top: 10px;
+  background: #e5e7eb; /* Gris claro */
+  color: #1f2937; /* Texto oscuro */
+  border: 1px solid #d1d5db; /* Borde suave */
+  border-radius: 8px;
+  font-weight: 600;
   cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 6px 0 #8c690a;
-  text-transform: uppercase;
-  font-family: 'Cinzel', serif;
-  animation: pulse-gold 1.5s infinite;
+  transition: background 0.3s ease;
 }
-@keyframes pulse-gold { 0% { transform: scale(1);} 50% { transform: scale(1.08);} 100% { transform: scale(1);} }
-.button:hover { transform: scale(1.1); box-shadow: 0 8px 0 #8c690a; }
-.button:active { animation: clickBounce 0.3s; }
-@keyframes clickBounce { 0%{transform:scale(1);}50%{transform:scale(0.9);}100%{transform:scale(1);} }
+.next-button:hover {
+  background: #d1d5db; /* Un poco más oscuro al hover */
+}
 
-.next-button { width: 100%; font-size: 1.3rem; padding: 1rem; margin-top: 10px; background: linear-gradient(145deg,#a88a53,#8c690a); position:relative; overflow:hidden; }
-.next-button::before { content:''; position:absolute; top:0; left:-100%; width:50%; height:100%; background:linear-gradient(100deg,transparent,rgba(255,255,255,0.3),transparent); transform:skewX(-30deg); animation:shine 3s infinite linear; }
-@keyframes shine { 0%{left:-100%;}100%{left:150%;} }
+                    100% { left: 150%; }
+                }
 
-.option-button { min-height:90px; padding:1.8rem; background:#374151; color:#f0e1c9; border-radius:12px; font-size:1.3rem; font-weight:700; transition:all 0.3s ease; position:relative; overflow:hidden; }
-.option-button:hover { background:#d4af37; color:#1f2937; transform:scale(1.05); box-shadow:0 6px 15px rgba(212,175,55,0.5); }
-.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:radial-gradient(circle,rgba(255,255,255,0.4),transparent); animation:shine 2s infinite linear; }
-.spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
-@keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
-`}</style>
+                /* --- 🎯 BOTONES DE PREGUNTAS (RESPUESTAS) - AHORA MÁS GRANDES --- */
+                .options-grid {
+                    display: flex;
+                    flex-direction: column; 
+                    gap: 15px;
+                    justify-content: center;
+                    margin-top: 20px;
+                }
+
+                .option-button {
+                    display: flex;
+                    align-items: center;
+                    justify-content: center; 
+                    width: 100%; 
+                    /* 🎯 Aumento de tamaño para que se noten mucho más */
+                    min-height: 90px;
+                    padding: 1.8rem; /* Más padding para hacerlo más grueso */
+                    
+                    background-color: #374151; 
+                    color: #f0e1c9; 
+                    
+                    /* Estilos modernos de borde y sombra */
+                    border: 1px solid #5a6475; 
+                    border-radius: 12px; 
+                    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.4); 
+                    
+                    text-align: center;
+                    transition: all 0.3s ease;
+                    cursor: pointer;
+                    font-family: 'Lato', sans-serif;
+                    font-weight: 700;
+                    font-size: 1.3rem; /* Fuente más grande para acompañar */
+                }
+
+                .option-button:hover {
+                    background: #d4af37; 
+                    color: #1f2937; 
+                    border-color: #f0e1c9; 
+                    transform: scale(1.03); 
+                    box-shadow: 0 6px 15px rgba(212, 175, 55, 0.5); 
+                }
+                
+                .option-text { 
+                    flex-grow: 0; 
+                }
+                
+                /* --- (Resto de estilos) --- */
+                .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #ffcc00; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                .progress-bar-container { width: 90%; height: 15px; background: #374151; border-radius: 10px; overflow: hidden; margin: 20px auto 0; box-shadow: 0 2px 5px rgba(0,0,0,0.3) inset; }
+                .progress-bar { height: 100%; background: linear-gradient(90deg, #d4af37, #b8860b); transition: width 0.5s ease-in-out; border-radius: 10px; }
+                .progress-text { margin-top: 5px; font-size: 0.9rem; color: #d4af37; font-family: 'Lato', sans-serif; }
+                .success-screen h2 { color: #70e000; text-shadow: 0 0 5px #70e000; font-size: 1.8rem; }
+            `}</style>
         </>
     );
 };
