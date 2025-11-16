@@ -502,31 +502,7 @@ ${fullAccommodationResponse}
 - No devuelvas ningún otro formato que no sea texto o Markdown.
 `;
 
-  
-// --- LÓGICA PARA PROMPT REDUCIDO DE ALOJAMIENTO ---
-const alojamientoKeywords = ["alojamiento", "hotel", "hoteles", "dormir", "quedarse"];
-const precioKeywords = ["precio", "cuanto cuesta", "recomendacion", "recomiendas", "mejor"];
-
-const reducedPrompt = `Eres un asistente para la boda de Manel y Carla. Responde en español de forma clara y amable.
-
-Contexto:
-- La boda será el 31 de octubre de 2026 en Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona.
-- Hoteles cercanos: **Celler Suites** y **Villas Coliving**.
-- Recomendación: Villas Coliving por proximidad y buen precio.
-- Precio aproximado: 70€ por noche.
-- Enlace para más opciones: [Ver Hoteles Cerca de la Boda](https://www.booking.com/searchresults.es.html?ss=Sant+Fost+de+Campsentelles)
-
-Reglas:
-1. Si el usuario pregunta por alojamiento, hoteles, dónde dormir → responde con el listado y menciona el enlace de Booking.
-2. Si el usuario pregunta cuál recomiendas → responde que recomiendas Villas Coliving por proximidad y buen precio.
-3. Si el usuario pregunta cuánto cuesta → responde que el precio aproximado es 70€ por noche.
-4. Mantén el tono cálido y breve.
-`;
-
-const useReducedPrompt = alojamientoKeywords.some(k => normalizedMessage.includes(k)) || precioKeywords.some(k => normalizedMessage.includes(k));
-const finalPrompt = useReducedPrompt ? reducedPrompt : systemPrompt;
-
-try {
+  try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
       headers: {
@@ -567,4 +543,3 @@ try {
     res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
   }
 }
-
