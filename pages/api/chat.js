@@ -319,8 +319,10 @@ ${partyDrinksResponse}`;
 
 Si quieres ver más opciones de alojamiento en la zona, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
 
-  // 🎯 RESPUESTA ESPECÍFICA DE PRECIO/RECOMENDACIÓN (Solo precio/recomendación)
-  const recommendationPriceResponse = "En cuanto a alojamiento, te recomendamos **Villas Coliving** por su proximidad y buen precio, que es de unos **70€ por noche**.";
+  // 🎯 RESPUESTA ESPECÍFICA DE PRECIO/RECOMENDACIÓN (Ahora incluye la URL de Booking, según solicitud)
+  const recommendationPriceResponse = `En cuanto a alojamiento, te recomendamos **Villas Coliving** por su proximidad y buen precio, que es de unos **70€ por noche**.
+
+Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
 
 
   // --- SYSTEM PROMPT ---
