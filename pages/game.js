@@ -19,7 +19,6 @@ const ALL_QUESTIONS = [
     { id: 'q1', entry: ENTRY_Q1, label: '1. ¿De quién fue la idea de tener animales en casa?', options: ['Manel', 'Carla'] },
     { id: 'q2', entry: ENTRY_Q2, label: '2. ¿Cómo se llaman los michis de Manel y Carla?', options: ['Wasabi y Abby', 'Sky y Wasabi', 'Mia y Sombra', 'Mochi y Abby'] },
     { id: 'q3', entry: ENTRY_Q3, label: '3. ¿En qué Provincia/Ciudad se comprometieron?', options: ['Roma/Fontana di trevi', 'París/ Torre eiffel', 'Girona /Cadaques', 'Menorca /Cala turqueta'] },
-    // ATENCIÓN: Esta era la Pregunta 4 antes, ahora es Q4, asegúrate que el ID sea correcto para "Illes Medes"
     { id: 'q4', entry: ENTRY_Q4, label: '4. ¿Dónde fue el primer bautizo de buceo de Carla?', options: ['Tossa de Mar', 'Cadaques', 'Illes Medes', 'Palamos'] },
     { id: 'q5', entry: ENTRY_Q5, label: '5. Número de tatuajes Entre Carla y Manel', options: ['6', '7', '8', '10'] },
 ];
@@ -37,6 +36,7 @@ const entryMap = {
 
 
 const QuizBodaPage = () => {
+    // currentStep: 0 (Bienvenida), 1 (Nombre), 2-6 (Preguntas), 7 (Enviando), 8 (Finalizado/Bloqueo)
     const [currentStep, setCurrentStep] = useState(0); 
     const [answers, setAnswers] = useState({
         guestName: '', q1: '', q2: '', q3: '', q4: '', q5: '',
@@ -52,7 +52,6 @@ const QuizBodaPage = () => {
         if (typeof window !== 'undefined' && localStorage.getItem(QUIZ_COMPLETED_KEY) === 'true') {
             setIsCompleted(true);
             setCurrentStep(8); 
-            // Intentar recuperar el nombre para la pantalla final
             const storedName = localStorage.getItem('manel_carla_quiz_name') || '';
             setAnswers(prev => ({ ...prev, guestName: storedName }));
         }
@@ -66,7 +65,6 @@ const QuizBodaPage = () => {
     const handleNameChange = (e) => {
         const name = e.target.value;
         setAnswers(prev => ({ ...prev, guestName: name }));
-        // Guardamos el nombre al escribirlo, por si lo necesitamos en la pantalla de bloqueo
         localStorage.setItem('manel_carla_quiz_name', name);
     };
 
@@ -94,26 +92,25 @@ const QuizBodaPage = () => {
         formData.append(entryMap.q4, answers.q4);
         formData.append(entryMap.q5, answers.q5);
 
-        // 3. Envío Silencioso con Fetch (POST directo, más fiable que el iframe)
+        // 3. Envío Silencioso con Fetch (POST directo, modo 'no-cors' es CLAVE)
         try {
-            // El modo 'no-cors' es esencial para que la petición no sea bloqueada
             await fetch(BASE_FORM_URL, {
                 method: 'POST',
                 mode: 'no-cors', 
                 body: formData,
             });
 
-            // Si llegamos aquí, la petición fue enviada (aunque la respuesta es opaca, asumimos éxito)
+            // Si llegamos aquí, la petición fue enviada (asumimos éxito)
             
             // BLOQUEO: Guardar la marca de completado en el navegador
             localStorage.setItem(QUIZ_COMPLETED_KEY, 'true');
             setIsCompleted(true);
             
-            // Un pequeño retraso para la sensación de carga
+            // Aumento el tiempo de espera a 3 segundos (3000ms)
             setTimeout(() => {
                  setIsSubmitting(false);
                  setCurrentStep(8); 
-            }, 1000); 
+            }, 3000); 
            
         } catch (error) {
             console.error("Error al enviar el formulario (Fetch):", error);
@@ -124,8 +121,6 @@ const QuizBodaPage = () => {
     };
     
     
-    // --- Renderizado de Vistas (El resto del código es el mismo) ---
-
     const renderStep = () => {
         if (isCompleted) {
              return (
@@ -143,19 +138,12 @@ const QuizBodaPage = () => {
         }
 
         switch (currentStep) {
-            
             case 0:
                 return (
                     <div className="step-content welcome-screen">
                         <h1>💍 ¡Bienvenido/a al Gran Quiz de Manel y Carla!</h1>
                         <p>Pon a prueba cuánto sabes de nuestra historia. Si aciertas, entrarás en el sorteo de un detalle especial de nuestra parte.</p>
-                        <button 
-                            className="button" 
-                            onClick={() => setCurrentStep(1)}
-                            disabled={isSubmitting}
-                        >
-                            ¡EMPEZAR A JUGAR!
-                        </button>
+                        <button className="button" onClick={() => setCurrentStep(1)} disabled={isSubmitting}>¡EMPEZAR A JUGAR!</button>
                     </div>
                 );
             
@@ -164,29 +152,12 @@ const QuizBodaPage = () => {
                     <div className="step-content name-screen">
                         <h2>Tu Identificación</h2>
                         <label htmlFor="guestName">Nombre y Apellido (Necesario para el sorteo)</label>
-                        <input
-                            type="text"
-                            id="guestName"
-                            name="guestName"
-                            value={answers.guestName}
-                            onChange={handleNameChange}
-                            required
-                        />
-                        <button 
-                            className="button next-button" 
-                            onClick={() => setCurrentStep(2)}
-                            disabled={answers.guestName.trim().length < 3 || isSubmitting}
-                        >
-                            SIGUIENTE PREGUNTA »
-                        </button>
+                        <input type="text" id="guestName" name="guestName" value={answers.guestName} onChange={handleNameChange} required />
+                        <button className="button next-button" onClick={() => setCurrentStep(2)} disabled={answers.guestName.trim().length < 3 || isSubmitting}>SIGUIENTE PREGUNTA »</button>
                     </div>
                 );
 
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
+            case 2: case 3: case 4: case 5: case 6:
                 return (
                     <div className="step-content question-screen">
                         <h2>{currentQuestion.label}</h2>
@@ -222,14 +193,9 @@ const QuizBodaPage = () => {
 
     return (
         <>
-            <Head>
-                <title>El Gran Quiz de Manel y Carla 💍</title>
-                <meta name="description" content="Pon a prueba cuánto sabes de nuestra historia" />
-            </Head>
-
+            <Head><title>El Gran Quiz de Manel y Carla 💍</title></Head>
             <div className="container">
                 <div className="card">
-                    {/* Botón de envío final, oculto hasta el último paso */}
                     {currentStep === 6 && (
                          <form onSubmit={handleSubmit} className="final-submit-form">
                             <button type="submit" className="button final-submit-button" disabled={isSubmitting}>
@@ -237,223 +203,44 @@ const QuizBodaPage = () => {
                             </button>
                          </form>
                     )}
-
                     {renderStep()}
-                    
-                    {/* Indicador de progreso solo durante las preguntas (Steps 2-6) */}
                     {(currentStep >= 2 && currentStep <= 6) && (
                         <div className="progress-bar-container">
-                             <div 
-                                className="progress-bar" 
-                                style={{ width: `${((currentStep - 1) / 6) * 100}%` }}
-                            ></div>
+                             <div className="progress-bar" style={{ width: `${((currentStep - 1) / 6) * 100}%` }}></div>
                             <p className="progress-text">Pregunta {currentStep - 1} de 5</p>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* --- ESTILOS (Mismos estilos de Millonario) --- */}
-            <style jsx global>{`
-                 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap'); 
-            `}</style>
+            {/* --- ESTILOS (El resto de estilos permanece igual) --- */}
+            <style jsx global>{` @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap'); `}</style>
             <style jsx>{`
-                /* ... (Estilos Millonarios idénticos al código anterior) ... */
-                .container {
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    min-height: 100vh;
-                    background: #111827; 
-                    font-family: 'Roboto Mono', monospace, sans-serif;
-                    padding: 20px;
-                }
-
-                .card {
-                    background: #1f2937; 
-                    color: #fff;
-                    padding: 3rem;
-                    border-radius: 16px;
-                    box-shadow: 0 0 25px rgba(0, 0, 0, 0.5);
-                    text-align: center;
-                    max-width: 700px;
-                    width: 100%;
-                    min-height: 500px;
-                    display: flex;
-                    flex-direction: column;
-                    justify-content: space-between;
-                }
-
-                h1 {
-                    color: #ffcc00; 
-                    margin-bottom: 1rem;
-                    font-size: 2.5rem;
-                    text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
-                }
-                
-                h2 {
-                    color: #fff;
-                    font-size: 1.5rem;
-                    margin-bottom: 2rem;
-                    border-bottom: 2px solid #374151;
-                    padding-bottom: 1rem;
-                }
-
-                p {
-                    color: #e5e7eb;
-                    font-size: 1.1rem;
-                    margin-bottom: 2rem;
-                }
-
-                .button {
-                    display: inline-block;
-                    padding: 1rem 2rem;
-                    background-color: #ffcc00;
-                    color: #1f2937;
-                    border: none;
-                    border-radius: 8px;
-                    text-decoration: none;
-                    font-weight: bold;
-                    font-size: 1.1rem;
-                    cursor: pointer;
-                    transition: all 0.2s ease;
-                    box-shadow: 0 4px 0 #cc9900;
-                    text-transform: uppercase;
-                }
-
-                .button:hover {
-                    background-color: #ffdd44;
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 0 #cc9900;
-                }
-                
-                .name-screen label {
-                    display: block;
-                    margin-bottom: 10px;
-                    color: #ffcc00;
-                    font-weight: bold;
-                }
-                .name-screen input {
-                    width: 100%;
-                    padding: 12px;
-                    border: 2px solid #ffcc00;
-                    border-radius: 8px;
-                    background: #2d3748;
-                    color: #fff;
-                    font-size: 1.1rem;
-                    margin-bottom: 20px;
-                }
-                
-                .next-button {
-                    width: auto;
-                    min-width: 250px;
-                    margin-top: 10px;
-                }
-
-                .options-grid {
-                    display: flex;
-                    flex-wrap: wrap;
-                    gap: 15px;
-                    justify-content: center;
-                    margin-top: 20px;
-                }
-
-                .option-button {
-                    display: flex;
-                    align-items: center;
-                    width: calc(50% - 7.5px);
-                    min-height: 70px;
-                    padding: 15px 20px;
-                    background-color: #374151; 
-                    color: #fff;
-                    border: 2px solid #5a6475; 
-                    border-radius: 35px; 
-                    font-size: 1rem;
-                    text-align: left;
-                    transition: background-color 0.2s, transform 0.1s;
-                    box-shadow: 0 4px 0 #2d3748;
-                }
-
-                .option-button:hover {
-                    background-color: #4b5563;
-                    border-color: #ffcc00;
-                    transform: translateY(-2px);
-                    box-shadow: 0 6px 0 #2d3748;
-                }
-                
-                .option-letter {
-                    background: #ffcc00;
-                    color: #1f2937;
-                    font-weight: bold;
-                    width: 30px;
-                    height: 30px;
-                    border-radius: 50%;
-                    display: flex;
-                    justify-content: center;
-                    align-items: center;
-                    margin-right: 15px;
-                    flex-shrink: 0;
-                }
-                
-                .option-text {
-                    flex-grow: 1;
-                }
-                
-                .final-submit-form {
-                    width: 100%;
-                    margin-bottom: 20px;
-                    text-align: center;
-                }
-                .final-submit-button {
-                    width: 100%;
-                    background-color: #e91e63; 
-                    box-shadow: 0 4px 0 #c2185b;
-                    color: #fff;
-                }
-                .final-submit-button:hover {
-                    background-color: #d81b60;
-                    box-shadow: 0 6px 0 #c2185b;
-                }
-
-                .spinner {
-                    border: 4px solid #f3f3f3;
-                    border-top: 4px solid #ffcc00;
-                    border-radius: 50%;
-                    width: 40px;
-                    height: 40px;
-                    animation: spin 1s linear infinite;
-                    margin: 20px auto;
-                }
-                @keyframes spin {
-                    0% { transform: rotate(0deg); }
-                    100% { transform: rotate(360deg); }
-                }
-                
-                .progress-bar-container {
-                    width: 90%;
-                    height: 15px;
-                    background: #374151;
-                    border-radius: 10px;
-                    overflow: hidden;
-                    margin: 20px auto 0;
-                    box-shadow: 0 2px 5px rgba(0,0,0,0.3) inset;
-                }
-                .progress-bar {
-                    height: 100%;
-                    background: linear-gradient(90deg, #ffcc00, #ff8c00);
-                    transition: width 0.5s ease-in-out;
-                    border-radius: 10px;
-                }
-                .progress-text {
-                    margin-top: 5px;
-                    font-size: 0.9rem;
-                    color: #ffcc00;
-                }
-
-                .success-screen h2 {
-                    color: #70e000; 
-                    text-shadow: 0 0 5px #70e000;
-                }
+                /* ... (Estilos Millonarios) ... */
+                .container { display: flex; justify-content: center; align-items: center; min-height: 100vh; background: #111827; font-family: 'Roboto Mono', monospace, sans-serif; padding: 20px; }
+                .card { background: #1f2937; color: #fff; padding: 3rem; border-radius: 16px; box-shadow: 0 0 25px rgba(0, 0, 0, 0.5); text-align: center; max-width: 700px; width: 100%; min-height: 500px; display: flex; flex-direction: column; justify-content: space-between; }
+                h1 { color: #ffcc00; margin-bottom: 1rem; font-size: 2.5rem; text-shadow: 0 0 10px rgba(255, 204, 0, 0.5); }
+                h2 { color: #fff; font-size: 1.5rem; margin-bottom: 2rem; border-bottom: 2px solid #374151; padding-bottom: 1rem; }
+                p { color: #e5e7eb; font-size: 1.1rem; margin-bottom: 2rem; }
+                .button { display: inline-block; padding: 1rem 2rem; background-color: #ffcc00; color: #1f2937; border: none; border-radius: 8px; text-decoration: none; font-weight: bold; font-size: 1.1rem; cursor: pointer; transition: all 0.2s ease; box-shadow: 0 4px 0 #cc9900; text-transform: uppercase; }
+                .button:hover { background-color: #ffdd44; transform: translateY(-2px); box-shadow: 0 6px 0 #cc9900; }
+                .name-screen label { display: block; margin-bottom: 10px; color: #ffcc00; font-weight: bold; }
+                .name-screen input { width: 100%; padding: 12px; border: 2px solid #ffcc00; border-radius: 8px; background: #2d3748; color: #fff; font-size: 1.1rem; margin-bottom: 20px; }
+                .next-button { width: auto; min-width: 250px; margin-top: 10px; }
+                .options-grid { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; margin-top: 20px; }
+                .option-button { display: flex; align-items: center; width: calc(50% - 7.5px); min-height: 70px; padding: 15px 20px; background-color: #374151; color: #fff; border: 2px solid #5a6475; border-radius: 35px; font-size: 1rem; text-align: left; transition: background-color 0.2s, transform 0.1s; box-shadow: 0 4px 0 #2d3748; }
+                .option-button:hover { background-color: #4b5563; border-color: #ffcc00; transform: translateY(-2px); box-shadow: 0 6px 0 #2d3748; }
+                .option-letter { background: #ffcc00; color: #1f2937; font-weight: bold; width: 30px; height: 30px; border-radius: 50%; display: flex; justify-content: center; align-items: center; margin-right: 15px; flex-shrink: 0; }
+                .option-text { flex-grow: 1; }
+                .final-submit-form { width: 100%; margin-bottom: 20px; text-align: center; }
+                .final-submit-button { width: 100%; background-color: #e91e63; box-shadow: 0 4px 0 #c2185b; color: #fff; }
+                .final-submit-button:hover { background-color: #d81b60; box-shadow: 0 6px 0 #c2185b; }
+                .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #ffcc00; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; margin: 20px auto; }
+                @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+                .progress-bar-container { width: 90%; height: 15px; background: #374151; border-radius: 10px; overflow: hidden; margin: 20px auto 0; box-shadow: 0 2px 5px rgba(0,0,0,0.3) inset; }
+                .progress-bar { height: 100%; background: linear-gradient(90deg, #ffcc00, #ff8c00); transition: width 0.5s ease-in-out; border-radius: 10px; }
+                .progress-text { margin-top: 5px; font-size: 0.9rem; color: #ffcc00; }
+                .success-screen h2 { color: #70e000; text-shadow: 0 0 5px #70e000; }
             `}</style>
         </>
     );
