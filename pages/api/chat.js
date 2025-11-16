@@ -319,7 +319,7 @@ ${partyDrinksResponse}`;
 
 Si quieres ver más opciones de alojamiento en la zona, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
 
-  // 🎯 RESPUESTA ESPECÍFICA DE PRECIO/RECOMENDACIÓN (Ahora incluye la URL de Booking, según solicitud)
+  // 🎯 RESPUESTA ESPECÍFICA DE PRECIO/RECOMENDACIÓN (Ahora incluye la URL de Booking)
   const recommendationPriceResponse = `En cuanto a alojamiento, te recomendamos **Villas Coliving** por su proximidad y buen precio, que es de unos **70€ por noche**.
 
 Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
@@ -471,7 +471,7 @@ Además, habrá barra libre durante **2 horas**, y contaremos con un **Candy Bar
 
 ## 🏨 Alojamiento (NUEVA ESTRUCTURA)
 
-- **INSTRUCCIÓN CLAVE (PRECIO/RECOMENDACIÓN ALOJAMIENTO - MÁXIMA PRIORIDAD):** Si se pregunta por **"precios"**, **"recomendación"**, **"recomiendas"**, **"cual"**, **"mejor"**, **"cuánto cuesta"**, **"hotel"** o **"alojamiento"**, **DEBES OBLIGATORIAMENTE responder ÚNICAMENTE** (sin añadir nada más) con el siguiente texto: "${recommendationPriceResponse}"
+- **INSTRUCCIÓN CLAVE (PRECIO/RECOMENDACIÓN ALOJAMIENTO - MÁXIMA PRIORIDAD):** Si se pregunta por **"cual"**, **"precios"**, **"recomendación"**, **"recomiendas"**, **"recomiendes"**, **"mejor"**, **"cuánto cuesta"**, **"hotel"** o **"alojamiento"**, **DEBES OBLIGATORIAMENTE responder ÚNICAMENTE** (sin añadir nada más) con el siguiente texto: "${recommendationPriceResponse}"
 
 - **INSTRUCCIÓN CLAVE (ALOJAMIENTO/HOTELES - GENERAL):** Si preguntan por **"hoteles"**, **"alojamiento"**, **"dormir"** o **"quedarse"** y **NO** se activó la instrucción anterior, DEBES responder ÚNICAMENTE con el siguiente texto:
 ${fullAccommodationResponse}
