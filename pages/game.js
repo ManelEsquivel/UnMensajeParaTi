@@ -70,14 +70,13 @@ const QuizBodaPage = () => {
         localStorage.setItem('manel_carla_quiz_name', name);
     };
 
-    // --- Lógica de Envío al Google Form (Step 7) ---
-    const handleSubmit = async (e) => {
+
+    // --- FUNCIÓN PRINCIPAL DE ENVÍO USANDO IFRAME (SOLUCIÓN DEFINITIVA) ---
+    const handleSubmit = (e) => { 
         e.preventDefault();
         setIsSubmitting(true);
-        setCurrentStep(7); // Iniciar pantalla de enviando
+        setCurrentStep(7); // Muestra la pantalla "Enviando"
         
-        console.log("LOG 1: Iniciando envío de formulario a Google Forms.");
-
         const allAnswered = Object.values(answers).every(val => val.trim() !== '');
         
         if (!allAnswered) {
@@ -86,45 +85,46 @@ const QuizBodaPage = () => {
              setCurrentStep(6); 
              return;
         }
+        
+        // 1. Crear un formulario temporal invisible
+        const tempForm = document.createElement('form');
+        tempForm.action = BASE_FORM_URL;
+        tempForm.method = 'POST';
+        tempForm.target = 'google-iframe-target'; // Apunta al iframe invisible
+        tempForm.style.display = 'none';
 
-        // 2. Construir el cuerpo de FormData para la solicitud POST
-        const formData = new FormData();
-        formData.append(entryMap.guestName, answers.guestName);
-        formData.append(entryMap.q1, answers.q1);
-        formData.append(entryMap.q2, answers.q2);
-        formData.append(entryMap.q3, answers.q3);
-        formData.append(entryMap.q4, answers.q4);
-        formData.append(entryMap.q5, answers.q5);
+        // 2. Crear inputs para cada respuesta
+        const data = {
+            [entryMap.guestName]: answers.guestName,
+            [entryMap.q1]: answers.q1,
+            [entryMap.q2]: answers.q2,
+            [entryMap.q3]: answers.q3,
+            [entryMap.q4]: answers.q4,
+            [entryMap.q5]: answers.q5,
+        };
 
-        // 3. Envío Silencioso con Fetch (POST directo)
-        try {
-            console.log("LOG 2: Enviando solicitud fetch a Google Forms...");
-            
-            await fetch(BASE_FORM_URL, {
-                method: 'POST',
-                mode: 'no-cors', // Clave para evitar bloqueos de seguridad
-                body: formData,
-            });
-
-            console.log("LOG 3: Fetch completado (modo no-cors). Asumiendo éxito en el registro.");
-
-            // BLOQUEO: Guardar la marca de completado en el navegador
-            localStorage.setItem(QUIZ_COMPLETED_KEY, 'true');
-            setIsCompleted(true);
-            
-            // Esperar 2 segundos para la sensación de carga y luego pasar a la pantalla final
-            setTimeout(() => { 
-                 console.log("LOG 4: Transición a la pantalla final (Step 8).");
-                 setIsSubmitting(false);
-                 setCurrentStep(8); 
-            }, 2000); 
-           
-        } catch (error) {
-            console.error("LOG 5: Error CRÍTICO al enviar el formulario (Fetch Crash):", error);
-            setIsSubmitting(false);
-            alert("Hubo un error al enviar. Por favor, revisa la consola para más detalles.");
-            setCurrentStep(6); 
+        for (const key in data) {
+            const input = document.createElement('input');
+            input.type = 'hidden';
+            input.name = key;
+            input.value = data[key];
+            tempForm.appendChild(input);
         }
+
+        // 3. Añadir el formulario al cuerpo, enviarlo y eliminarlo
+        document.body.appendChild(tempForm);
+        tempForm.submit(); // Dispara el envío
+        document.body.removeChild(tempForm);
+
+        // 4. TRANSICIÓN GARANTIZADA (Se ejecuta inmediatamente después del submit)
+        localStorage.setItem(QUIZ_COMPLETED_KEY, 'true');
+        setIsCompleted(true);
+        
+        // Esperar 2 segundos (2000ms) y forzar la transición a la pantalla final
+        setTimeout(() => { 
+             setIsSubmitting(false);
+             setCurrentStep(8); // Muestra el mensaje final
+        }, 2000); 
     };
     
     
@@ -244,6 +244,13 @@ const QuizBodaPage = () => {
                 <title>El Gran Quiz de Manel y Carla 💍</title>
                 <meta name="description" content="Pon a prueba cuánto sabes de nuestra historia" />
             </Head>
+
+            {/* IFRAME INVISIBLE: Es el destino del formulario de Google Forms */}
+            <iframe 
+                name="google-iframe-target" 
+                id="google-iframe-target" 
+                style={{ display: 'none' }} 
+            />
 
             <div className="container">
                 <div className="card">
