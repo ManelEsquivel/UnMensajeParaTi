@@ -307,9 +307,11 @@ h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgb
 }
 100%{left:150%;} }
 
-.option-button { min-height: 90px; padding: 1.8rem; background: rgba(255,255,255,0.15); backdrop-filter: blur(10px); color:#fff; border-radius:12px; font-size:1.3rem; font-weight:700; border:1px solid rgba(255,255,255,0.3); box-shadow:0 4px 10px rgba(0,0,0,0.3); transition:all 0.3s ease; position:relative; overflow:hidden; margin-bottom:10px; }
-.option-button:hover { transform: scale(1.03); box-shadow: 0 6px 15px rgba(0,0,0,0.3); background: rgba(255,255,255,0.25); }
-.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:radial-gradient(circle,rgba(255,255,255,0.4),transparent); animation:shine 2s infinite linear; }
+.option-button { min-height: 180px; padding: 3rem; background:#374151; color:#f0e1c9; border-radius:16px; font-size:2rem; font-weight:700; transition:all 0.4s ease; position:relative; overflow:hidden; margin-bottom:20px; animation:pulse 2s infinite ease-in-out; }
+.option-button:hover { transform: scale(1.12); box-shadow: 0 12px 30px rgba(0,0,0,0.5); background:#4b5563; }
+.option-button::after { content:''; position:absolute; top:0; left:-150%; width:200%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.3), transparent); animation:shine 2.5s infinite linear; }
+@keyframes pulse { 0%{transform:scale(1);}50%{transform:scale(1.05);}100%{transform:scale(1);} }
+@keyframes shine { 0%{left:-150%;}100%{left:150%;} }
 .spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
 @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
 `}</style>
@@ -318,4 +320,5 @@ h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgb
 };
 
 export default QuizBodaPage;
+
 
