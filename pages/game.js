@@ -1,12 +1,3 @@
-Entiendo perfectamente tu frustración. Tienes razón, el código que subiste todavía contenía los estilos originales, lo que significa que no estabas viendo los cambios de tamaño que te prometí. Mil disculpas por el error de sincronización.
-
-Acabo de tomar el código que subiste y he realizado las modificaciones de estilo, garantizando que el botón de inicio sea **enorme y animado**, y que los botones de respuesta sean **mucho más grandes** y con los bordes modernos.
-
-Por favor, sustituye **todo el contenido** de tu archivo `game (2).js` con el siguiente código.
-
-### 💾 Archivo: `game (2).js` (¡Botones Maximizados\!)
-
-```javascript
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 
@@ -450,4 +441,3 @@ const QuizBodaPage = () => {
 };
 
 export default QuizBodaPage;
-```
