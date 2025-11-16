@@ -121,7 +121,7 @@ const QuizBodaPage = () => {
                  <div className="step-content success-screen">
                     {/* Mensaje de éxito personalizado */}
                     <h2>¡Respuestas Enviadas con Éxito! 🎉</h2>
-                    <p>¡Vuestro conocimiento sobre Manel y Carla ha sido registrado, **{answers.guestName || 'invitado/a'}**!</p>
+                    <p>¡Vuestro conocimiento sobre los novios han sido registrado, **{answers.guestName || 'invitado/a'}**!</p>
                     <p>Vuestras respuestas han sido validadas. Si habéis acertado las preguntas o sois de las personas con mayor acierto, **¡tendréis un Detalle Especial!**</p>
                     <p>¡Gracias por jugar y nos vemos muy pronto en la boda!</p>
                     <p style={{ marginTop: '20px', fontWeight: 'bold', fontSize: '1.2rem', color: '#f0e1c9' }}>Con cariño, Manel y Carla.</p>
