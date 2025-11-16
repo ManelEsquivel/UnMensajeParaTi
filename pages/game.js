@@ -240,7 +240,12 @@ const QuizBodaPage = () => {
             <style jsx global>{`
                  /* Importamos fuentes épicas y legibles */
                  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap'); 
-            @keyframes clickBounce { 0%{transform:scale(1);}50%{transform:scale(0.9);}75%{transform:scale(1.05);}100%{transform:scale(1);} }
+            .question-screen .options-grid { display:grid !important; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)) !important; gap:10px !important; }
+.question-screen button.option-button { display:block !important; width:100% !important; min-height:60px !important; padding:0.6rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:8px !important; font-size:1rem !important; font-weight:600 !important; cursor:pointer !important; position:relative !important; overflow:hidden !important; transition:all 0.3s ease !important;}
+.question-screen button.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.4), transparent); animation:shine 3s infinite linear; pointer-events:none; }
+.question-screen button.option-button:hover { background:rgba(255,255,255,0.2) !important; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;}
+@keyframes shine { 0%{left:-100%;} 100%{left:100%;} }
+@keyframes clickBounce { 0%{transform:scale(1);}50%{transform:scale(0.9);}75%{transform:scale(1.05);}100%{transform:scale(1);} }
 .question-screen button.option-button:active { animation: clickBounce 0.3s ease-in-out !important;}
 
 `}</style>
@@ -311,10 +316,15 @@ h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgb
 100%{left:150%;} }
 
 .option-button { min-height:90px; padding:1.8rem; background:#374151; color:#f0e1c9; border-radius:12px; font-size:1.3rem; font-weight:700; transition:all 0.3s ease; position:relative; overflow:hidden;  margin-bottom: 10px;}
-.option-button:hover { transform: scale(1.03); box-shadow: 0 6px 15px rgba(0,0,0,0.3); }
+
 .option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:radial-gradient(circle,rgba(255,255,255,0.4),transparent); animation:shine 2s infinite linear; }
 .spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
 @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
+.question-screen .options-grid { display:grid !important; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)) !important; gap:10px !important; }
+.question-screen button.option-button { display:block !important; width:100% !important; min-height:60px !important; padding:0.6rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:8px !important; font-size:1rem !important; font-weight:600 !important; cursor:pointer !important; position:relative !important; overflow:hidden !important; transition:all 0.3s ease !important;}
+.question-screen button.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.4), transparent); animation:shine 3s infinite linear; pointer-events:none; }
+.question-screen button.option-button:hover { background:rgba(255,255,255,0.2) !important; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;}
+@keyframes shine { 0%{left:-100%;} 100%{left:100%;} }
 @keyframes clickBounce { 0%{transform:scale(1);}50%{transform:scale(0.9);}75%{transform:scale(1.05);}100%{transform:scale(1);} }
 .question-screen button.option-button:active { animation: clickBounce 0.3s ease-in-out !important;}
 
