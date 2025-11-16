@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 
 // *******************************************************************
@@ -13,47 +13,18 @@ const ENTRY_Q3 = "entry.551001831";
 const ENTRY_Q4 = "entry.1989972928";   
 const ENTRY_Q5 = "entry.694289165";    
 
+// CLAVE PARA LOCAL STORAGE
+const QUIZ_COMPLETED_KEY = 'manel_carla_quiz_completed'; 
+
 // --- ESTRUCTURA DE PREGUNTAS (con opciones y variables) ---
-// El orden de las opciones es crucial para el diseño A, B, C, D
 const ALL_QUESTIONS = [
-    // Pregunta 1: De quien fue la idea...
-    { 
-        id: 'q1', 
-        entry: ENTRY_Q1, 
-        label: '1. ¿De quién fue la idea de tener animales en casa?', 
-        options: ['Manel', 'Carla'],
-    },
-    // Pregunta 2: Michis
-    { 
-        id: 'q2', 
-        entry: ENTRY_Q2, 
-        label: '2. ¿Cómo se llaman los michis de Manel y Carla?', 
-        options: ['Wasabi y Abby', 'Sky y Wasabi', 'Mia y Sombra', 'Mochi y Abby'],
-    },
-    // Pregunta 3: Compromiso
-    { 
-        id: 'q3', 
-        entry: ENTRY_Q3, 
-        label: '3. ¿En qué Provincia/Ciudad se comprometieron?', 
-        options: ['Roma/Fontana di trevi', 'París/ Torre eiffel', 'Girona /Cadaques', 'Menorca /Cala turqueta'],
-    },
-    // Pregunta 4: Buceo
-    { 
-        id: 'q4', 
-        entry: ENTRY_Q4, 
-        label: '4. ¿Dónde fue el primer bautizo de buceo de Carla?', 
-        options: ['Tossa de Mar', 'Cadaques', 'Illes Medes', 'Palamos'],
-    },
-    // Pregunta 5: Tatuajes
-    { 
-        id: 'q5', 
-        entry: ENTRY_Q5, 
-        label: '5. Número de tatuajes Entre Carla y Manel', 
-        options: ['6', '7', '8', '10'], 
-    },
+    { id: 'q1', entry: ENTRY_Q1, label: '1. ¿De quién fue la idea de tener animales en casa?', options: ['Manel', 'Carla'] },
+    { id: 'q2', entry: ENTRY_Q2, label: '2. ¿Cómo se llaman los michis de Manel y Carla?', options: ['Wasabi y Abby', 'Sky y Wasabi', 'Mia y Sombra', 'Mochi y Abby'] },
+    { id: 'q3', entry: ENTRY_Q3, label: '3. ¿En qué Provincia/Ciudad se comprometieron?', options: ['Roma/Fontana di trevi', 'París/ Torre eiffel', 'Girona /Cadaques', 'Menorca /Cala turqueta'] },
+    { id: 'q4', entry: ENTRY_Q4, label: '4. ¿Dónde fue el primer bautizo de buceo de Carla?', options: ['Tossa de Mar', 'Cadaques', 'Illes Medes', 'Palamos'] },
+    { id: 'q5', entry: ENTRY_Q5, label: '5. Número de tatuajes Entre Carla y Manel', options: ['6', '7', '8', '10'] },
 ];
 
-// Mapeo de IDs de pregunta a la clave de respuesta en el estado
 const entryMap = {
     guestName: ENTRY_NAME,
     q1: ENTRY_Q1,
@@ -74,22 +45,26 @@ const QuizBodaPage = () => {
         q1: '', q2: '', q3: '', q4: '', q5: '',
     });
     const [isSubmitting, setIsSubmitting] = useState(false);
-    
-    // Obtenemos el índice de la pregunta actual (si currentStep > 1)
-    const currentQuestionIndex = currentStep - 2;
-    const currentQuestion = ALL_QUESTIONS[currentQuestionIndex];
+    const [isCompleted, setIsCompleted] = useState(false); // Nuevo estado para el bloqueo
 
     // Mapeo de letras para el diseño A, B, C, D
     const optionLetters = ['A', 'B', 'C', 'D'];
+    const currentQuestionIndex = currentStep - 2;
+    const currentQuestion = ALL_QUESTIONS[currentQuestionIndex];
 
-    // Maneja la selección de respuesta para las preguntas (Steps 2-6)
+    // --- EFECTO INICIAL: COMPROBAR SI EL QUIZ YA FUE COMPLETADO ---
+    useEffect(() => {
+        if (typeof window !== 'undefined' && localStorage.getItem(QUIZ_COMPLETED_KEY) === 'true') {
+            setIsCompleted(true);
+            setCurrentStep(8); // Saltar a la pantalla final
+        }
+    }, []);
+
     const handleAnswerSelect = (value, questionId) => {
         setAnswers(prev => ({ ...prev, [questionId]: value }));
-        // Pasa al siguiente paso (siguiente pregunta)
         setCurrentStep(prev => prev + 1); 
     };
 
-    // Maneja el input de texto (Name) (Step 1)
     const handleNameChange = (e) => {
         setAnswers(prev => ({ ...prev, guestName: e.target.value }));
     };
@@ -100,14 +75,12 @@ const QuizBodaPage = () => {
         setIsSubmitting(true);
         setCurrentStep(7); // Cambia a estado de enviando
         
-        // 1. Verificar que todo esté respondido
         const allAnswered = Object.values(answers).every(val => val.trim() !== '');
         
         if (!allAnswered) {
-             // Esto no debería pasar si el flujo es secuencial, pero es una protección
              alert("Error: Por favor, responde a todas las preguntas antes de enviar.");
              setIsSubmitting(false);
-             setCurrentStep(1); // Volver al inicio si algo falla
+             setCurrentStep(1); 
              return;
         }
 
@@ -119,15 +92,23 @@ const QuizBodaPage = () => {
             return `&${entryId}=${value}`;
         }).join('');
         
-        // Eliminamos el primer '&' si existe
         submissionUrl = submissionUrl.replace('?&', '?');
 
-
-        // 3. Abrir la URL (Envío)
+        // 3. Envío Silencioso con Iframe
         try {
-            window.open(submissionUrl, '_blank');
-            // Mueve al paso final
+            const iframe = document.createElement('iframe');
+            iframe.style.display = 'none';
+            iframe.src = submissionUrl;
+            document.body.appendChild(iframe);
+            
+            // Esperar 1 segundo para el envío y luego marcar como completado
             setTimeout(() => {
+                 iframe.remove(); 
+                 
+                 // BLOQUEO: Guardar la marca de completado en el navegador
+                 localStorage.setItem(QUIZ_COMPLETED_KEY, 'true');
+                 setIsCompleted(true);
+                 
                  setIsSubmitting(false);
                  setCurrentStep(8); 
             }, 1000); 
@@ -136,7 +117,7 @@ const QuizBodaPage = () => {
             console.error("Error al enviar el formulario:", error);
             setIsSubmitting(false);
             alert("Hubo un error al enviar. Por favor, inténtalo de nuevo.");
-            setCurrentStep(6); // Volver a la última pregunta
+            setCurrentStep(6); 
         }
     };
     
@@ -144,11 +125,25 @@ const QuizBodaPage = () => {
     // --- Renderizado de Vistas ---
 
     const renderStep = () => {
+        // Pantalla de bloqueo si ya se completó
+        if (isCompleted) {
+             return (
+                 <div className="step-content success-screen">
+                    <h2>¡Quiz Completado! 🎉</h2>
+                    <p>Gracias por participar, **{answers.guestName || 'invitado/a'}**. Tu respuesta ya está registrada para el sorteo. ¡Solo se permite una participación por dispositivo!</p>
+                    <button 
+                        className="button next-button" 
+                        onClick={() => window.location.reload()}
+                    >
+                        Volver a la Invitación
+                    </button>
+                </div>
+             );
+        }
+
         switch (currentStep) {
             
-            // ----------------------------------------
-            // STEP 0: BIENVENIDA / START GAME (bodamanelcarla.vercel.app/game)
-            // ----------------------------------------
+            // ... (STEP 0: BIENVENIDA) ...
             case 0:
                 return (
                     <div className="step-content welcome-screen">
@@ -164,9 +159,7 @@ const QuizBodaPage = () => {
                     </div>
                 );
             
-            // ----------------------------------------
-            // STEP 1: NOMBRE Y APELLIDO (El paso inicial de la "pregunta")
-            // ----------------------------------------
+            // ... (STEP 1: NOMBRE Y APELLIDO) ...
             case 1:
                  return (
                     <div className="step-content name-screen">
@@ -190,9 +183,7 @@ const QuizBodaPage = () => {
                     </div>
                 );
 
-            // ----------------------------------------
-            // STEPS 2-6: PREGUNTAS MÚLTIPLES (bodamanelcarla.vercel.app/game2, /game3, etc.)
-            // ----------------------------------------
+            // ... (STEPS 2-6: PREGUNTAS MÚLTIPLES) ...
             case 2:
             case 3:
             case 4:
@@ -217,9 +208,7 @@ const QuizBodaPage = () => {
                     </div>
                 );
             
-            // ----------------------------------------
-            // STEP 7: ENVIANDO RESPUESTAS (Estado intermedio de carga)
-            // ----------------------------------------
+            // ... (STEP 7: ENVIANDO RESPUESTAS) ...
             case 7:
                 return (
                     <div className="step-content submit-screen">
@@ -229,22 +218,8 @@ const QuizBodaPage = () => {
                     </div>
                 );
 
-            // ----------------------------------------
-            // STEP 8: FINALIZADO / ÉXITO
-            // ----------------------------------------
-            case 8:
-                return (
-                    <div className="step-content success-screen">
-                        <h2>¡Participación Registrada! 🎉</h2>
-                        <p>Tu participación ha sido enviada con éxito al sorteo de los novios. ¡Gracias por jugar!</p>
-                        <button 
-                            className="button next-button" 
-                            onClick={() => window.location.reload()}
-                        >
-                            Volver a Empezar
-                        </button>
-                    </div>
-                );
+            // ... (STEP 8: FINALIZADO - NO SE DEBERÍA LLEGAR AQUÍ DIRECTAMENTE AHORA, LO GESTIONA `isCompleted`) ...
+            // El caso 8 se maneja ahora con el estado `isCompleted` para mostrar el mensaje de éxito/bloqueo.
                 
             default:
                 return null;
@@ -284,25 +259,23 @@ const QuizBodaPage = () => {
                 </div>
             </div>
 
-            {/* --- ESTILOS ESTILO MILLONARIO --- */}
+            {/* --- ESTILOS (Mismos estilos de Millonario) --- */}
             <style jsx global>{`
-                /* IMPORTAMOS UNA FUENTE QUE PAREZCA DE JUEGO SI ES NECESARIO */
-                /* @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap'); */
+                 @import url('https://fonts.googleapis.com/css2?family=Roboto+Mono:wght@700&display=swap'); 
             `}</style>
-
             <style jsx>{`
                 .container {
                     display: flex;
                     justify-content: center;
                     align-items: center;
                     min-height: 100vh;
-                    background: #111827; /* Fondo oscuro Millonario */
+                    background: #111827; 
                     font-family: 'Roboto Mono', monospace, sans-serif;
                     padding: 20px;
                 }
 
                 .card {
-                    background: #1f2937; /* Gris oscuro / azul noche */
+                    background: #1f2937; 
                     color: #fff;
                     padding: 3rem;
                     border-radius: 16px;
@@ -317,7 +290,7 @@ const QuizBodaPage = () => {
                 }
 
                 h1 {
-                    color: #ffcc00; /* Dorado Millonario */
+                    color: #ffcc00; 
                     margin-bottom: 1rem;
                     font-size: 2.5rem;
                     text-shadow: 0 0 10px rgba(255, 204, 0, 0.5);
@@ -359,7 +332,6 @@ const QuizBodaPage = () => {
                     box-shadow: 0 6px 0 #cc9900;
                 }
                 
-                /* Estilos específicos para la pantalla de Nombre */
                 .name-screen label {
                     display: block;
                     margin-bottom: 10px;
@@ -396,13 +368,13 @@ const QuizBodaPage = () => {
                 .option-button {
                     display: flex;
                     align-items: center;
-                    width: calc(50% - 7.5px); /* Dos por fila */
+                    width: calc(50% - 7.5px);
                     min-height: 70px;
                     padding: 15px 20px;
-                    background-color: #374151; /* Fondo gris oscuro de las opciones */
+                    background-color: #374151; 
                     color: #fff;
                     border: 2px solid #5a6475; 
-                    border-radius: 35px; /* Bordes muy redondeados */
+                    border-radius: 35px; 
                     font-size: 1rem;
                     text-align: left;
                     transition: background-color 0.2s, transform 0.1s;
@@ -434,7 +406,6 @@ const QuizBodaPage = () => {
                     flex-grow: 1;
                 }
                 
-                /* Botón Finalizar */
                 .final-submit-form {
                     width: 100%;
                     margin-bottom: 20px;
@@ -442,7 +413,7 @@ const QuizBodaPage = () => {
                 }
                 .final-submit-button {
                     width: 100%;
-                    background-color: #e91e63; /* Color de acento para el botón final */
+                    background-color: #e91e63; 
                     box-shadow: 0 4px 0 #c2185b;
                     color: #fff;
                 }
@@ -451,8 +422,6 @@ const QuizBodaPage = () => {
                     box-shadow: 0 6px 0 #c2185b;
                 }
 
-
-                /* --- ESTILOS DE CARGA Y PROGRESO --- */
                 .spinner {
                     border: 4px solid #f3f3f3;
                     border-top: 4px solid #ffcc00;
@@ -489,7 +458,7 @@ const QuizBodaPage = () => {
                 }
 
                 .success-screen h2 {
-                    color: #70e000;
+                    color: #70e000; 
                     text-shadow: 0 0 5px #70e000;
                 }
             `}</style>
