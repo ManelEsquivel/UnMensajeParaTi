@@ -542,4 +542,3 @@ ${fullAccommodationResponse}
     res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
   }
 }
-
