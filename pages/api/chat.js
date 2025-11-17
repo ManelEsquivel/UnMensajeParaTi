@@ -578,6 +578,7 @@ ${guestList}
 // FIX 3: Intercambiado de lugar con Bebidas para dar prioridad a "todo" sobre "todas"
 - El banquete será **en el mismo recinto, justo después del aperitivo**.
 
+// FIX 4: Desambiguación. "todo" (comida) vs "todas" (bebidas)
 - **INSTRUCCIÓN CLAVE (MENU COMPLETO - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todo"** O **"completo"** O **"menu completo"** (refiriéndose a comida), DEBES responder ÚNICAMENTE con el contenido de ${menuCompletoResponse}.
 
 - **INSTRUCCIÓN CLAVE (APERTIVO COMPLETO - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"aperitivo"** O **"lista del aperitivo"** (y no "todo" o "completo"), DEBES responder ÚNICAMENTE con el contenido de ${aperitivoCompletoResponse}.
@@ -593,6 +594,7 @@ ${aperitivoVegetarianoResponse}
 
 
 ## 🥂 Bebidas 
+// FIX 4: Desambiguación. "todas" (bebidas) vs "todo" (comida)
 - **INSTRUCCIÓN CLAVE (BEBIDAS TODO - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todas"** O **"bebidas completas"** (refiriéndose a bebidas), DEBES responder ÚNICAMENTE con el contenido de ${allDrinksResponse}.
 
 - **INSTRUCCIÓN CLAVE (VINOS - ALTA PRIORIDAD):** Si el mensaje del usuario contiene la palabra clave **"vinos"**, DEBES responder ÚNICAMENTE con el contenido de ${winesResponse}.
