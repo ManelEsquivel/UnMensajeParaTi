@@ -92,6 +92,7 @@ Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puede
 
 
   // --- LISTA DE INVITADOS (NOMBRE, APELLIDO, CONFIRMADO) ---
+  // Se mantiene la lista para que la IA la utilice, pero el JS NO la procesa.
   const guestList = `
 NOMBRE,APELLIDOS,CONFIRMADO
 Manel,Esquivel,CONFIRMADO
@@ -184,102 +185,17 @@ Kike Masgrau,Masgrau,PENDIENTE
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
   
-  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (Solo para INYECCIÓN de Prioridad Absoluta) ---
+  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (SE ELIMINA TODA LA LÓGICA DE BÚSQUEDA PESADA) ---
+  // Se eliminan: messageWords, stopWords, nameLikeWords, relevantQuery, guestEntries, isLikelyNameQuery, forcedGuest.
+  // Se eliminan: Toda la lógica de if (isLikelyNameQuery) y la inyección aiForcedInstruction.
 
-  const messageWords = normalizedMessage
-    .replace(/[.,;:!?¡¿'"()]/g, "")
-    .split(/\s+/)
-    .filter(Boolean);
-
-  // Stop words para filtrar frases conversacionales (soy, me llamo, etc.)
-  const stopWords = new Set(['soy', 'me', 'llamo', 'mi', 'nombre', 'es', 'yo', 'la', 'el', 'los', 'las', 'un', 'una', 'de', 'del', 'al', 'o', 'y', 'si', 'no', 'que', 'en', 'para', 'invitado', 'lista', 'asistencia', 'confirmacion', 'a', 'e', 'mis']);
-  
-  // Palabras relevantes para la búsqueda (excluyendo stop words)
-  const nameLikeWords = messageWords.filter(word => !stopWords.has(word));
-  const relevantQuery = nameLikeWords.join(' ');
-
-  const guestEntries = guestList
-    .trim()
-    .split("\n")
-    .slice(1)
-    .map(line => {
-      const parts = line.split(",").map(x => (x || "").trim());
-      const nombre = parts[0];
-      const apellido = parts[1];
-      const confirmado = parts[2];
-      const nombre_norm = normalize(nombre);
-      const apellido_norm = normalize(apellido);
-      return { 
-        nombre, 
-        apellido, 
-        confirmado, 
-        nombre_norm,
-        apellido_norm,
-        fullName_norm: `${nombre_norm} ${apellido_norm}`.trim()
-      };
-    });
-
-  let forcedGuest = null;
-  const isLikelyNameQuery = nameLikeWords.length > 0;
-
-  if (isLikelyNameQuery) {
-      
-      // 1. Coincidencia EXACTA (Ej: "alex espada")
-      const exactFullNameMatches = guestEntries.filter(g => 
-          g.fullName_norm === relevantQuery
-      );
-      
-      if (exactFullNameMatches.length >= 1) {
-          forcedGuest = exactFullNameMatches[0];
-      } else {
-          // 2. Coincidencia PARCIAL ÚNICA (Ej: "marta" -> Marta Oliver)
-          const wordMatches = guestEntries.filter(g => 
-              // Todas las palabras relevantes del input deben estar en el fullName_norm del invitado.
-              nameLikeWords.every(word => g.fullName_norm.includes(word))
-          );
-          
-          if (wordMatches.length === 1) {
-              forcedGuest = wordMatches[0];
-          }
-          // Si wordMatches.length > 1 (ambigüedad) o wordMatches.length === 0 (no encontrado),
-          // NO forzamos la respuesta. La IA aplica las reglas 2.K o 4.
-      }
-  }
-
-  // --- CONDICIONAL PROMPT INJECTION (FORZAR LA REGLA) ---
-  const NO_NAME_VERIFICATION_NEEDED = "¡VERIFICACIÓN DE NOMBRE REQUERIDA PARA ACCESO AL QUIZ!";
-
-  // --- INICIO DE MODIFICACIÓN ---
-  // Inyectamos el nombre detectado (relevantQuery) para que la Regla 1 lo use si no se encuentra un invitado forzado.
-  let aiForcedInstruction = `
-## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-- NOMBRE_DETECTADO: **${relevantQuery || 'NO_DETECTADO'}** ${NO_NAME_VERIFICATION_NEEDED}
-`; // <-- MENSAJE CLARO Y ÚNICO PARA CUANDO NO SE ENCUENTRA INVITADO.
-
-  if (forcedGuest) {
-      const guestName = forcedGuest.nombre;
-      const guestSurname = forcedGuest.apellido;
-      const guestStatus = forcedGuest.confirmado;
-      const fullName = `${guestName} ${guestSurname}`.trim();
-      
-      // *** INSTRUCCIÓN LIMPIA: SÓLO PARA CONFIRMACIÓN DE NOMBRE (EL QUIZ ES UNIVERSAL Y ES GESTIONADO POR REGLA CERO) ***
-      aiForcedInstruction = `
+  // Re-definimos las variables que usaba la IA sin inyección forzada (uso el valor original de la lista)
+  const aiForcedInstruction = `
       ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-      El mensaje del usuario ha sido analizado por el backend y se ha identificado a un ÚNICO invitado:
-      - Nombre Completo: **${fullName}**
-      - Estado: **${guestStatus}**
-      
-      **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
-      
-      1.  IGNORA la Regla 1, Regla Cero, Regla 2.K y Regla 4.
-      2.  BUSCA la coincidencia para "${fullName}" SÓLO en las Reglas Especiales (2.A a 2.J).
-      3.  **Si encuentras una coincidencia en 2.A-2.J, APLICA esa regla ÚNICAMENTE.**
-      4.  Si NO encuentras una coincidencia en 2.A-2.J, APLICA la Regla 3 usando el estado "${guestStatus}" y el nombre "${fullName}" para generar la respuesta.
-      
-      ¡NO vuelvas a preguntar el nombre ni digas que no lo encuentras!
-      `;
-  }
-  // --- FIN DE MODIFICACIÓN ---
+      ESTA SECCIÓN ESTÁ INACTIVA. LA VERIFICACIÓN DE NOMBRES ES GESTIONADA POR LAS REGLAS DE LA IA.
+  `;
+  // --- FIN DE ELIMINACIÓN DE LÓGICA PESADA ---
+
 
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (COMIDA) ---
   const confirmedGuestsCountInPrompt = confirmedGuestsCount;
@@ -412,26 +328,24 @@ ${aiForcedInstruction}
 ${guestList}
 
 - **INSTRUCCIONES CLAVE (FINAL - Lógica secuencial con 11 Reglas Especiales de Prioridad):**
-// El bloque de INSTRUCCIÓN DE PRIORIDAD ABSOLUTA de arriba SIEMPRE tiene preferencia sobre estas reglas.
 
-// --- INICIO DE MODIFICACIÓN DE LA REGLA 1 ---
-1.  **Si NO se ha activado la INSTRUCCIÓN DE PRIORIDAD ABSOLUTA:**
-    * **Si NOMBRE_DETECTADO es 'NO_DETECTADO':** Si el usuario pregunta "¿Estoy invitado?" o similar, **DEBES** responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
-    * **Si NOMBRE_DETECTADO es cualquier otra cosa (Ej: Juan):** Responde ÚNICAMENTE: "¡Hola, **${NOMBRE_DETECTADO}**! Gracias por preguntar. ¿En qué puedo ayudarte hoy?"
-// --- FIN DE MODIFICACIÓN DE LA REGLA 1 ---
+// *** REGLAS DE VERIFICACIÓN GESTIONADAS POR LA IA (Prioridad Máxima en Conversación) ***
 
+// 1. **REGLA DE SALUDO/PEDIR NOMBRE (MÁXIMA PRIORIDAD SI NO HAY COINCIDENCIA):**
+- **INSTRUCCIÓN CLAVE (SALUDO PERSONALIZADO):** Si el mensaje del usuario incluye una palabra que parece ser un **nombre propio** (ej: "soy Juan", "hola Marta"), y **NO** encuentras una coincidencia única en la LISTA para aplicar las reglas 2 o 3, DEBES responder ÚNICAMENTE: "¡Hola, **[Nombre detectado]**! Gracias por preguntar. ¿En qué puedo ayudarte hoy?"
+- **INSTRUCCIÓN CLAVE (PEDIR NOMBRE):** Si el usuario pregunta "¿Estoy invitado?" o similar, y no se detecta ningún nombre en el mensaje, **DEBES** responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
 
 // *** REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA UNIVERSAL) ***
 
 ## 🎮 REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA UNIVERSAL)
 
-- **INSTRUCCIÓN CLAVE (QUIZ):** Si el mensaje del usuario contiene palabras clave como **"jugar"**, **"juego"**, **"quiz"** o **"test"**, DEBES **IGNORAR TODAS LAS OTRAS REGLAS** (incluyendo 1, 2, 3, 4) y APLICAR **ÚNICAMENTE** la respuesta de la **Regla Cero, A.**
+- **INSTRUCCIÓN CLAVE (QUIZ):** Si el mensaje del usuario contiene palabras clave como **"jugar"**, **"juego"**, **"quiz"** o **"test"**, DEBES **IGNORAR TODAS LAS OTRAS REGLAS** (incluyendo las de Verificación) y APLICAR **ÚNICAMENTE** la respuesta de la **Regla Cero, A.**
     - **A. Acceso General:** Responde ÚNICAMENTE: "¡Prepárate, amigo/a! El QUIZ está cargando... 🕹️ ¡Te toca demostrar cuánto sabes de los Novios! Las personas con mayor cierto, tendrán un regalo en la boda 🎁. **¡Mucha suerte!** [EMPEZAR QUIZ](https://bodamanelcarla.vercel.app/game)"
 
 // *** FIN DE LA REGLA CERO ***
 
 
-2.  **Si se proporciona un nombre (en cualquier turno):**
+2.  **Si se proporciona un nombre (y se encuentra coincidencia):**
     
     * **2.A. 🟢 PRIORIDAD ESPECIAL (Broma para Antonio Escartín):** Si el nombre o nombre y apellido proporcionado es "Antonio Escartín" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Antonio! Estás en la lista, pero... ¡tu invitación es condicional! Solo te dejamos entrar si vienes vestido de calamardo. Si cumples, estas invitado 😉. Tu asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Sabes que te queremos! 😉".  ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
     
