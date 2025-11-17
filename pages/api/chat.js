@@ -1,38 +1,7 @@
 // pages/api/chat.js
 import { marked } from "marked";
 
-// =================================================================
-// ⚡️ OPTIMIZACIÓN: CONFIGURACIÓN Y PRE-PARSEADO DE RESPUESTAS FIJAS
-// Se hace una sola vez para evitar marked.parse() en cada petición.
-// =================================================================
-
-// 1. Configuración global del renderer para enlaces con target="_blank"
-// Se hace una sola vez para que todas las llamadas a marked.parse() usen esta regla.
-marked.use({
-  renderer: {
-    link(href, title, text) {
-      // Devolvemos el enlace con target="_blank" para abrir en una nueva pestaña.
-      return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
-    }
-  }
-});
-
-// URL Fija de Booking (Larga)
-const accommodationBookingUrl = "https://www.booking.com/searchresults.es.html?ss=Sant+Fost+de+Campsentelles&checkin=2026-10-31&checkout=2026-11-01&group_adults=2&no_rooms=1&group_children=0&lang=es";
-
-// 2. Definición de las respuestas RAW (Markdown)
-const fullAccommodationResponseRaw = `Hay hoteles cercanos para alojamiento como **Celler Suites** y **Villas Coliving**.
-
-Si quieres ver más opciones de alojamiento en la zona, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
-
-const recommendationPriceResponseRaw = `En cuanto a alojamiento, te recomendamos **Villas Coliving** por su proximidad y buen precio, que es de unos **70€ por noche**.
-
-Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
-
-// 3. PRE-PARSEADO: Generar las respuestas HTML que se usarán en el fast-path
-const fullAccommodationResponseHTML = marked.parse(fullAccommodationResponseRaw);
-const recommendationPriceResponseHTML = marked.parse(recommendationPriceResponseRaw);
-
+// Importamos el SDK de OpenAI si fuera necesario, pero en este caso solo usamos fetch.
 
 export default async function handler(req, res) {
   if (req.method !== "POST") {
@@ -55,10 +24,19 @@ export default async function handler(req, res) {
 
   const normalizedMessage = normalize(message); // Normalizamos el mensaje de entrada una sola vez
 
-  // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (ALOJAMIENTO - Variables de referencia RAW) ---
-  // Las respuestas HTML ya están pre-parseadas, pero las variables RAW son necesarias para el systemPrompt
-  const fullAccommodationResponse = fullAccommodationResponseRaw;
-  const recommendationPriceResponse = recommendationPriceResponseRaw;
+  // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (ALOJAMIENTO) ---
+  const accommodationBookingUrl = "https://www.booking.com/searchresults.es.html?ss=Sant+Fost+de+Campsentelles&checkin=2026-10-31&checkout=2026-11-01&group_adults=2&no_rooms=1&group_children=0&lang=es";
+  
+  // 🎯 RESPUESTA GENERAL DE ALOJAMIENTO (Incluye enlace)
+  const fullAccommodationResponse = `Hay hoteles cercanos para alojamiento como **Celler Suites** y **Villas Coliving**.
+
+Si quieres ver más opciones de alojamiento en la zona, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
+
+  // 🎯 RESPUESTA ESPECÍFICA DE PRECIO/RECOMENDACIÓN (Ahora incluye la URL de Booking)
+  // Aseguramos que la respuesta de precio también incluya el enlace para que la acción del usuario sea completada.
+  const recommendationPriceResponse = `En cuanto a alojamiento, te recomendamos **Villas Coliving** por su proximidad y buen precio, que es de unos **70€ por noche**.
+
+Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
 
 
   // --- ⚡️ OPTIMIZACIÓN DE VELOCIDAD: RESPUESTA RÁPIDA DE ALOJAMIENTO ---
@@ -66,15 +44,15 @@ export default async function handler(req, res) {
   // Keywords para MÁXIMA PRIORIDAD (Recomendación/Precio)
   const maxPriorityAccommodationKeywords = [
     "cual", "precios", "recomendacion", "recomiendas", "recomiendes", "mejor", 
-    "cuanto cuesta", "hotel", "alojamiento", "alojarse"
+    "cuanto cuesta", "hotel", "alojamiento"
   ];
 
   // Keywords para Alojamiento GENERAL
   const generalAccommodationKeywords = [
-    "hoteles", "dormir", "quedarse", "sitio", "sitios", "cerca"
+    "hoteles", "dormir", "quedarse"
   ];
 
-  let hardcodedReplyHTML = null; // Usaremos esta variable para guardar el HTML pre-parseado
+  let hardcodedReplyRaw = null;
 
   // 1. Check para MÁXIMA PRIORIDAD (Recomendación/Precio)
   const isMaxPriorityAccommodationQuery = maxPriorityAccommodationKeywords.some(keyword => 
@@ -82,23 +60,32 @@ export default async function handler(req, res) {
   );
 
   if (isMaxPriorityAccommodationQuery) {
-    hardcodedReplyHTML = recommendationPriceResponseHTML; // 🟢 ¡USAMOS EL HTML PRE-PARSEADO!
+    hardcodedReplyRaw = recommendationPriceResponse;
   } else {
     // 2. Check para Alojamiento GENERAL
     const isGeneralAccommodationQuery = generalAccommodationKeywords.some(keyword => 
         normalizedMessage.includes(keyword)
-    ) || (normalizedMessage.includes("alojamiento") && !isMaxPriorityAccommodationQuery)
-      || (normalizedMessage.includes("hotel") && !isMaxPriorityAccommodationQuery);
+    ) || (normalizedMessage.includes("alojamiento") && !isMaxPriorityAccommodationQuery); 
     
     if (isGeneralAccommodationQuery) {
-        hardcodedReplyHTML = fullAccommodationResponseHTML; // 🟢 ¡USAMOS EL HTML PRE-PARSEADO!
+        hardcodedReplyRaw = fullAccommodationResponse;
     }
   }
 
-  if (hardcodedReplyHTML) {
+  if (hardcodedReplyRaw) {
     // Si se encuentra una respuesta fija, se devuelve inmediatamente (¡sin llamar a OpenAI!)
-    // ¡La respuesta ya es HTML!
-    return res.status(200).json({ reply: hardcodedReplyHTML });
+    // Configuramos el marcado para que los enlaces se abran en nueva pestaña.
+    marked.use({
+      renderer: {
+        link(href, title, text) {
+          // Devolvemos el enlace con target="_blank" para abrir en una nueva pestaña.
+          return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        }
+      }
+    });
+
+    const aiReplyHTML = marked.parse(hardcodedReplyRaw);
+    return res.status(200).json({ reply: aiReplyHTML });
   }
 
   // --- FIN DE LA OPTIMIZACIÓN DE VELOCIDAD ---
@@ -395,7 +382,7 @@ ${banquetDrinksResponse}
 ${partyDrinksResponse}`;
 
 
-  // --- SYSTEM PROMPT (Utiliza las variables RAW para que GPT las vea) ---
+  // --- SYSTEM PROMPT ---
   const systemPrompt = `
 Eres un asistente virtual amable y servicial para la boda de Manel y Carla.
 Responde en español si te escriben en español y si te escriben en catalán, responde en catalán, de forma clara, cálida y concisa.
@@ -559,7 +546,7 @@ ${fullAccommodationResponse}
 // 🟢 REGLA DE MÁXIMA PRIORIDAD (DINERO/IMPORTE AMBIGUO)
 // NOTA: Esta regla se activa para cualquier mención de dinero que no sea una pregunta clara de contribución, 
 // como "50€", y debe ser PRIORITARIA sobre la regla de Alojamiento.
-- **INSTRUCCIÓN CLAVE (DINERO/IMPORTE):** Si el mensaje del usuario contiene cualquier número seguido del símbolo de euro (€) (ej: **"50€"**, **"100€"**, **"20 euros"**), DEBES responder con amabilidad y ÚNICAMENTE: "Que No es necesario un importe especifico, pero si lo hacen, lo recibirán con muchísimo amor y gratitud. Puedes ver toda la información sobre cómo contribuir en este enlace: [Regalo de Boda y Contribución](${urlRegalosdebodaInPrompt})."
+- **INSTRUCCIÓN CLAVE (DINERO/IMPORTE):** Si el mensaje del usuario contiene cualquier número seguido del símbolo de euro (€) (ej: **"50€"**, **"100€"**, **"20 euros"**), DEBES responder con amabilidad y ÚNICAMENTE: "No te preocupes por un importe especifico, cualquier detalle lo recibirán con muchísimo amor y gratitud. Puedes ver toda la información sobre cómo contribuir en este enlace: [Regalo de Boda y Contribución](${urlRegalosdebodaInPrompt})."
 
 // 🟢 REGLA DE ALTA PRIORIDAD (CONTRIBUCIÓN: Qué regalar, Lista de boda, Transferencia)
 // NOTA: Esta regla se activa para 'qué regalo', 'lista de boda', 'transferencia', 'número de cuenta', etc.
@@ -600,8 +587,17 @@ ${fullAccommodationResponse}
     let aiReplyRaw =
       data?.choices?.[0]?.message?.content || "No tengo una respuesta en este momento.";
       
+    // CONFIGURACIÓN CLAVE: Asegurar que los enlaces se abran en nueva pestaña
+    marked.use({
+      renderer: {
+        link(href, title, text) {
+          // Devolvemos el enlace con target="_blank" para abrir en una nueva pestaña.
+          return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
+        }
+      }
+    });
+
     // Convertir Markdown a HTML limpio y saneado para el frontend
-    // La configuración del renderer se hizo al inicio del archivo
     const aiReplyHTML = marked.parse(aiReplyRaw);
 
     // Devolvemos el HTML completo.
@@ -611,3 +607,4 @@ ${fullAccommodationResponse}
     res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
   }
 }
+
