@@ -254,7 +254,7 @@ Kike Masgrau,Masgrau,PENDIENTE
   const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
   // CRÍTICO: Definición de la respuesta de Regla 4 para forzar el texto exacto.
-  const notFoundResponse = "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
+  const notFoundResponse = "Lo siento mucho 😔, pero el nombre facilitado no lo encuentro en la lista de invitados . Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
 
 
   // --- CONDICIONAL PROMPT INJECTION (FORZAR LA REGLA) ---
