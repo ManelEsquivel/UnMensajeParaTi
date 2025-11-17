@@ -291,18 +291,18 @@ ${NO_NAME_VERIFICATION_NEEDED}
       ¡NO vuelvas a preguntar el nombre ni digas que no lo encuentras!
       `;
   } else if (isLikelyNameQuery && nameLikeWords.length > 0) { 
-      // Si se proporciona un nombre (Pepe), pero NO está en la lista.
+      // Si se proporciona un nombre (Pepe/Maria Pombo), pero NO está en la lista.
       
       const nameWords = relevantQuery.split(' ').filter(Boolean);
       // Capitalizamos las palabras para un saludo formal: "Pepe Lopez"
       const capitalizedName = nameWords.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       
-      if (isExplicitInvitationQuery) {
-          // Si hay palabras clave como 'invitado' o 'lista', el usuario está preguntando,
-          // así que aplicamos la Regla 4 (la respuesta de rechazo).
+      if (isExplicitInvitationQuery || nameLikeWords.length >= 2) {
+          // FIX: Si hay palabras clave de invitación O si se proporcionan 2 o más palabras (Nombre+Apellido),
+          // asumimos que es un intento de verificación y forzamos la Regla 4 (Rechazo).
           aiForcedInstruction = `
           ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-          El mensaje del usuario contiene palabras clave de invitación ('invitado', 'lista') PERO el nombre **NO** se encuentra.
+          El mensaje del usuario ha sido analizado por el backend y se ha determinado que el nombre **NO** se encuentra en la lista de invitados.
           
           **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
           
@@ -312,7 +312,7 @@ ${NO_NAME_VERIFICATION_NEEDED}
           ¡NO busques el nombre ni intentes aplicar ninguna otra regla!
           `;
       } else {
-          // Si solo es un saludo con nombre (Ej: 'soy pepe'), aplicamos el saludo conversacional.
+          // Si solo es un saludo con un solo nombre (Ej: 'soy pepe'), aplicamos el saludo conversacional.
           aiForcedInstruction = `
           ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
           El mensaje del usuario ha sido analizado por el backend y es un saludo de un nombre **NO** encontrado.
