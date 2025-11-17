@@ -703,4 +703,9 @@ ${fullAccommodationResponse}
     const aiReplyHTML = marked.parse(aiReplyRaw);
 
     // Devolvemos el HTML completo.
-    res.status(200).
+    res.status(200).json({ reply: aiReplyHTML });
+  } catch (error) {
+    console.error(error); 
+    res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
+  }
+}
