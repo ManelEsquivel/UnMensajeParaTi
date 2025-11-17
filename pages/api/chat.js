@@ -546,7 +546,7 @@ ${fullAccommodationResponse}
 // 🟢 REGLA DE MÁXIMA PRIORIDAD (DINERO/IMPORTE AMBIGUO)
 // NOTA: Esta regla se activa para cualquier mención de dinero que no sea una pregunta clara de contribución, 
 // como "50€", y debe ser PRIORITARIA sobre la regla de Alojamiento.
-- **INSTRUCCIÓN CLAVE (DINERO/IMPORTE):** Si el mensaje del usuario contiene cualquier número seguido del símbolo de euro (€) (ej: **"50€"**, **"100€"**, **"20 euros"**), DEBES responder con amabilidad y ÚNICAMENTE: "Que No es necesario un importe especifico, pero si lo hacen, lo recibirán con muchísimo amor y gratitud. Puedes ver toda la información sobre cómo contribuir en este enlace: [Regalo de Boda y Contribución](${urlRegalosdebodaInPrompt})."
+- **INSTRUCCIÓN CLAVE (DINERO/IMPORTE):** Si el mensaje del usuario contiene cualquier número seguido del símbolo de euro (€) (ej: **"50€"**, **"100€"**, **"20 euros"**), DEBES responder con amabilidad y ÚNICAMENTE: "No te preocupes por un importe especifico, cualquier detalle lo recibirán con muchísimo amor y gratitud. Puedes ver toda la información sobre cómo contribuir en este enlace: [Regalo de Boda y Contribución](${urlRegalosdebodaInPrompt})."
 
 // 🟢 REGLA DE ALTA PRIORIDAD (CONTRIBUCIÓN: Qué regalar, Lista de boda, Transferencia)
 // NOTA: Esta regla se activa para 'qué regalo', 'lista de boda', 'transferencia', 'número de cuenta', etc.
