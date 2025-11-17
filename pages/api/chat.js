@@ -249,9 +249,11 @@ Kike Masgrau,Masgrau,PENDIENTE
   // --- CONDICIONAL PROMPT INJECTION (FORZAR LA REGLA) ---
   const NO_NAME_VERIFICATION_NEEDED = "¡VERIFICACIÓN DE NOMBRE REQUERIDA PARA ACCESO AL QUIZ!";
 
+  // --- INICIO DE MODIFICACIÓN ---
+  // Inyectamos el nombre detectado (relevantQuery) para que la Regla 1 lo use si no se encuentra un invitado forzado.
   let aiForcedInstruction = `
 ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-${NO_NAME_VERIFICATION_NEEDED}
+- NOMBRE_DETECTADO: **${relevantQuery || 'NO_DETECTADO'}** ${NO_NAME_VERIFICATION_NEEDED}
 `; // <-- MENSAJE CLARO Y ÚNICO PARA CUANDO NO SE ENCUENTRA INVITADO.
 
   if (forcedGuest) {
@@ -277,7 +279,7 @@ ${NO_NAME_VERIFICATION_NEEDED}
       ¡NO vuelvas a preguntar el nombre ni digas que no lo encuentras!
       `;
   }
-  // --- FIN DE INYECCIÓN ---
+  // --- FIN DE MODIFICACIÓN ---
 
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (COMIDA) ---
   const confirmedGuestsCountInPrompt = confirmedGuestsCount;
@@ -352,7 +354,6 @@ Además, tendremos Showcooking y Corte:
 **IMPORTANTE:** Los platos definitivos (primero, segundo y postre) **aún están pendientes de la decisión final de los novios** tras la prueba de menú.`;
 
   // Respuesta Menú Completo para inyección
-  // *** MODIFICACIÓN IMPLEMENTADA AQUÍ, INCLUYENDO EL CANDY BAR ***
   const menuCompletoResponse = `¡Claro! Aquí tienes la información completa sobre la comida de la boda:
   
 ${aperitivoCompletoResponse}
@@ -365,7 +366,6 @@ ${menuPrincipalResponse}
 
 **Y para la Fiesta...**
 ¡No olvides que, además de la barra libre, en la fiesta (de 19:00 a 21:00) contaremos con un **Candy Bar** y **repostería** por si a alguien le entra el apetito! 🍬`;
-  // *** FIN DE LA MODIFICACIÓN ***
 
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (BEBIDAS) ---
   const ceremonyDrinksResponse = "En la ceremonia se va a servir: agua, limonada, naranjada y cocktails de cava.";
@@ -414,7 +414,12 @@ ${guestList}
 - **INSTRUCCIONES CLAVE (FINAL - Lógica secuencial con 11 Reglas Especiales de Prioridad):**
 // El bloque de INSTRUCCIÓN DE PRIORIDAD ABSOLUTA de arriba SIEMPRE tiene preferencia sobre estas reglas.
 
-1.  **Si NO se menciona ningún nombre (Inicio):** Si el usuario pregunta "¿Estoy invitado?" o similar, **DEBES** responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
+// --- INICIO DE MODIFICACIÓN DE LA REGLA 1 ---
+1.  **Si NO se ha activado la INSTRUCCIÓN DE PRIORIDAD ABSOLUTA:**
+    * **Si NOMBRE_DETECTADO es 'NO_DETECTADO':** Si el usuario pregunta "¿Estoy invitado?" o similar, **DEBES** responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
+    * **Si NOMBRE_DETECTADO es cualquier otra cosa (Ej: Juan):** Responde ÚNICAMENTE: "¡Hola, **${NOMBRE_DETECTADO}**! Gracias por preguntar. ¿En qué puedo ayudarte hoy?"
+// --- FIN DE MODIFICACIÓN DE LA REGLA 1 ---
+
 
 // *** REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA UNIVERSAL) ***
 
