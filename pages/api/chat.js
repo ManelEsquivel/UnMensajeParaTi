@@ -8,9 +8,7 @@ export default async function handler(req, res) {
     return res.status(405).json({ reply: "Método no permitido" }); 
   }
 
-  // FIX 0: Aceptar el 'history' del frontend.
-  const { message, history } = req.body;
-
+  const { message } = req.body;
   if (!message) {
     return res.status(400).json({ reply: "No se recibió ningún mensaje." });
   }
@@ -27,7 +25,7 @@ export default async function handler(req, res) {
   const normalizedMessage = normalize(message); // Normalizamos el mensaje de entrada una sola vez
 
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (ALOJAMIENTO) ---
-  const accommodationBookingUrl = "https://www.booking.com/searchresults.es.html?ss=Sant+Fost+de+Campsentelles&checkin=2026-10-31&checkout=2026-11-01&group_adults=2&no_rooms=1&group_children=0&lang=es";
+  const accommodationBookingUrl = "https://www.booking.com/searchresults.es.html?ss=Sant+Fost+de+Campsentelles&ssne=Sant+Fost+de+Campsentelles&ssne_untouched=Sant+Fost+de+Campsentelles&highlighted_hotels=11793039&efdco=1&label=New_Spanish_ES_ES_21463008145-hJVFBDQNNBQZaDgbzZaRhQS640874832442%3Apl%3Ata%3Ap1%3Ap2%3Aac%3Aap%3Aneg%3Afi%3Atidsa-55482331735%3Alp9198500%3Ali%3Adec%3Adm%3Aag21463008145%3Acmp340207705&aid=318615&lang=es&sb=1&src_elem=sb&src=hotel&dest_id=-400717&dest_type=city&checkin=2026-10-31&checkout=2026-11-01&group_adults=2&no_rooms=1&group_children=0";
   
   // 🎯 RESPUESTA GENERAL DE ALOJAMIENTO (Incluye enlace)
   const fullAccommodationResponse = `Hay hoteles cercanos para alojamiento como **Celler Suites** y **Villas Coliving**.
@@ -186,16 +184,6 @@ Kike Masgrau,Masgrau,PENDIENTE
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
   
-  // --- RESPUESTAS TEMPLATE FORZADAS (NUEVO BLOQUE PARA GARANTIZAR EL AVISO) ---
-  const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
-
-  // Plantilla exacta para invitados PENDIENTES (General)
-  const PENDIENTE_TEMPLATE = (fullName, url) => `¡${fullName}! ¡Claro que estás invitado/a! Sin embargo, tu asistencia se encuentra **PENDIENTE** de confirmación. Por favor, confírmala en la web: [Confirmar Asistencia Aquí](${url}). ¡Te esperamos con mucha ilusión! 🌸\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.`;
-  
-  // Plantilla exacta para invitados CONFIRMADOS (General)
-  const CONFIRMADO_TEMPLATE = (fullName) => `¡${fullName}! ¡Sí, estás en la lista de invitados! Tu asistencia está **CONFIRMADA**. ¡Te esperamos con mucha ilusión! 🎉`;
-  
-  
   // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (Solo para INYECCIÓN de Prioridad Absoluta) ---
 
   const messageWords = normalizedMessage
@@ -204,21 +192,11 @@ Kike Masgrau,Masgrau,PENDIENTE
     .filter(Boolean);
 
   // Stop words para filtrar frases conversacionales (soy, me llamo, etc.)
-  // FIX 1: Añadidas palabras clave de menú y bebidas para evitar que se confundan con nombres
-  const stopWords = new Set([
-      'soy', 'me', 'llamo', 'mi', 'nombre', 'es', 'yo', 'la', 'el', 'los', 'las', 'un', 'una', 'de', 'del', 'al', 'o', 'y', 'si', 'no', 'que', 'en', 'para', 'a', 'e', 'mis',
-      'ver', // <-- AÑADIDO 'ver'
-      'todo', 'todos', 'toda', 'todas', 'aperitivo', 'banquete', 'comida', 'menu', 'completo', 'ambos', 
-      'bebidas', 'fiesta', 'ceremonia', 'vinos', 'cavas', 'platos',
-      'estoy', 'invitado', 'invitada', 'invitados', 'lista', 'asistencia', 'confirmacion' // <-- AÑADIDO para el bug "estoy invitado"
-  ]);
+  const stopWords = new Set(['soy', 'me', 'llamo', 'mi', 'nombre', 'es', 'yo', 'la', 'el', 'los', 'las', 'un', 'una', 'de', 'del', 'al', 'o', 'y', 'si', 'no', 'que', 'en', 'para', 'invitado', 'lista', 'asistencia', 'confirmacion', 'a', 'e', 'mis']);
   
   // Palabras relevantes para la búsqueda (excluyendo stop words)
   const nameLikeWords = messageWords.filter(word => !stopWords.has(word));
   const relevantQuery = nameLikeWords.join(' ');
-  // Detección de intención explícita de pregunta por la invitación
-  const isExplicitInvitationQuery = normalizedMessage.includes('invitado') || normalizedMessage.includes('lista') || normalizedMessage.includes('asistencia') || normalizedMessage.includes('confirmacion');
-
 
   const guestEntries = guestList
     .trim()
@@ -268,23 +246,13 @@ Kike Masgrau,Masgrau,PENDIENTE
       }
   }
 
-  // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (PROMPT INJECTION USES) ---
-  const confirmedGuestsCountInPrompt = confirmedGuestsCount;
-  const detailUbisUrlInPrompt = weddingInfo.urlConfirmacion;
-  const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
-  const urlRegalosInPrompt = weddingInfo.urlRegalos;
-  
-  // CRÍTICO: Definición de la respuesta de Regla 4 para forzar el texto exacto.
-  const notFoundResponse = "Lo siento mucho 😔, pero el nombre facilitado no lo encuentro en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
-
-
   // --- CONDICIONAL PROMPT INJECTION (FORZAR LA REGLA) ---
-  
-  // FIX 2: Se elimina el texto "QUIZ" del valor por defecto para evitar que se active el juego con palabras no relacionadas.
+  const NO_NAME_VERIFICATION_NEEDED = "¡VERIFICACIÓN DE NOMBRE REQUERIDA PARA ACCESO AL QUIZ!";
+
   let aiForcedInstruction = `
 ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-(No hay instrucciones de prioridad generadas por JS. El script JS no detectó un nombre. Aplica las Reglas 0-4 del System Prompt normalmente.)
-`; 
+${NO_NAME_VERIFICATION_NEEDED}
+`; // <-- MENSAJE CLARO Y ÚNICO PARA CUANDO NO SE ENCUENTRA INVITADO.
 
   if (forcedGuest) {
       const guestName = forcedGuest.nombre;
@@ -292,107 +260,31 @@ Kike Masgrau,Masgrau,PENDIENTE
       const guestStatus = forcedGuest.confirmado;
       const fullName = `${guestName} ${guestSurname}`.trim();
       
-      // Lista de Nombres COMPLETOS normalizados que tienen una REGLA ESPECIAL (2.A-2.P)
-      const specialCaseNames = new Set([
-        normalize("Antonio Escartín"), normalize("Beatriz Esquivel"), normalize("Kike Masgrau"), 
-        normalize("Jordi Bartual"), normalize("Eva Lopez"), normalize("Alex Ferré"), 
-        normalize("Iker Zarate"), normalize("Ivan Alamo"), normalize("Carlos Barceló"), 
-        normalize("Victor Lopez"), normalize("Anna Bernal"), normalize("Alex Espada"), 
-        normalize("Manel Esquivel"), normalize("Carla Bartual")
-      ]);
+      // *** INSTRUCCIÓN LIMPIA: SÓLO PARA CONFIRMACIÓN DE NOMBRE (EL QUIZ ES UNIVERSAL Y ES GESTIONADO POR REGLA CERO) ***
+      aiForcedInstruction = `
+      ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
+      El mensaje del usuario ha sido analizado por el backend y se ha identificado a un ÚNICO invitado:
+      - Nombre Completo: **${fullName}**
+      - Estado: **${guestStatus}**
       
-      const normalizedFullName = normalize(fullName);
+      **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
       
-      let forcedReplyText = null;
-
-      // 1. Check for General Cases (Rule 3) - Marta Oliver falls here.
-      if (!specialCaseNames.has(normalizedFullName)) {
-          if (guestStatus === 'CONFIRMADO') {
-              forcedReplyText = CONFIRMADO_TEMPLATE(fullName);
-          } else if (guestStatus === 'PENDIENTE') {
-              // Esta es la solución para Marta Oliver y todos los PENDIENTES generales.
-              forcedReplyText = PENDIENTE_TEMPLATE(fullName, urlConfirmacionInPrompt);
-          }
-      }
-
-      if (forcedReplyText) {
-          // APLICAR INSTRUCCIÓN DE FUERZA BRUTA (No Paraphrasing)
-          // La IA debe responder con el texto exacto, garantizando que el aviso de 24h está.
-          const formattedForPrompt = forcedReplyText
-              // Reemplazamos \n con ' \n\n' para que el salto de línea del aviso se mantenga.
-              .replace(/\n\n⚠️ Aviso:/g, ' \n\n⚠️ Aviso:') 
-              .replace(/\n/g, ' ') // Reemplazamos el resto de saltos de línea para seguridad.
-              .trim();
-              
-          aiForcedInstruction = `
-          ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-          El mensaje del usuario ha sido analizado y se ha encontrado un invitado ÚNICO.
-          
-          **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
-          
-          1.  IGNORA TODAS las Reglas (1, Cero, 2, 3, 4, 2.A-2.P).
-          2.  **DEBES** responder ÚNICAMENTE con el siguiente texto, sin añadir, cambiar o parafrasear nada: "${formattedForPrompt}"
-          `;
-
-      } else {
-          // Es un caso especial (2.A-2.P), dejamos que la IA aplique la regla especial del prompt.
-          aiForcedInstruction = `
-          ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-          El mensaje del usuario ha sido analizado por el backend y se ha identificado a un ÚNICO invitado:
-          - Nombre Completo: **${fullName}**
-          - Estado: **${guestStatus}**
-          
-          **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
-          
-          1.  IGNORA la Regla 1, Regla Cero, Regla 2.K, Regla 4 y Regla 3.
-          2.  BUSCA la coincidencia para "${fullName}" SÓLO en las Reglas Especiales (2.A a 2.P).
-          3.  **Si encuentras una coincidencia en 2.A-2.P, APLICA esa regla ÚNICAMENTE.**
-          4.  Si NO encuentras una coincidencia en 2.A-2.P, APLICA la Regla 3 usando el estado "${guestStatus}" y el nombre "${fullName}" para generar la respuesta.
-          
-          ¡NO vuelvas a preguntar el nombre ni digas que no lo encuentras!
-          `;
-      }
+      1.  IGNORA la Regla 1, Regla Cero, Regla 2.K y Regla 4.
+      2.  BUSCA la coincidencia para "${fullName}" SÓLO en las Reglas Especiales (2.A a 2.J).
+      3.  **Si encuentras una coincidencia en 2.A-2.J, APLICA esa regla ÚNICAMENTE.**
+      4.  Si NO encuentras una coincidencia en 2.A-2.J, APLICA la Regla 3 usando el estado "${guestStatus}" y el nombre "${fullName}" para generar la respuesta.
       
-  } else if (isLikelyNameQuery && nameLikeWords.length > 0) { 
-      // Si se proporciona un nombre (Pepe/Maria Pombo), pero NO está en la lista.
-      
-      const nameWords = relevantQuery.split(' ').filter(Boolean);
-      // Capitalizamos las palabras para un saludo formal: "Pepe Lopez"
-      const capitalizedName = nameWords.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-      
-      if (isExplicitInvitationQuery || nameLikeWords.length >= 2) {
-          // FIX: Si hay palabras clave de invitación O si se proporcionan 2 o más palabras (Nombre+Apellido),
-          // asumimos que es un intento de verificación y forzamos la Regla 4 (Rechazo).
-          aiForcedInstruction = `
-          ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-          El mensaje del usuario ha sido analizado por el backend y se ha determinado que el nombre **NO** se encuentra en la lista de invitados.
-          
-          **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
-          
-          1.  IGNORA TODAS las Reglas (1, Cero, 2, 3, 2.K, 2.A-2.P).
-          2.  APLICA la **Regla 4 (No Encontrado)** OBLIGATORIAMENTE, usando el texto exacto: "${notFoundResponse}"
-          
-          ¡NO busques el nombre ni intentes aplicar ninguna otra regla!
-          `;
-      } else {
-          // Si solo es un saludo con un solo nombre (Ej: 'soy pepe'), aplicamos el saludo conversacional.
-          aiForcedInstruction = `
-          ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-          El mensaje del usuario ha sido analizado por el backend y es un saludo de un nombre **NO** encontrado.
-          
-          **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
-          
-          1.  IGNORA las Reglas 1, 3, 4 y 2.K (y todas las reglas de invitado/lista).
-          2.  **DEBES** responder con un saludo amistoso usando el nombre detectado ("${capitalizedName}") y una pregunta abierta sobre cómo puedes ayudar, para reconducir la conversación a temas generales de la boda.
-          3.  La respuesta OBLIGATORIA debe ser: **"¡Hola ${capitalizedName}! Dime, ¿en qué puedo ayudarte con la boda de Manel y Carla?"**
-          
-          ¡NO menciones la lista de invitados, ni el estado "No Encontrado" (Regla 4)!
-          `;
-      }
+      ¡NO vuelvas a preguntar el nombre ni digas que no lo encuentras!
+      `;
   }
   // --- FIN DE INYECCIÓN ---
 
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (COMIDA) ---
+  const confirmedGuestsCountInPrompt = confirmedGuestsCount;
+  const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
+  const detailUbisUrlInPrompt = weddingInfo.urlConfirmacion;
+  const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
+  const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
   // Lista del Aperitivo para inyección
   const aperitivoCompletoResponse = `¡Claro! Para el aperitivo, habrá una gran variedad de platos deliciosos. 🍽️
@@ -459,12 +351,8 @@ Además, tendremos Showcooking y Corte:
 
 **IMPORTANTE:** Los platos definitivos (primero, segundo y postre) **aún están pendientes de la decisión final de los novios** tras la prueba de menú.`;
 
-  // FIX 3: Respuesta de comida de fiesta (Candy Bar/Repostería)
-  const partyFoodResponse = "Además, durante la fiesta (de 19:00 a 21:00) contaremos con un **Candy Bar** y **repostería** por si a alguien le entra el apetito.";
-
-  // FIX 3: Respuesta Menú Completo para inyección (Ahora incluye el aperitivo, el banquete y la repostería)
-  const menuCompletoResponse = `${aperitivoCompletoResponse}\n\n---\n\n${menuPrincipalResponse}\n\n---\n\n${partyFoodResponse}`;
-
+  // Respuesta Menú Completo para inyección
+  const menuCompletoResponse = `${aperitivoCompletoResponse}\n\n---\n\n${menuPrincipalResponse}`;
 
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (BEBIDAS) ---
   const ceremonyDrinksResponse = "En la ceremonia se va a servir: agua, limonada, naranjada y cocktails de cava.";
@@ -478,7 +366,7 @@ Además, tendremos Showcooking y Corte:
 * **Vinos blancos:** Viña Pomal Verdejo o Raimat Albariño
 * **Cavas:** Gran Bach Brut o Roger de Flor Brut Nature`;
   
-  // NUEVA RESPUESTA CONSOLIDADA PARA "TODAS" (Comentario corregido)
+  // NUEVA RESPUESTA CONSOLIDADA PARA "DE TODO"
   const allDrinksResponse = `¡Claro! Aquí tienes la información detallada de las bebidas por fases:
 
 **En la ceremonia (12:30 a 13:30):**
@@ -527,33 +415,33 @@ ${guestList}
 
 2.  **Si se proporciona un nombre (en cualquier turno):**
     
-    * **2.A. 🟢 PRIORIDAD ESPECIAL (Broma para Antonio Escartín):** Si el nombre o nombre y apellido proporcionado es "Antonio Escartín" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Antonio! Estás en la lista, pero... ¡tu invitación es condicional! Solo te dejamos entrar si vienes vestido de calamardo. Si cumples, estas invitado 😉. Tu asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Sabes que te queremos! 😉\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.A. 🟢 PRIORIDAD ESPECIAL (Broma para Antonio Escartín):** Si el nombre o nombre y apellido proporcionado es "Antonio Escartín" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Antonio! Estás en la lista, pero... ¡tu invitación es condicional! Solo te dejamos entrar si vienes vestido de calamardo. Si cumples, estas invitado 😉. Tu asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Sabes que te queremos! 😉".  ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
     
-    * **2.B. 🟢 PRIORIDAD ESPECIAL (Referencia a Beatriz Esquivel - Hermana):** Si el nombre o nombre y apellido proporcionado es "Beatriz Esquivel" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Beatriz! ¡Claro que estás invitada! No podría ser de otra forma, la hermana del novio tiene pase VIP. 😉 Tu asistencia está **PENDIENTE** de confirmación aquí. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te queremos!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.B. 🟢 PRIORIDAD ESPECIAL (Referencia a Beatriz Esquivel - Hermana):** Si el nombre o nombre y apellido proporcionado es "Beatriz Esquivel" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Beatriz! ¡Claro que estás invitada! No podría ser de otra forma, la hermana del novio tiene pase VIP. 😉 Tu asistencia está **PENDIENTE** de confirmación aquí. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te queremos!". ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
     
-    * **2.C. 🟢 PRIORIDAD ESPECIAL ( Kike Masgrau - Colega de Trabajo):** Si el nombre o nombre y apellido proporcionado es **"Kike Masgrau"** (o similar a cualquiera de los dos, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Kike! Estás invitados, por supuesto. **Pero no te duermas!** Escuchamos rumores de las siestas del zulo. 😉 tu asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Os esperamos!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.C. 🟢 PRIORIDAD ESPECIAL ( Kike Masgrau - Colega de Trabajo):** Si el nombre o nombre y apellido proporcionado es **"Kike Masgrau"** (o similar a cualquiera de los dos, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Kike! Estás invitados, por supuesto. **Pero no te duermas!** Escuchamos rumores de las siestas del zulo. 😉 tu asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Os esperamos!". ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente..
     
-    * **2.D. 🟢 PRIORIDAD ESPECIAL (Jordi Bartual - Padre de la Novia):** Si el nombre o nombre y apellido proporcionado es "Jordi Bartual" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Jordi! Está claro que estás invitado, no podría ser de otra forma, ¡el padre de la novia tiene que estar en primera fila! Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.D. 🟢 PRIORIDAD ESPECIAL (Jordi Bartual - Padre de la Novia):** Si el nombre o nombre y apellido proporcionado es "Jordi Bartual" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Jordi! Está claro que estás invitado, no podría ser de otra forma, ¡el padre de la novia tiene que estar en primera fila! Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!". ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
 
-    * **2.E. 🟢 PRIORIDAD ESPECIAL (Eva Lopez - Madre de la Novia):** Si el nombre o nombre y apellido proporcionado es "Eva Lopez" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Eva! Por supuesto que estás invitada. ¡La madre de la novia es fundamental en este día! Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.E. 🟢 PRIORIDAD ESPECIAL (Eva Lopez - Madre de la Novia):** Si el nombre o nombre y apellido proporcionado es "Eva Lopez" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Eva! Por supuesto que estás invitada. ¡La madre de la novia es fundamental en este día! Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!". ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
 
-    * **2.F. 🟢 PRIORIDAD ESPECIAL (Alex Ferré - Colega de Trabajo):** Si el nombre o nombre y apellido proporcionado es **"Alex Ferré"** (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Alex! Claro que estás invitado, compañero de trabajo. Espero que cojas fuerzas para la fiesta. 😉 Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.F. 🟢 PRIORIDAD ESPECIAL (Alex Ferré - Colega de Trabajo):** Si el nombre o nombre y apellido proporcionado es **"Alex Ferré"** (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Alex! Claro que estás invitado, compañero de trabajo. Espero que cojas fuerzas para la fiesta. 😉 Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!". ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
 
-    * **2.G. 🟢 PRIORIDAD ESPECIAL (Iker Zarate - F1/Espanyol):** Si el nombre o nombre y apellido proporcionado es "Iker Zarate" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Iker! Estás invitado, ¡claro! Ya sabemos que lo tuyo es la F1, no la MotoGP, y que el RCD Espanyol lo es todo. Tu asistencia se encuentra **PENDIENTE** de confirmación . Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡A disfrutar!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.G. 🟢 PRIORIDAD ESPECIAL (Iker Zarate - F1/Espanyol):** Si el nombre o nombre y apellido proporcionado es "Iker Zarate" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Iker! Estás invitado, ¡claro! Ya sabemos que lo tuyo es la F1, no la MotoGP, y que el RCD Espanyol lo es todo. Tu asistencia se encuentra **PENDIENTE** de confirmación . Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡A disfrutar!". ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
     
-    * **2.H. 🟢 PRIORIDAD ESPECIAL (Ivan Alamo - Broma "Cacho Lomo Deshuesado"):** Si el nombre o nombre y apellido proporcionado es "Ivan Alamo" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Ivan, cacho lomo deshuesado! Claro que estás invitado. Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos, campeón!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.H. 🟢 PRIORIDAD ESPECIAL (Ivan Alamo - Broma "Cacho Lomo Deshuesado"):** Si el nombre o nombre y apellido proporcionado es "Ivan Alamo" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Ivan, cacho lomo deshuesado! Claro que estás invitado. Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos, campeón!" ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
 
-    * **2.I. 🟢 PRIORIDAD ESPECIAL (Carlos Barceló - Juegos de Mesa):** Si el nombre o nombre y apellido proporcionado es "Carlos Barceló" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Carlos! Por supuesto que estás invitado. ¡El novio me comento que después de la boda queria quedar contigo echar una partida al Descent! Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Nos vemos!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.I. 🟢 PRIORIDAD ESPECIAL (Carlos Barceló - Juegos de Mesa):** Si el nombre o nombre y apellido proporcionado es "Carlos Barceló" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Carlos! Por supuesto que estás invitado. ¡El novio me comento que después de la boda queria quedar contigo echar una partida al Descent! Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Nos vemos!". ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
 
-    * **2.J. 🟢 PRIORIDAD ESPECIAL (Victor Lopez - Broma "Prima Marta"):** Si el nombre o nombre y apellido proporcionado es **"Victor Lopez"** (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Victor! ¡Estás invitado! Y, ¿hay novedades con la prima de Marta Oliver? 😉 Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.J. 🟢 PRIORIDAD ESPECIAL (Victor Lopez - Broma "Prima Marta"):** Si el nombre o nombre y apellido proporcionado es **"Victor Lopez"** (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Victor! ¡Estás invitado! Y, ¿hay novedades con la prima de Marta Oliver? 😉 Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!" ⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.
     
     * **2.K. Ambigüedad:** Si el nombre/apellido proporcionado coincide con **MÁS de una persona** y falta información clara para una coincidencia única (e.g. "Alex" con "Alex Ferré" y "Alex Espada"), debes preguntar: "¿Me podrías indicar tu apellido, por favor? Tenemos varias personas con ese nombre en la lista."
     
     * **2.L. Coincidencia Única (General):** Si el nombre proporcionado (una o dos palabras) **coincide con UNA única persona** en la lista (y no se activó ninguna regla especial previa), DEBES pasar al **Punto 3**.
     
-    * **2.M. 🟢 PRIORIDAD ESPECIAL ( Anna Bernal - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Anna Bernal"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Anna! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Alex!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.M. 🟢 PRIORIDAD ESPECIAL ( Anna Bernal - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Anna Bernal"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Anna! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Alex!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!"
 
-    * **2.N. 🟢 PRIORIDAD ESPECIAL ( Alex espada - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Alex espada"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Anna! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Anna!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+    * **2.N. 🟢 PRIORIDAD ESPECIAL ( Alex espada - Futura boda):** Si el nombre o nombre y apellido proporcionado es **"Alex espada"** (ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Anna! Estáis invitados, por supuesto. **¡Enhorabuena por tu compromiso con Anna!** Escuchamos rumores de que vuestra boda es la próxima. 😉 Vuestra asistencia está **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Os esperamos!"
     
     * **2.O. 🟢 PRIORIDAD ESPECIAL (Manel Esquivel):** Si el nombre o nombre y apellido proporcionado es **"Manel Esquivel"** (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Manel! Eres el novio, ¡claro que estás invitado! Tu asistencia está **CONFIRMADA**. ¡Nos vemos en el altar! 😉"
     
@@ -561,9 +449,9 @@ ${guestList}
     
 3.  **Respuesta Final de Confirmación (Coincidencia Única General):**
         * **Si el estado es CONFIRMADO:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Tu asistencia está **CONFIRMADA**. ¡Te esperamos con mucha ilusión!".
-        * **Si el estado es PENDIENTE:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Sin embargo, tu asistencia se encuentra **PENDIENTE** de confirmación. Por favor, confírmala en la web: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Te esperamos con mucha ilusión!\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
+        * **Si el estado es PENDIENTE:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Sin embargo, tu asistencia se encuentra **PENDIENTE** de confirmación. Por favor, confírmala en la web: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Te esperamos con mucha ilusión!".
     
-4.  **No Encontrado:** Si el nombre/apellido no tiene ninguna coincidencia en la lista, debes responder: "${notFoundResponse}"
+4.  **No Encontrado:** Si el nombre/apellido no tiene ninguna coincidencia en la lista, debes responder: "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla."
     
 
 ## 📊 STATUS
@@ -579,11 +467,9 @@ ${guestList}
   - Si preguntan por los padres de Carla, son **Jordi y Eva**.
 
 ## 🍽️ Aperitivo y Opciones Especiales
-// FIX 3: Intercambiado de lugar con Bebidas para dar prioridad a "todo" sobre "todas"
 - El banquete será **en el mismo recinto, justo después del aperitivo**.
 
-// FIX 4: Desambiguación. "todo" (comida) vs "todas" (bebidas)
-- **INSTRUCCIÓN CLAVE (MENU COMPLETO - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todo"** O **"ver todo"** O **"completo"** O **"menu completo"** (refiriéndose a comida), DEBES responder ÚNICAMENTE con el contenido de ${menuCompletoResponse}.
+- **INSTRUCCIÓN CLAVE (MENU COMPLETO - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todo"** O **"completo"** O **"ambos"**, DEBES responder ÚNICAMENTE con el contenido de ${menuCompletoResponse}.
 
 - **INSTRUCCIÓN CLAVE (APERTIVO COMPLETO - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"aperitivo"** O **"lista del aperitivo"** (y no "todo" o "completo"), DEBES responder ÚNICAMENTE con el contenido de ${aperitivoCompletoResponse}.
 
@@ -597,9 +483,9 @@ ${aperitivoVegetarianoResponse}
 - **INSTRUCCIÓN CLAVE (CATERING):** Si preguntan por la empresa de catering, DEBES responder ÚNICAMENTE: "La empresa de catering es la misma Masía Mas Llombart, ellos se encargan de todo."
 
 
-## 🥂 Bebidas 
-// FIX 4: Desambiguación. "todas" (bebidas) vs "todo" (comida)
-- **INSTRUCCIÓN CLAVE (BEBIDAS TODO - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todas"** O **"bebidas completas"** (refiriéndose a bebidas), DEBES responder ÚNICAMENTE con el contenido de ${allDrinksResponse}.
+## 🥂 Bebidas
+
+- **INSTRUCCIÓN CLAVE (BEBIDAS TODO - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todas"** O **"bebidas completas"** (refiriéndose a bebidas) O **"ambos"** (refiriéndose a bebidas), DEBES responder ÚNICAMENTE con el contenido de ${allDrinksResponse}.
 
 - **INSTRUCCIÓN CLAVE (VINOS - ALTA PRIORIDAD):** Si el mensaje del usuario contiene la palabra clave **"vinos"**, DEBES responder ÚNICAMENTE con el contenido de ${winesResponse}.
 
@@ -638,7 +524,7 @@ Además, habrá barra libre durante **2 horas**, y contaremos con un **Candy Bar
 
 ## 😂 Preguntas Graciosas (No-serias)
 - **INSTRUCCIÓN CLAVE (SOLTEROS):** Si preguntan por **solteras, solteros, chicas, chicos o chicas de compañía**, DEBES responder con humor ÚNICAMENTE: "¡Qué pregunta! 😄 Esto es una boda, no Tinder. El objetivo principal no es encontrar pareja... aunque nunca se sabe dónde saltará la chispa. De momento, ¡céntrate en disfrutar de la fiesta y la barra libre!"
-- **INSTRUCCIÓN CLAVE (DROGAS):** Si preguntan sobre **drogas** o **sustancias**, DEBES responder ÚNICAMENTE: "Para preguntas sobre 'sustancias' o 'cosas raras', te recomendamos contactar directamente con **Antonio Escartín**, que es un especialista en la materia. 😉"
+- **INSTRUCCIÓN CLAVE (DROGAS):** Si preguntan sobre **drogas** o **sustancias**, DEBES responder con humor ÚNICAMENTE: "Para preguntas sobre 'sustancias' o 'cosas raras', te recomendamos contactar directamente con **Antonio Escartín**, que es un especialista en la materia. 😉"
 
 ## 🏨 Alojamiento (DEJADO PARA GPT EN CASOS COMPLEJOS - YA NO SE USA PARA ALOJAMIENTO BÁSICO)
 
@@ -680,31 +566,6 @@ ${fullAccommodationResponse}
 - No devuelvas ningún otro formato que no sea texto o Markdown.
 `;
 
-  
-  // --- CONSTRUCCIÓN DEL PAYLOAD DE MENSAJES CON HISTORIAL ---
-  
-  let messagesPayload = [];
-
-  if (history && history.length > 1) {
-      // Si hay historial, lo usamos, pero reemplazamos el prompt de sistema
-      messagesPayload = history.map((msg) => {
-          if (msg.role === 'system') {
-              return { role: 'system', content: systemPrompt }; // Inyectamos el prompt real del backend
-          }
-          return msg;
-      });
-      // El frontend ya ha añadido el 'message' más reciente al 'history'
-  } else {
-      // Fallback si no hay historial (primera visita)
-      messagesPayload = [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-      ];
-  }
-  
-  // --- FIN DEL PAYLOAD ---
-  
-
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -714,8 +575,10 @@ ${fullAccommodationResponse}
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        // FIX 0: Usar el payload con el historial completo
-        messages: messagesPayload, 
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message },
+        ],
         temperature: 0.7,
       }),
     });
