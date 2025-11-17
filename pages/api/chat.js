@@ -275,12 +275,15 @@ Kike Masgrau,Masgrau,PENDIENTE
 
 
   // --- CONDICIONAL PROMPT INJECTION (FORZAR LA REGLA) ---
-  const NO_NAME_VERIFICATION_NEEDED = "¡VERIFICACIÓN DE NOMBRE REQUERIDA PARA ACCESO AL QUIZ!";
+  
+  // FIX: Esta constante ya no se usa, pero la dejamos para referencia
+  // const NO_NAME_VERIFICATION_NEEDED = "¡VERIFICACIÓN DE NOMBRE REQUERIDA PARA ACCESO AL QUIZ!";
 
+  // FIX: La instrucción por defecto DEBE ser neutral
   let aiForcedInstruction = `
 ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-${NO_NAME_VERIFICATION_NEEDED}
-`; // <-- MENSAJE CLARO Y ÚNICO PARA CUANDO NO SE ENCUENTRA INVITADO.
+(No hay instrucciones de prioridad generadas por JS. El script JS no detectó un nombre. Aplica las Reglas 0-4 del System Prompt normalmente.)
+`; 
 
   if (forcedGuest) {
       const guestName = forcedGuest.nombre;
@@ -436,7 +439,7 @@ Además, tendremos Showcooking y Corte:
   `;
   
   // Respuesta Menú Principal para inyección
-  const menuPrincipalResponse = `El banquete comenzará tras el aperitivo (cuya lista puedes consultar por separado preguntandome por el aperitivo). Respecto a los **platos principales**, los novios están pendientes de realizar la prueba de menú entre las siguientes opciones. ¡Estarán deliciosas!
+  const menuPrincipalResponse = `El banquete comenzará tras el aperitivo (cuya lista puedes consultar por separado preguntandome por el aperitivo). RespectT...a los **platos principales**, los novios están pendientes de realizar la prueba de menú entre las siguientes opciones. ¡Estarán deliciosas!
   
 **PRIMEROS PLATOS (a elegir por los novios):**
 * Caldereta de bogavante con patata confitada y crujiente de puerro
@@ -602,7 +605,7 @@ ${aperitivoVegetarianoResponse}
 
 - **INSTRUCCIÓN CLAVE (APERITIVO BEBIDAS - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene la palabra clave **"aperitivo"** (o "en el aperitivo") **y no se refiere a comida**, DEBES responder ÚNICAMENTE con el contenido de ${aperitifDrinksResponse}.
 
-- **INSTRUCCIÓN CLAVE (BANQUETE BEBIDAS - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"banquete"** O **"comida banquete"** (o "en el banquete") **y no se refiere a comida**, DEBES responder ÚNICAMENTE con el contenido de ${banquetDrinksResponse}.
+- **INSTRUCCIÓN CLAVE (BANQUETE BEBIDAS - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"banquete"** O **"comida banquete"** (o "en el banquete") **y no se refiere a comida**, DEBES responder ÚNICL...mente con el contenido de ${banquetDrinksResponse}.
 
 - **INSTRUCCIÓN CLAVE (FIESTA BEBIDAS - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene la palabra clave **"fiesta"** (o "en la fiesta"), DEBES responder ÚNICAMENTE con el contenido de ${partyDrinksResponse}.
 
