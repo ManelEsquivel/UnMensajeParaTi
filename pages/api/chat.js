@@ -8,7 +8,9 @@ export default async function handler(req, res) {
     return res.status(405).json({ reply: "Método no permitido" }); 
   }
 
-  const { message } = req.body;
+  // FIX 0: Aceptar el 'history' del frontend.
+  const { message, history } = req.body;
+
   if (!message) {
     return res.status(400).json({ reply: "No se recibió ningún mensaje." });
   }
@@ -475,7 +477,7 @@ Además, tendremos Showcooking y Corte:
 * **Vinos blancos:** Viña Pomal Verdejo o Raimat Albariño
 * **Cavas:** Gran Bach Brut o Roger de Flor Brut Nature`;
   
-  // NUEVA RESPUESTA CONSOLIDADA PARA "TODAS"
+  // NUEVA RESPUESTA CONSOLIDADA PARA "TODAS" (Comentario corregido)
   const allDrinksResponse = `¡Claro! Aquí tienes la información detallada de las bebidas por fases:
 
 **En la ceremonia (12:30 a 13:30):**
@@ -677,6 +679,31 @@ ${fullAccommodationResponse}
 - No devuelvas ningún otro formato que no sea texto o Markdown.
 `;
 
+  
+  // --- CONSTRUCCIÓN DEL PAYLOAD DE MENSAJES CON HISTORIAL ---
+  
+  let messagesPayload = [];
+
+  if (history && history.length > 1) {
+      // Si hay historial, lo usamos, pero reemplazamos el prompt de sistema
+      messagesPayload = history.map((msg) => {
+          if (msg.role === 'system') {
+              return { role: 'system', content: systemPrompt }; // Inyectamos el prompt real del backend
+          }
+          return msg;
+      });
+      // El frontend ya ha añadido el 'message' más reciente al 'history'
+  } else {
+      // Fallback si no hay historial (primera visita)
+      messagesPayload = [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: message },
+      ];
+  }
+  
+  // --- FIN DEL PAYLOAD ---
+  
+
   try {
     const response = await fetch("https://api.openai.com/v1/chat/completions", {
       method: "POST",
@@ -686,10 +713,8 @@ ${fullAccommodationResponse}
       },
       body: JSON.stringify({
         model: "gpt-3.5-turbo",
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: message },
-        ],
+        // FIX 0: Usar el payload con el historial completo
+        messages: messagesPayload, 
         temperature: 0.7,
       }),
     });
