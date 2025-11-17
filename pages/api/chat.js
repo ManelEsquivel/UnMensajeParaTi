@@ -192,11 +192,14 @@ Kike Masgrau,Masgrau,PENDIENTE
     .filter(Boolean);
 
   // Stop words para filtrar frases conversacionales (soy, me llamo, etc.)
-  const stopWords = new Set(['soy', 'me', 'llamo', 'mi', 'nombre', 'es', 'yo', 'la', 'el', 'los', 'las', 'un', 'una', 'de', 'del', 'al', 'o', 'y', 'si', 'no', 'que', 'en', 'para', 'invitado', 'lista', 'asistencia', 'confirmacion', 'a', 'e', 'mis']);
+  const stopWords = new Set(['soy', 'me', 'llamo', 'mi', 'nombre', 'es', 'yo', 'la', 'el', 'los', 'las', 'un', 'una', 'de', 'del', 'al', 'o', 'y', 'si', 'no', 'que', 'en', 'para', 'a', 'e', 'mis']);
   
   // Palabras relevantes para la búsqueda (excluyendo stop words)
   const nameLikeWords = messageWords.filter(word => !stopWords.has(word));
   const relevantQuery = nameLikeWords.join(' ');
+  // Detección de intención explícita de pregunta por la invitación
+  const isExplicitInvitationQuery = normalizedMessage.includes('invitado') || normalizedMessage.includes('lista') || normalizedMessage.includes('asistencia') || normalizedMessage.includes('confirmacion');
+
 
   const guestEntries = guestList
     .trim()
@@ -254,7 +257,7 @@ Kike Masgrau,Masgrau,PENDIENTE
   const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
   // CRÍTICO: Definición de la respuesta de Regla 4 para forzar el texto exacto.
-  const notFoundResponse = "Lo siento mucho 😔, pero el nombre facilitado no lo encuentro en la lista de invitados . Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
+  const notFoundResponse = "Lo siento mucho 😔, pero el nombre facilitado no lo encuentro en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla.";
 
 
   // --- CONDICIONAL PROMPT INJECTION (FORZAR LA REGLA) ---
@@ -280,29 +283,49 @@ ${NO_NAME_VERIFICATION_NEEDED}
       
       **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
       
-      1.  IGNORA la Regla 1, Regla Cero, Regla 2.K y Regla 4.
+      1.  IGNORA la Regla 1, Regla Cero, Regla 2.K, Regla 4.
       2.  BUSCA la coincidencia para "${fullName}" SÓLO en las Reglas Especiales (2.A a 2.P).
       3.  **Si encuentras una coincidencia en 2.A-2.P, APLICA esa regla ÚNICAMENTE.**
       4.  Si NO encuentras una coincidencia en 2.A-2.P, APLICA la Regla 3 usando el estado "${guestStatus}" y el nombre "${fullName}" para generar la respuesta.
       
       ¡NO vuelvas a preguntar el nombre ni digas que no lo encuentras!
       `;
-  } else if (isLikelyNameQuery && nameLikeWords.length > 0) { // FIX CRÍTICO: Nombre introducido, pero no encontrado.
-      // ----------------------------------------------------
-      // ** CRITICAL FIX: FORCE RULE 4 (NOT FOUND) FROM JS **
-      // ----------------------------------------------------
+  } else if (isLikelyNameQuery && nameLikeWords.length > 0) { 
+      // Si se proporciona un nombre (Pepe), pero NO está en la lista.
       
-      aiForcedInstruction = `
-      ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-      El mensaje del usuario ha sido analizado por el backend y se ha determinado que el nombre **NO** se encuentra en la lista de invitados.
+      const nameWords = relevantQuery.split(' ').filter(Boolean);
+      // Capitalizamos las palabras para un saludo formal: "Pepe Lopez"
+      const capitalizedName = nameWords.map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
       
-      **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
-      
-      1.  IGNORA TODAS las Reglas (1, Cero, 2, 3, 2.K, 2.A-2.P).
-      2.  APLICA la **Regla 4 (No Encontrado)** OBLIGATORIAMENTE, usando el texto exacto: "${notFoundResponse}"
-      
-      ¡NO busques el nombre en la lista ni intentes aplicar ninguna otra regla!
-      `;
+      if (isExplicitInvitationQuery) {
+          // Si hay palabras clave como 'invitado' o 'lista', el usuario está preguntando,
+          // así que aplicamos la Regla 4 (la respuesta de rechazo).
+          aiForcedInstruction = `
+          ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
+          El mensaje del usuario contiene palabras clave de invitación ('invitado', 'lista') PERO el nombre **NO** se encuentra.
+          
+          **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
+          
+          1.  IGNORA TODAS las Reglas (1, Cero, 2, 3, 2.K, 2.A-2.P).
+          2.  APLICA la **Regla 4 (No Encontrado)** OBLIGATORIAMENTE, usando el texto exacto: "${notFoundResponse}"
+          
+          ¡NO busques el nombre ni intentes aplicar ninguna otra regla!
+          `;
+      } else {
+          // Si solo es un saludo con nombre (Ej: 'soy pepe'), aplicamos el saludo conversacional.
+          aiForcedInstruction = `
+          ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
+          El mensaje del usuario ha sido analizado por el backend y es un saludo de un nombre **NO** encontrado.
+          
+          **TU TAREA ES LA SIGUIENTE, EN ESTE ORDEN:**
+          
+          1.  IGNORA las Reglas 1, 3, 4 y 2.K (y todas las reglas de invitado/lista).
+          2.  **DEBES** responder con un saludo amistoso usando el nombre detectado ("${capitalizedName}") y una pregunta abierta sobre cómo puedes ayudar, para reconducir la conversación a temas generales de la boda.
+          3.  La respuesta OBLIGATORIA debe ser: **"¡Hola ${capitalizedName}! Dime, ¿en qué puedo ayudarte con la boda de Manel y Carla?"**
+          
+          ¡NO menciones la lista de invitados, ni el estado "No Encontrado" (Regla 4)!
+          `;
+      }
   }
   // --- FIN DE INYECCIÓN ---
 
