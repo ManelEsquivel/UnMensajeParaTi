@@ -202,7 +202,10 @@ Kike Masgrau,Masgrau,PENDIENTE
     .filter(Boolean);
 
   // Stop words para filtrar frases conversacionales (soy, me llamo, etc.)
-  const stopWords = new Set(['soy', 'me', 'llamo', 'mi', 'nombre', 'es', 'yo', 'la', 'el', 'los', 'las', 'un', 'una', 'de', 'del', 'al', 'o', 'y', 'si', 'no', 'que', 'en', 'para', 'a', 'e', 'mis']);
+  const stopWords = new Set([
+      'soy', 'me', 'llamo', 'mi', 'nombre', 'es', 'yo', 'la', 'el', 'los', 'las', 'un', 'una', 'de', 'del', 'al', 'o', 'y', 'si', 'no', 'que', 'en', 'para', 'a', 'e', 'mis',
+      'todo', 'todos', 'aperitivo', 'banquete', 'comida', 'menu', 'completo', 'ambos', 'bebidas', 'fiesta', 'ceremonia', 'vinos', 'cavas'
+  ]);
   
   // Palabras relevantes para la búsqueda (excluyendo stop words)
   const nameLikeWords = messageWords.filter(word => !stopWords.has(word));
@@ -700,9 +703,4 @@ ${fullAccommodationResponse}
     const aiReplyHTML = marked.parse(aiReplyRaw);
 
     // Devolvemos el HTML completo.
-    res.status(200).json({ reply: aiReplyHTML });
-  } catch (error) {
-    console.error(error); 
-    res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
-  }
-}
+    res.status(200).
