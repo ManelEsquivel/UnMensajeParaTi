@@ -352,7 +352,20 @@ Además, tendremos Showcooking y Corte:
 **IMPORTANTE:** Los platos definitivos (primero, segundo y postre) **aún están pendientes de la decisión final de los novios** tras la prueba de menú.`;
 
   // Respuesta Menú Completo para inyección
-  const menuCompletoResponse = `${aperitivoCompletoResponse}\n\n---\n\n${menuPrincipalResponse}`;
+  // *** MODIFICACIÓN IMPLEMENTADA AQUÍ, INCLUYENDO EL CANDY BAR ***
+  const menuCompletoResponse = `¡Claro! Aquí tienes la información completa sobre la comida de la boda:
+  
+${aperitivoCompletoResponse}
+  
+---
+
+${menuPrincipalResponse}
+
+---
+
+**Y para la Fiesta...**
+¡No olvides que, además de la barra libre, en la fiesta (de 19:00 a 21:00) contaremos con un **Candy Bar** y **repostería** por si a alguien le entra el apetito! 🍬`;
+  // *** FIN DE LA MODIFICACIÓN ***
 
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (BEBIDAS) ---
   const ceremonyDrinksResponse = "En la ceremonia se va a servir: agua, limonada, naranjada y cocktails de cava.";
