@@ -185,11 +185,10 @@ Kike Masgrau,Masgrau,PENDIENTE
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
   
-  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (SE ELIMINA TODA LA LÓGICA DE BÚSQUEDA PESADA) ---
-  // Se eliminan: messageWords, stopWords, nameLikeWords, relevantQuery, guestEntries, isLikelyNameQuery, forcedGuest.
-  // Se eliminan: Toda la lógica de if (isLikelyNameQuery) y la inyección aiForcedInstruction.
+  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (LÓGICA ELIMINADA PARA OPTIMIZACIÓN) ---
+  // Se eliminaron todos los bloques de código JavaScript que procesaban la lista de invitados
+  // para mejorar la velocidad y evitar el timeout. La IA gestionará la verificación.
 
-  // Re-definimos las variables que usaba la IA sin inyección forzada (uso el valor original de la lista)
   const aiForcedInstruction = `
       ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
       ESTA SECCIÓN ESTÁ INACTIVA. LA VERIFICACIÓN DE NOMBRES ES GESTIONADA POR LAS REGLAS DE LA IA.
@@ -269,7 +268,7 @@ Además, tendremos Showcooking y Corte:
 
 **IMPORTANTE:** Los platos definitivos (primero, segundo y postre) **aún están pendientes de la decisión final de los novios** tras la prueba de menú.`;
 
-  // Respuesta Menú Completo para inyección
+  // Respuesta Menú Completo para inyección (Incluye Candy Bar - CORRECCIÓN 1)
   const menuCompletoResponse = `¡Claro! Aquí tienes la información completa sobre la comida de la boda:
   
 ${aperitivoCompletoResponse}
@@ -331,15 +330,17 @@ ${guestList}
 
 // *** REGLAS DE VERIFICACIÓN GESTIONADAS POR LA IA (Prioridad Máxima en Conversación) ***
 
-// 1. **REGLA DE SALUDO/PEDIR NOMBRE (MÁXIMA PRIORIDAD SI NO HAY COINCIDENCIA):**
-- **INSTRUCCIÓN CLAVE (SALUDO PERSONALIZADO):** Si el mensaje del usuario incluye una palabra que parece ser un **nombre propio** (ej: "soy Juan", "hola Marta"), y **NO** encuentras una coincidencia única en la LISTA para aplicar las reglas 2 o 3, DEBES responder ÚNICAMENTE: "¡Hola, **[Nombre detectado]**! Gracias por preguntar. ¿En qué puedo ayudarte hoy?"
-- **INSTRUCCIÓN CLAVE (PEDIR NOMBRE):** Si el usuario pregunta "¿Estoy invitado?" o similar, y no se detecta ningún nombre en el mensaje, **DEBES** responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
+// 1. REGLA DE INICIO Y SALUDO (Gestión del primer contacto - CORRECCIÓN 3)
+// El modelo DEBE detectar el nombre para usarlo en 1.A, o pasar a 1.B si no hay nombre.
+- **1.A. INSTRUCCIÓN CLAVE (SALUDO CORDIAL):** Si el mensaje del usuario **contiene un nombre o una frase de presentación** (ej: "soy Juan", "hola me llamo Juan", "Juan"), PERO **NO** pregunta explícitamente por el estado de la invitación, **DEBES** responder ÚNICAMENTE: "¡Hola, [Nombre detectado]! Gracias por presentarte. ¿En qué puedo ayudarte hoy?"
+// 1.B. INSTRUCCIÓN CLAVE (PEDIR NOMBRE - Prioridad Baja): Si el mensaje del usuario NO contiene ningún nombre (ej. "¿Estoy invitado?", "¿Qué tal?"), DEBES responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
+// OJO: Si se detecta un nombre Y el usuario pregunta por el estado de la invitación, la IA DEBE pasar directamente a la Regla 2 o 4.
 
 // *** REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA UNIVERSAL) ***
 
 ## 🎮 REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA UNIVERSAL)
 
-- **INSTRUCCIÓN CLAVE (QUIZ):** Si el mensaje del usuario contiene palabras clave como **"jugar"**, **"juego"**, **"quiz"** o **"test"**, DEBES **IGNORAR TODAS LAS OTRAS REGLAS** (incluyendo las de Verificación) y APLICAR **ÚNICAMENTE** la respuesta de la **Regla Cero, A.**
+- **INSTRUCCIÓN CLAVE (QUIZ):** Si el mensaje del usuario contiene palabras clave como **"jugar"**, **"juego"** o **"quiz"** o **"test"**, DEBES **IGNORAR TODAS LAS OTRAS REGLAS** (incluyendo las de Verificación) y APLICAR **ÚNICAMENTE** la respuesta de la **Regla Cero, A.**
     - **A. Acceso General:** Responde ÚNICAMENTE: "¡Prepárate, amigo/a! El QUIZ está cargando... 🕹️ ¡Te toca demostrar cuánto sabes de los Novios! Las personas con mayor cierto, tendrán un regalo en la boda 🎁. **¡Mucha suerte!** [EMPEZAR QUIZ](https://bodamanelcarla.vercel.app/game)"
 
 // *** FIN DE LA REGLA CERO ***
@@ -383,7 +384,7 @@ ${guestList}
         * **Si el estado es CONFIRMADO:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Tu asistencia está **CONFIRMADA**. ¡Te esperamos con mucha ilusión!".
         * **Si el estado es PENDIENTE:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Sin embargo, tu asistencia se encuentra **PENDIENTE** de confirmación. Por favor, confírmala en la web: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Te esperamos con mucha ilusión!".
     
-4.  **No Encontrado:** Si el nombre/apellido no tiene ninguna coincidencia en la lista, debes responder: "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla."
+4.  **No Encontrado (VERIFICACIÓN FALLIDA - CORRECCIÓN 3):** Si el mensaje del usuario contiene palabras clave de **verificación de estado** (ej: "¿estoy invitado?", "¿estamos en la lista?", "confirmar asistencia") **Y** el nombre proporcionado no tiene ninguna coincidencia única en la lista o en las reglas 2.A-2.P, debes responder ÚNICAMENTE: "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla."
     
 
 ## 📊 STATUS
