@@ -58,3 +58,37 @@ export default function IntroPage() {
       backgroundColor: 'black', zIndex: 9999, overflow: 'hidden',
       display: 'flex', justifyContent: 'center', alignItems: 'center'
     }}>
+      
+      {/* IMPORTANTE: En móvil, a veces necesitamos que el usuario toque si falla el autoplay.
+         He quitado el 'pointerEvents: none' estricto del contenedor padre por si acaso,
+         pero lo mantenemos visualmente limpio.
+      */}
+      <div style={{ 
+        width: '100%', 
+        height: '100%', 
+        transform: 'scale(1.4)', // Mantenemos el zoom para ocultar logos
+        transformOrigin: 'center center'
+      }}>
+        <div id="youtube-player" style={{ width: '100%', height: '100%' }}></div>
+      </div>
+      
+      {/* CAPA TRANSPARENTE DE SEGURIDAD: 
+         Si el móvil bloquea el video, el usuario intentará tocar la pantalla.
+         Esta capa detecta el toque e inicia el video si estaba parado.
+      */}
+      <div 
+        onClick={() => {
+            // Si el usuario toca la pantalla, intentamos play por si estaba bloqueado
+            if(playerRef.current && playerRef.current.playVideo) {
+                playerRef.current.playVideo();
+            }
+        }}
+        style={{
+            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
+            zIndex: 100, cursor: 'pointer'
+        }}
+      ></div>
+
+    </div>
+  );
+}
