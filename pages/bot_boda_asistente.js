@@ -26,27 +26,32 @@ export default function BotBodaAsistente() {
   const textAreaRef = useRef(null);
 
   useEffect(() => {
-    // Esta función se asegura de que el blanco gane
-    const paintWhite = () => {
-        document.documentElement.style.setProperty('background-color', '#ffffff', 'important');
-        document.body.style.setProperty('background-color', '#ffffff', 'important');
+    // --- EL LAVADO A PRESIÓN ---
+    const forceCleanWhite = () => {
+        // 1. BORRAMOS CUALQUIER RASTRO DEL NEGRO DE LA INTRO
+        // Esto es lo que te faltaba: eliminar el atributo style por completo
+        document.documentElement.removeAttribute('style');
+        document.body.removeAttribute('style');
+
+        // 2. APLICAMOS EL BLANCO LIMPIO
+        document.documentElement.style.backgroundColor = "#ffffff";
+        document.body.style.backgroundColor = "#ffffff";
         document.documentElement.style.colorScheme = "light";
     };
 
-    // Ejecutamos YA
-    paintWhite();
+    // Ejecutar inmediatamente
+    forceCleanWhite();
 
-    // Insistimos un poco por si acaso
-    const interval = setInterval(paintWhite, 50);
-    
-    setTimeout(() => {
-      clearInterval(interval);
-      setIsPageLoaded(true); 
-    }, 100);
+    // Insistir un poco por si el navegador es lento reaccionando
+    const timer = setInterval(forceCleanWhite, 20);
+    setTimeout(() => clearInterval(timer), 500);
+
+    // Transición de la cortina
+    setTimeout(() => { setIsPageLoaded(true); }, 100);
 
     return () => {
-      clearInterval(interval);
-      // AQUÍ SÍ LIMPIAMOS: Si salimos del bot, dejamos el navegador limpio
+      clearInterval(timer);
+      // Limpieza al salir
       document.documentElement.style.backgroundColor = "";
       document.body.style.backgroundColor = "";
     };
@@ -88,22 +93,36 @@ export default function BotBodaAsistente() {
     <>
       <Head>
         <title>Asistente de Boda</title>
+        {/* FORZAMOS LA BARRA DEL NAVEGADOR A BLANCO */}
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="color-scheme" content="light" />
-        
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+
+        {/* ESTILOS GLOBALES CON PRIORIDAD MÁXIMA */}
         <style>{`
-            :root { color-scheme: light; }
-            html, body, #__next {
-                background-color: #ffffff !important;
-                min-height: 100%;
-                margin: 0;
-                padding: 0;
-            }
+          :root {
+            color-scheme: light;
+          }
+          html {
+            background-color: #ffffff !important;
+            height: 100%;
+          }
+          body {
+            background-color: #ffffff !important;
+            min-height: 100%;
+            margin: 0;
+            padding: 0;
+            position: relative;
+            overscroll-behavior-y: none; /* Truco final: evita el rebote negro si todo falla */
+          }
+          #__next {
+            background-color: #ffffff !important;
+            min-height: 100%;
+          }
         `}</style>
       </Head>
 
-      {/* CORTINA NEGRA */}
+      {/* CORTINA NEGRA DE TRANSICIÓN */}
       <div style={{
         position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
         backgroundColor: 'black', zIndex: 9999, opacity: isPageLoaded ? 0 : 1, 
