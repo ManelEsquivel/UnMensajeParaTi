@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import Head from "next/head";
+import Head from "next/head"; 
 
 const WELCOME_MESSAGE_HTML = `
   <strong>¡Hola a todos! 👋 Soy tu asistente para la boda de Manel y Carla.</strong><br/><br/>
