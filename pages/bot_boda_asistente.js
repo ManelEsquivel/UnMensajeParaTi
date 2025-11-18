@@ -26,32 +26,20 @@ export default function BotBodaAsistente() {
   const textAreaRef = useRef(null);
 
   useEffect(() => {
-    // --- EL LAVADO A PRESIÓN ---
-    const forceCleanWhite = () => {
-        // 1. BORRAMOS CUALQUIER RASTRO DEL NEGRO DE LA INTRO
-        // Esto es lo que te faltaba: eliminar el atributo style por completo
-        document.documentElement.removeAttribute('style');
-        document.body.removeAttribute('style');
+    // 1. LIMPIEZA Y BLOQUEO
+    // Bloqueamos el scroll del body real para que no se vea el fondo negro nunca
+    document.documentElement.style.setProperty('background-color', '#ffffff', 'important');
+    document.body.style.setProperty('background-color', '#ffffff', 'important');
+    document.body.style.overflow = "hidden"; // <--- EL TRUCO MAESTRO (Bloquea el rebote negro)
+    
+    // Forzamos modo claro
+    document.documentElement.style.colorScheme = "light";
 
-        // 2. APLICAMOS EL BLANCO LIMPIO
-        document.documentElement.style.backgroundColor = "#ffffff";
-        document.body.style.backgroundColor = "#ffffff";
-        document.documentElement.style.colorScheme = "light";
-    };
-
-    // Ejecutar inmediatamente
-    forceCleanWhite();
-
-    // Insistir un poco por si el navegador es lento reaccionando
-    const timer = setInterval(forceCleanWhite, 20);
-    setTimeout(() => clearInterval(timer), 500);
-
-    // Transición de la cortina
     setTimeout(() => { setIsPageLoaded(true); }, 100);
 
     return () => {
-      clearInterval(timer);
-      // Limpieza al salir
+      // Al salir, desbloqueamos el scroll por si acaso
+      document.body.style.overflow = "";
       document.documentElement.style.backgroundColor = "";
       document.body.style.backgroundColor = "";
     };
@@ -93,81 +81,91 @@ export default function BotBodaAsistente() {
     <>
       <Head>
         <title>Asistente de Boda</title>
-        {/* FORZAMOS LA BARRA DEL NAVEGADOR A BLANCO */}
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-
-        {/* ESTILOS GLOBALES CON PRIORIDAD MÁXIMA */}
+        <meta name="color-scheme" content="light" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+        
         <style>{`
-          :root {
-            color-scheme: light;
-          }
-          html {
+          :root { color-scheme: light; }
+          /* Bloqueamos el scroll nativo del navegador */
+          html, body {
             background-color: #ffffff !important;
             height: 100%;
-          }
-          body {
-            background-color: #ffffff !important;
-            min-height: 100%;
-            margin: 0;
-            padding: 0;
-            position: relative;
-            overscroll-behavior-y: none; /* Truco final: evita el rebote negro si todo falla */
+            overflow: hidden; /* IMPORTANTE */
+            margin: 0; padding: 0;
           }
           #__next {
+            height: 100%;
             background-color: #ffffff !important;
-            min-height: 100%;
           }
         `}</style>
       </Head>
 
-      {/* CORTINA NEGRA DE TRANSICIÓN */}
+      {/* CORTINA NEGRA */}
       <div style={{
         position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
         backgroundColor: 'black', zIndex: 9999, opacity: isPageLoaded ? 0 : 1, 
         transition: 'opacity 1.5s ease-in-out', pointerEvents: 'none' 
       }}></div>
 
-      {/* CONTENEDOR PRINCIPAL */}
+      {/* CONTENEDOR DE SCROLL "FALSO" 
+          Este div ocupa toda la pantalla y es el que tiene el scroll (overflow-y: auto).
+          Al ser blanco y ocupar el 100%, el rebote elástico se hace sobre ESTE div, no sobre el body negro.
+      */}
       <div style={{ 
-        textAlign: "center", backgroundColor: "white", 
-        minHeight: "100vh", 
-        width: "100%",
-        margin: "0", padding: "20px", boxSizing: "border-box", overflowX: "hidden"
+        position: 'fixed', // Fijo para cubrir todo
+        top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'white', 
+        overflowY: 'auto',        // Aquí es donde ocurre el scroll ahora
+        WebkitOverflowScrolling: 'touch', // Scroll suave en iOS
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: 'center'
       }}>
-        <h1>Asistente de Boda 💍</h1>
-        <div ref={chatBoxRef} style={{
-            maxWidth: "400px", height: "380px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "10px",
-            padding: "10px", backgroundColor: "#fff", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", margin: "0 auto 20px auto", 
-          }}>
-          {messages.map((msg, i) => (
-            <div key={i} style={{ textAlign: msg.role === "user" ? "right" : "left", margin: "10px 0" }}>
-              <div style={{
-                  display: "inline-block", padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc",
-                  backgroundColor: msg.role === "user" ? "#d1e7dd" : "#cce5ff", maxWidth: "80%", wordWrap: "break-word",
-                }} dangerouslySetInnerHTML={{ __html: msg.content }} />
+        
+        {/* CONTENIDO REAL (Igual que antes, pero dentro del scroll falso) */}
+        <div style={{ 
+          width: "100%", maxWidth: "400px", padding: "20px", boxSizing: "border-box",
+          display: "flex", flexDirection: "column", minHeight: "100%" // Para que ocupe altura
+        }}>
+            
+            <h1 style={{textAlign: 'center', marginTop: '0'}}>Asistente de Boda 💍</h1>
+            
+            <div ref={chatBoxRef} style={{
+                width: "100%", height: "380px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "10px",
+                padding: "10px", backgroundColor: "#fff", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", marginBottom: "20px",
+                boxSizing: "border-box"
+            }}>
+              {messages.map((msg, i) => (
+                <div key={i} style={{ textAlign: msg.role === "user" ? "right" : "left", margin: "10px 0" }}>
+                  <div style={{
+                      display: "inline-block", padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc",
+                      backgroundColor: msg.role === "user" ? "#d1e7dd" : "#cce5ff", maxWidth: "80%", wordWrap: "break-word",
+                  }} dangerouslySetInnerHTML={{ __html: msg.content }} />
+                </div>
+              ))}
+              {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
             </div>
-          ))}
-          {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
+
+            <div style={{ width: "100%", display: "flex", flexDirection: "column", paddingBottom: "20px" }}>
+              <textarea ref={textAreaRef} value={input} onChange={handleInputChange} 
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                placeholder="Escribe tu mensaje..."
+                style={{
+                  resize: "none", height: textAreaHeight, maxHeight: "100px", padding: "10px 12px", borderRadius: "10px",
+                  border: "1px solid #ccc", outline: "none", fontSize: "16px", lineHeight: "1.4", transition: "all 0.2s ease",
+                  background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.1) inset", marginBottom: "10px", width: '100%', boxSizing: 'border-box'
+                }}
+              />
+              <button onClick={sendMessage} style={{
+                  padding: "12px 20px", borderRadius: "12px", border: "1px solid #007bff", backgroundColor: "#007bff",
+                  color: "#fff", fontSize: "16px", fontWeight: "bold", cursor: "pointer", boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                  transition: "transform 0.2s ease, background-color 0.3s ease", width: '100%'
+                }}>Enviar</button>
+            </div>
         </div>
 
-        <div style={{ maxWidth: "400px", margin: "0 auto", display: "flex", flexDirection: "column", paddingBottom: "20px" }}>
-          <textarea ref={textAreaRef} value={input} onChange={handleInputChange} 
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-            placeholder="Escribe tu mensaje..."
-            style={{
-              resize: "none", height: textAreaHeight, maxHeight: "100px", padding: "10px 12px", borderRadius: "10px",
-              border: "1px solid #ccc", outline: "none", fontSize: "16px", lineHeight: "1.4", transition: "all 0.2s ease",
-              background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.1) inset", marginBottom: "10px",
-            }}
-          />
-          <button onClick={sendMessage} style={{
-              padding: "12px 20px", borderRadius: "12px", border: "1px solid #007bff", backgroundColor: "#007bff",
-              color: "#fff", fontSize: "16px", fontWeight: "bold", cursor: "pointer", boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-              transition: "transform 0.2s ease, background-color 0.3s ease",
-            }}>Enviar</button>
-        </div>
       </div>
     </>
   );
