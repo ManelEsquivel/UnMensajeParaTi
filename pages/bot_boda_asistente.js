@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 
-// 1. Mensaje de Bienvenida en HTML - ¡MÁS LARGO!
+// 1. Mensaje de Bienvenida
 const WELCOME_MESSAGE_HTML = `
   <strong>¡Hola a todos! 👋 Soy tu asistente para la boda de Manel y Carla.</strong><br/><br/>
   Estoy aquí para resolver cualquier duda que tengáis.<br/>
@@ -18,10 +18,8 @@ const WELCOME_MESSAGE_HTML = `
 `;
 
 export default function BotBodaAsistente() {
-  // Estado para la transición de entrada (Fade In)
   const [isPageLoaded, setIsPageLoaded] = useState(false);
-
-  // 2. Inicialización del estado 'messages' con el mensaje de bienvenida
+  
   const [messages, setMessages] = useState([
     { role: "assistant", content: WELCOME_MESSAGE_HTML }
   ]);
@@ -32,9 +30,7 @@ export default function BotBodaAsistente() {
   const chatBoxRef = useRef(null);
   const textAreaRef = useRef(null);
 
-  // EFECTO DE ENTRADA SUAVE
   useEffect(() => {
-    // Pequeño retardo para asegurar que el navegador pinte el negro primero
     setTimeout(() => {
       setIsPageLoaded(true);
     }, 100);
@@ -50,19 +46,13 @@ export default function BotBodaAsistente() {
     if (!input.trim()) return;
     const userMessage = { role: "user", content: input };
     
-    // 1. Añadimos el mensaje del usuario y el placeholder del bot (VACÍO)
     setMessages((prev) => [...prev, userMessage, { role: "assistant", content: "" }]);
-    
     setInput("");
     setTextAreaHeight("40px");
-    
-    // 2. INICIAMOS EL INDICADOR (Necesario para el useEffect del scroll)
     setIsTyping(true);
 
-    // Para la llamada a la API, usamos todo el historial MENOS el mensaje de bienvenida
     const history = messages.slice(1).map(msg => ({ role: msg.role, content: msg.content }));
 
-    // Llamada a la API
     const res = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
@@ -72,27 +62,20 @@ export default function BotBodaAsistente() {
     const data = await res.json();
     const fullReplyHTML = data.reply;
     
-    // 3. Simulación de escritura carácter a carácter
-    const replyForTyping = fullReplyHTML.replace(/<br\s*\/?>/gi, '\n'); // Reemplazamos <br> por saltos de línea
+    const replyForTyping = fullReplyHTML.replace(/<br\s*\/?>/gi, '\n');
     
     let currentText = "";
     
     for (let i = 0; i < replyForTyping.length; i++) {
         const char = replyForTyping[i];
-        
-        // Lógica para saltar tags HTML (como <a> o </div>) y que no se vean escritos.
         if (char === '<' && replyForTyping.substring(i, i + 10).match(/<\/?[a-z][^>]*>/i)) {
-             // Si encontramos un tag HTML, avanzamos el índice hasta después del tag y añadimos todo el tag.
              const endIndex = replyForTyping.indexOf('>', i) + 1;
              currentText += replyForTyping.substring(i, endIndex);
              i = endIndex - 1; 
         } else {
-             // Si es un carácter normal, lo escribimos con un delay.
-             await new Promise((resolve) => setTimeout(resolve, 30)); // 30ms por carácter
+             await new Promise((resolve) => setTimeout(resolve, 30)); 
              currentText += char;
         }
-
-        // Actualizamos el último mensaje (el placeholder) con el texto animado
         setMessages((prev) => {
             const updated = [...prev];
             updated[prev.length - 1] = { role: "assistant", content: currentText }; 
@@ -100,10 +83,7 @@ export default function BotBodaAsistente() {
         });
     }
 
-    // 4. DETENEMOS EL INDICADOR
     setIsTyping(false); 
-
-    // 5. REEMPLAZAMOS EL TEXTO TEMPORAL CON EL HTML COMPLETO FINAL
     setMessages((prev) => {
         const updated = [...prev];
         updated[prev.length - 1] = { role: "assistant", content: fullReplyHTML }; 
@@ -123,28 +103,32 @@ export default function BotBodaAsistente() {
     <>
       <Head>
         <title>Asistente de Boda</title>
+        {/* Forzamos que el body sea blanco por si acaso */}
+        <style>{`body { background-color: white; margin: 0; }`}</style>
       </Head>
 
-      {/* --- CORTINA DE TRANSICIÓN (NEGRO -> TRANSPARENTE) --- */}
+      {/* CORTINA DE TRANSICIÓN */}
       <div style={{
         position: 'fixed',
-        top: 0, 
-        left: 0,
-        width: '100vw',
-        height: '100vh',
+        top: 0, left: 0, width: '100vw', height: '100vh',
         backgroundColor: 'black',
-        zIndex: 9999, // Encima de todo
-        opacity: isPageLoaded ? 0 : 1, // Si cargó, invisible. Si no, negro.
-        transition: 'opacity 1.5s ease-in-out', // Misma duración que la salida del video
-        pointerEvents: 'none' // Permite hacer clic a través de ella cuando desaparece
+        zIndex: 9999,
+        opacity: isPageLoaded ? 0 : 1, 
+        transition: 'opacity 1.5s ease-in-out',
+        pointerEvents: 'none' 
       }}></div>
 
-      {/* CONTENEDOR PRINCIPAL (FONDO BLANCO) */}
+      {/* CONTENEDOR PRINCIPAL */}
       <div style={{ 
-        textAlign: "center", 
-        marginTop: "20px",
-        backgroundColor: "white", // Aseguramos el fondo blanco que pediste
-        minHeight: "100vh" // Asegura que cubra toda la altura
+        textAlign: "center",
+        backgroundColor: "white",
+        minHeight: "100vh",
+        width: "100%",
+        
+        // --- EL CAMBIO CLAVE ESTÁ AQUÍ ---
+        margin: "0",           // Quitamos márgenes externos
+        paddingTop: "20px",    // Usamos relleno interno para el espacio
+        boxSizing: "border-box" // Asegura que el padding no rompa el ancho
       }}>
         <h1>Asistente de Boda 💍</h1>
         <div
@@ -186,7 +170,7 @@ export default function BotBodaAsistente() {
           {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
         </div>
 
-        <div style={{ maxWidth: "400px", margin: "10px auto", display: "flex", flexDirection: "column" }}>
+        <div style={{ maxWidth: "400px", margin: "10px auto", display: "flex", flexDirection: "column", paddingBottom: "20px" }}>
           <textarea
             ref={textAreaRef}
             value={input}
