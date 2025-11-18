@@ -196,7 +196,7 @@ Kike Masgrau,Masgrau,PENDIENTE
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (COMIDA) ---
   const confirmedGuestsCountInPrompt = confirmedGuestsCount;
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
-  const detailUbisUrlInPrompt = weddingInfo.urlConfirmacion; // Usamos el mismo para simplificar
+  const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl; // Usamos el mismo para simplificar
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
   const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
