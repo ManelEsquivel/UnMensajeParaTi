@@ -18,6 +18,9 @@ const WELCOME_MESSAGE_HTML = `
 `;
 
 export default function BotBodaAsistente() {
+  // Estado para la transición de entrada (Fade In)
+  const [isPageLoaded, setIsPageLoaded] = useState(false);
+
   // 2. Inicialización del estado 'messages' con el mensaje de bienvenida
   const [messages, setMessages] = useState([
     { role: "assistant", content: WELCOME_MESSAGE_HTML }
@@ -28,6 +31,14 @@ export default function BotBodaAsistente() {
   const [isTyping, setIsTyping] = useState(false);
   const chatBoxRef = useRef(null);
   const textAreaRef = useRef(null);
+
+  // EFECTO DE ENTRADA SUAVE
+  useEffect(() => {
+    // Pequeño retardo para asegurar que el navegador pinte el negro primero
+    setTimeout(() => {
+      setIsPageLoaded(true);
+    }, 100);
+  }, []);
 
   useEffect(() => {
     if (chatBoxRef.current) {
@@ -113,13 +124,33 @@ export default function BotBodaAsistente() {
       <Head>
         <title>Asistente de Boda</title>
       </Head>
-      <div style={{ textAlign: "center", marginTop: "20px" }}>
+
+      {/* --- CORTINA DE TRANSICIÓN (NEGRO -> TRANSPARENTE) --- */}
+      <div style={{
+        position: 'fixed',
+        top: 0, 
+        left: 0,
+        width: '100vw',
+        height: '100vh',
+        backgroundColor: 'black',
+        zIndex: 9999, // Encima de todo
+        opacity: isPageLoaded ? 0 : 1, // Si cargó, invisible. Si no, negro.
+        transition: 'opacity 1.5s ease-in-out', // Misma duración que la salida del video
+        pointerEvents: 'none' // Permite hacer clic a través de ella cuando desaparece
+      }}></div>
+
+      {/* CONTENEDOR PRINCIPAL (FONDO BLANCO) */}
+      <div style={{ 
+        textAlign: "center", 
+        marginTop: "20px",
+        backgroundColor: "white", // Aseguramos el fondo blanco que pediste
+        minHeight: "100vh" // Asegura que cubra toda la altura
+      }}>
         <h1>Asistente de Boda 💍</h1>
         <div
           ref={chatBoxRef}
           style={{
             maxWidth: "400px",
-            // CAMBIO: Altura REDUCIDA para que todo quepa en una vista móvil
             height: "380px", 
             overflowY: "auto",
             border: "1px solid #ccc",
@@ -152,11 +183,9 @@ export default function BotBodaAsistente() {
               />
             </div>
           ))}
-          {/* El indicador "Escribiendo..." se reemplaza por el efecto visual de tipeo */}
           {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
         </div>
 
-        {/* Esta sección del input ahora se verá en pantalla sin scroll vertical */}
         <div style={{ maxWidth: "400px", margin: "10px auto", display: "flex", flexDirection: "column" }}>
           <textarea
             ref={textAreaRef}
@@ -177,7 +206,6 @@ export default function BotBodaAsistente() {
               borderRadius: "10px",
               border: "1px solid #ccc",
               outline: "none",
-              // Font-size 16px para evitar el zoom en móviles
               fontSize: "16px", 
               lineHeight: "1.4",
               transition: "all 0.2s ease",
