@@ -120,7 +120,7 @@ export default function BotBodaAsistente() {
           style={{
             maxWidth: "400px",
             // CAMBIO: Altura REDUCIDA para que todo quepa en una vista móvil
-            height: "320px", 
+            height: "380px", 
             overflowY: "auto",
             border: "1px solid #ccc",
             borderRadius: "10px",
