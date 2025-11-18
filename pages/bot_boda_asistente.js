@@ -17,7 +17,10 @@ const WELCOME_MESSAGE_HTML = `
 `;
 
 export default function BotBodaAsistente() {
-  const [showContent, setShowContent] = useState(false); // Controla la animación del contenido
+  // Estado para la transición de la Lona Negra
+  const [opacity, setOpacity] = useState(1); // Empieza opaca (Negro total)
+  const [showCurtain, setShowCurtain] = useState(true);
+  
   const [messages, setMessages] = useState([{ role: "assistant", content: WELCOME_MESSAGE_HTML }]);
   const [input, setInput] = useState("");
   const [textAreaHeight, setTextAreaHeight] = useState("40px");
@@ -26,27 +29,26 @@ export default function BotBodaAsistente() {
   const textAreaRef = useRef(null);
 
   useEffect(() => {
-    // 1. PREPARAR EL TERRENO (Técnica Anti-iPhone)
+    // 1. Limpieza de estilos de la Intro (Anti-iPhone)
     document.documentElement.removeAttribute('style');
     document.body.removeAttribute('style');
-    document.documentElement.style.setProperty('background-color', '#ffffff', 'important');
-    document.body.style.setProperty('background-color', '#ffffff', 'important');
-    document.body.style.overflow = "hidden"; 
+    
+    // 2. Forzamos base blanca
+    document.documentElement.style.backgroundColor = "#ffffff";
+    document.body.style.backgroundColor = "#ffffff";
     document.documentElement.style.colorScheme = "light";
 
-    // 2. SECUENCIA DE ANIMACIÓN PREMIUM
-    // Paso A: Esperamos 500ms con la pantalla TOTALMENTE NEGRA.
-    // Esto da tiempo a que todo cargue debajo sin que se vea.
-    const timer = setTimeout(() => {
-      setShowContent(true); // Empieza el "desvanecimiento" y la entrada del chat
+    // 3. SECUENCIA "CINE":
+    // Esperamos 500ms con la pantalla negra para dar estabilidad
+    setTimeout(() => {
+      setOpacity(0); // Empieza a desvanecerse la lona
     }, 500);
 
-    return () => {
-      clearTimeout(timer);
-      document.body.style.overflow = "";
-      document.documentElement.style.backgroundColor = "";
-      document.body.style.backgroundColor = "";
-    };
+    // 4. Quitamos la lona del DOM cuando termine la animación (1.5s + 0.5s margen)
+    setTimeout(() => {
+      setShowCurtain(false);
+    }, 2000);
+
   }, []);
 
   useEffect(() => {
@@ -85,49 +87,59 @@ export default function BotBodaAsistente() {
     <>
       <Head>
         <title>Asistente de Boda</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
         
         <style>{`
           :root { color-scheme: light; }
-          html, body, #__next {
+          html, body {
             background-color: #ffffff !important;
-            height: 100%;
-            overflow: hidden; /* Body congelado */
-            margin: 0; padding: 0;
+            margin: 0; padding: 0; height: 100%; overflow: hidden; /* Body bloqueado */
           }
         `}</style>
       </Head>
 
-      {/* --- 1. EL CONTENEDOR DEL CHAT --- 
-          Tiene un efecto CSS suave: cuando 'showContent' es true,
-          pasa de Opacidad 0 a 1, y sube un poquito (scale).
+      {/* --- 1. LA LONA NEGRA --- 
+          Cubre TODO. Es independiente del contenido.
+          Empieza visible (opacity 1) y se va (opacity 0).
+      */}
+      {showCurtain && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, width: '100%', height: '100%',
+          backgroundColor: 'black', zIndex: 99999,
+          opacity: opacity, 
+          transition: 'opacity 1.5s ease-in-out', 
+          pointerEvents: 'none'
+        }}></div>
+      )}
+
+      {/* --- 2. CONTENEDOR BLANCO SÓLIDO --- 
+          IMPORTANTE: Este div SIEMPRE es Opacity 1. Nunca se vuelve transparente.
+          Está DEBAJO de la lona negra. Cuando la lona se va, esto es lo que se ve.
       */}
       <div style={{ 
         position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
-        backgroundColor: 'white', 
-        overflowY: 'auto', 
+        backgroundColor: '#ffffff', // Blanco Sólido
+        zIndex: 1,
+        overflowY: 'auto',          // Scroll aquí dentro
         WebkitOverflowScrolling: 'touch',
         display: 'flex', flexDirection: 'column', alignItems: 'center',
-        zIndex: 1,
-        
-        // EFECTO PREMIUM EN EL CONTENIDO:
-        opacity: showContent ? 1 : 0, 
-        transform: showContent ? 'scale(1)' : 'scale(0.98)', // Ligero zoom in al aparecer
-        transition: 'opacity 1.5s ease-in-out, transform 1.5s ease-out' // Movimiento suave
+        // Pequeño efecto de entrada en el CONTENIDO, no en el fondo
+        transform: opacity < 0.5 ? 'scale(1)' : 'scale(0.98)', 
+        transition: 'transform 1.5s ease-out'
       }}>
-        
-        <div style={{ 
-          width: "100%", maxWidth: "400px", padding: "20px", boxSizing: "border-box",
-          display: "flex", flexDirection: "column", minHeight: "100%" 
-        }}>
-            <h1 style={{textAlign: 'center', marginTop: '0'}}>Asistente de Boda 💍</h1>
+
+        <div style={{ width: "100%", maxWidth: "400px", padding: "20px", boxSizing: "border-box" }}>
+            
+            <h1 style={{ textAlign: "center", marginTop: "0" }}>Asistente de Boda 💍</h1>
             
             <div ref={chatBoxRef} style={{
-                width: "100%", height: "380px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "10px",
-                padding: "10px", backgroundColor: "#fff", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", marginBottom: "20px",
-                boxSizing: "border-box"
+                height: "350px", 
+                overflowY: "auto",
+                border: "1px solid #ccc", borderRadius: "10px", padding: "10px",
+                backgroundColor: "#fff", boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
+                marginBottom: "20px"
             }}>
               {messages.map((msg, i) => (
                 <div key={i} style={{ textAlign: msg.role === "user" ? "right" : "left", margin: "10px 0" }}>
@@ -137,10 +149,10 @@ export default function BotBodaAsistente() {
                   }} dangerouslySetInnerHTML={{ __html: msg.content }} />
                 </div>
               ))}
-              {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
+              {isTyping && <p style={{ textAlign: 'left', color: '#666' }}>Escribiendo...</p>} 
             </div>
 
-            <div style={{ width: "100%", display: "flex", flexDirection: "column", paddingBottom: "20px" }}>
+            <div style={{ display: "flex", flexDirection: "column" }}>
               <textarea ref={textAreaRef} value={input} onChange={handleInputChange} 
                 onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
                 placeholder="Escribe tu mensaje..."
@@ -156,22 +168,9 @@ export default function BotBodaAsistente() {
                   transition: "transform 0.2s ease, background-color 0.3s ease", width: '100%'
                 }}>Enviar</button>
             </div>
+
         </div>
       </div>
-
-      {/* --- 2. LA LONA NEGRA (ENCIMA DE TODO) --- 
-          Está separada del contenido. Empieza visible y desaparece.
-          zIndex: 99999 asegura que tape el chat hasta que estemos listos.
-      */}
-      <div style={{
-        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
-        backgroundColor: 'black', 
-        zIndex: 99999, // Máxima prioridad
-        opacity: showContent ? 0 : 1, // Si mostramos contenido, esto se vuelve transparente
-        transition: 'opacity 1.5s ease-in-out',
-        pointerEvents: 'none' // Permite clicar el chat en cuanto empieza a desaparecer
-      }}></div>
-
     </>
   );
 }
