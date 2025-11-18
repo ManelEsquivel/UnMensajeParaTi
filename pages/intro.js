@@ -8,16 +8,16 @@ export default function IntroPage() {
   
   const [isStarted, setIsStarted] = useState(false);
   const [isFadingOut, setIsFadingOut] = useState(false);
-
-  // --- DATOS ---
+  
   const pageTitle = "Asistente de la Boda de Manel & Carla";
   const pageDescription = "Entra aquí para interactuar con nuestro asistente virtual.";
   const pageImage = "https://bodamanelcarla.vercel.app/icono.png"; 
 
   useEffect(() => {
-    // 1. FORZADO NUCLEAR DE NEGRO PARA IPHONE
-    document.body.style.backgroundColor = "#000000";
-    document.documentElement.style.backgroundColor = "#000000"; // Esto pinta el 'rebote' del scroll en Safari
+    // PINTAMOS DE NEGRO AL ENTRAR
+    // Usamos 'important' para asegurar que ganamos al modo claro si viniera de otra web
+    document.documentElement.style.setProperty('background-color', '#000000', 'important');
+    document.body.style.setProperty('background-color', '#000000', 'important');
 
     if (!window.YT) {
       const tag = document.createElement('script');
@@ -29,26 +29,16 @@ export default function IntroPage() {
     window.onYouTubeIframeAPIReady = () => {
       playerRef.current = new window.YT.Player('youtube-player', {
         videoId: 'XZ8ktV9YgCQ', 
-        playerVars: {
-          autoplay: 0,
-          controls: 0,
-          showinfo: 0,
-          rel: 0,
-          playsinline: 1,
-          modestbranding: 1,
-          loop: 0,
-          fs: 0
-        },
-        events: {
-          'onStateChange': onPlayerStateChange
-        }
+        playerVars: { autoplay: 0, controls: 0, showinfo: 0, rel: 0, playsinline: 1, modestbranding: 1, loop: 0, fs: 0 },
+        events: { 'onStateChange': onPlayerStateChange }
       });
     };
 
     return () => {
-      // AL SALIR: Dejamos el body listo para que la siguiente página pueda ponerlo blanco
-      document.body.style.backgroundColor = "";
-      document.documentElement.style.backgroundColor = "";
+      // --- CAMBIO CRÍTICO AQUÍ ---
+      // HE BORRADO LA LIMPIEZA DE COLOR.
+      // Al salir, NO reseteamos el fondo. Dejamos que la siguiente página (el bot)
+      // simplemente sobrescriba con blanco. Así evitamos el "flash" negro.
       window.onYouTubeIframeAPIReady = null;
     };
   }, []);
@@ -59,10 +49,8 @@ export default function IntroPage() {
       playerRef.current.unMute();
       playerRef.current.setVolume(100);
       playerRef.current.playVideo();
-
-      // Cronómetro para video de 9 segundos
-      setTimeout(() => { setIsFadingOut(true); }, 7000); // Empieza fundido
-      setTimeout(() => { router.push('/bot_boda_asistente'); }, 8500); // Cambia página
+      setTimeout(() => { setIsFadingOut(true); }, 7000);
+      setTimeout(() => { router.push('/bot_boda_asistente'); }, 8500);
     }
   };
 
@@ -81,41 +69,21 @@ export default function IntroPage() {
         <meta property="og:image" content={pageImage} />
         <meta property="og:image:type" content="image/png" />
         
-        {/* --- TRUCOS PARA IPHONE NEGRO --- */}
+        {/* Barra de estado negra */}
         <meta name="theme-color" content="#000000" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-
-        {/* CSS GLOBAL FORZADO */}
+        
         <style>{`
           html, body, #__next {
             background-color: #000000 !important;
-            margin: 0;
-            padding: 0;
-            height: 100%;
-            overflow: hidden; /* Evita que se vea blanco al hacer scroll elástico */
-            overscroll-behavior: none; /* Bloquea el rebote en iOS */
+            margin: 0; padding: 0; height: 100%; overflow: hidden;
           }
         `}</style>
       </Head>
 
-      <div style={{ 
-        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
-        backgroundColor: 'black', zIndex: 9999, overflow: 'hidden',
-        display: 'flex', justifyContent: 'center', alignItems: 'center'
-      }}>
-
-        <div style={{
-          width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center',
-          opacity: isFadingOut ? 0 : 1, 
-          transition: 'opacity 1.5s ease-in-out'
-        }}>
+      <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'black', zIndex: 9999, overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+        <div style={{ width: '100%', height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: isFadingOut ? 0 : 1, transition: 'opacity 1.5s ease-in-out' }}>
             {!isStarted && (
-              <div onClick={startExperience} style={{
-                  position: 'absolute', zIndex: 100, top: 0, left: 0, width: '100%', height: '100%',
-                  backgroundColor: 'black', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-                  color: 'white', cursor: 'pointer'
-                }}>
+              <div onClick={startExperience} style={{ position: 'absolute', zIndex: 100, top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'black', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' }}>
                 <h1 style={{ fontFamily: 'serif', fontSize: '2rem', marginBottom: '20px', textAlign: 'center' }}>Manel & Carla</h1>
                 <div style={{ padding: '12px 24px', border: '1px solid white', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem', textAlign: 'center' }}>Entrar al asistente</div>
                 <p style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.6 }}>(Toca para comenzar)</p>
