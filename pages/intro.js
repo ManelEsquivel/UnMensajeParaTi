@@ -1,9 +1,10 @@
 import { useRouter } from 'next/router';
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 
 export default function IntroPage() {
   const router = useRouter();
   const playerRef = useRef(null);
+  const [isStarted, setIsStarted] = useState(false); // Controla si ya hemos entrado
 
   useEffect(() => {
     if (!window.YT) {
@@ -17,18 +18,16 @@ export default function IntroPage() {
       playerRef.current = new window.YT.Player('youtube-player', {
         videoId: 'VDqdb9hQZMc',
         playerVars: {
-          autoplay: 1,      
-          mute: 1,          // Vital para móvil
+          autoplay: 0,      // No intentamos autoplay (para que no salga error)
           controls: 0,
           showinfo: 0,
           rel: 0,
-          playsinline: 1,   // Vital para iPhone (evita pantalla completa obligatoria)
+          playsinline: 1,
           modestbranding: 1,
           loop: 0,
-          fs: 0             // Desactiva botón fullscreen
+          fs: 0
         },
         events: {
-          'onReady': onPlayerReady,       // <--- NUEVO: Aquí forzamos el arranque
           'onStateChange': onPlayerStateChange
         }
       });
@@ -39,11 +38,13 @@ export default function IntroPage() {
     };
   }, []);
 
-  // NUEVA FUNCIÓN: Se ejecuta en cuanto el video carga
-  const onPlayerReady = (event) => {
-    // Doble seguridad para móviles:
-    event.target.mute();      // 1. Silenciar explícitamente
-    event.target.playVideo(); // 2. Ordenar Play explícitamente
+  const startExperience = () => {
+    if (playerRef.current && playerRef.current.playVideo) {
+      setIsStarted(true);           // Quitamos la cortina
+      playerRef.current.unMute();   // ¡ACTIVAMOS SONIDO! (Ventaja de hacerlo con clic)
+      playerRef.current.setVolume(100);
+      playerRef.current.playVideo(); // Iniciamos video
+    }
   };
 
   const onPlayerStateChange = (event) => {
@@ -58,36 +59,46 @@ export default function IntroPage() {
       backgroundColor: 'black', zIndex: 9999, overflow: 'hidden',
       display: 'flex', justifyContent: 'center', alignItems: 'center'
     }}>
-      
-      {/* IMPORTANTE: En móvil, a veces necesitamos que el usuario toque si falla el autoplay.
-         He quitado el 'pointerEvents: none' estricto del contenedor padre por si acaso,
-         pero lo mantenemos visualmente limpio.
+
+      {/* --- PANTALLA DE BIENVENIDA (CORTINA) --- 
+          Esto es lo que se ve en el móvil primero. 
+          Oculta el video hasta que tocan.
       */}
+      {!isStarted && (
+        <div 
+          onClick={startExperience}
+          style={{
+            position: 'absolute', zIndex: 100, top: 0, left: 0, width: '100%', height: '100%',
+            backgroundColor: 'black', // Fondo negro elegante
+            display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+            color: 'white', cursor: 'pointer'
+          }}
+        >
+          <h1 style={{ fontFamily: 'serif', fontSize: '2rem', marginBottom: '20px', textAlign: 'center' }}>
+            Manel & Carla
+          </h1>
+          <div style={{
+            padding: '12px 24px', border: '1px solid white', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem'
+          }}>
+            Entrar
+          </div>
+          <p style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.6 }}>
+            (Toca para comenzar)
+          </p>
+        </div>
+      )}
+
+      {/* --- VIDEO YOUTUBE (ESCONDIDO DETRÁS HASTA EL CLIC) --- */}
       <div style={{ 
         width: '100%', 
         height: '100%', 
-        transform: 'scale(1.4)', // Mantenemos el zoom para ocultar logos
-        transformOrigin: 'center center'
+        pointerEvents: 'none',
+        transform: 'scale(1.4)', // Mantenemos el Zoom para ocultar logos
+        opacity: isStarted ? 1 : 0, // Se hace visible suavemente
+        transition: 'opacity 1s'
       }}>
         <div id="youtube-player" style={{ width: '100%', height: '100%' }}></div>
       </div>
-      
-      {/* CAPA TRANSPARENTE DE SEGURIDAD: 
-         Si el móvil bloquea el video, el usuario intentará tocar la pantalla.
-         Esta capa detecta el toque e inicia el video si estaba parado.
-      */}
-      <div 
-        onClick={() => {
-            // Si el usuario toca la pantalla, intentamos play por si estaba bloqueado
-            if(playerRef.current && playerRef.current.playVideo) {
-                playerRef.current.playVideo();
-            }
-        }}
-        style={{
-            position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-            zIndex: 100, cursor: 'pointer'
-        }}
-      ></div>
 
     </div>
   );
