@@ -8,6 +8,7 @@ const WELCOME_MESSAGE_HTML = `
   Puedes preguntarme, por ejemplo:<br/>
   <ul>
     <li>&iquest;Qu&eacute; comida se va a servir?</li>
+    <li>Quiero confirmar mi asistencia</li>
     <li>&iquest;Cu&aacute;l es el plan del d&iacute;a?</li>
     <li>&iquest;D&oacute;nde es la ceremonia?</li>
   </ul>
