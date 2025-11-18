@@ -26,20 +26,30 @@ export default function BotBodaAsistente() {
   const textAreaRef = useRef(null);
 
   useEffect(() => {
-    // 1. FORZAR MODO CLARO VIA JS
-    document.documentElement.style.colorScheme = "light";
-    document.body.style.backgroundColor = "#ffffff";
-    document.documentElement.style.backgroundColor = "#ffffff";
-    document.body.style.overscrollBehaviorY = "auto"; 
+    // --- LA TÉCNICA DEL MARTILLO ---
+    // El iPhone a veces tarda en soltar el color negro de la intro.
+    // Vamos a forzar el blanco repetidamente durante la carga para asegurar que "agarra".
+    
+    const paintItWhite = () => {
+        document.documentElement.style.backgroundColor = "#ffffff"; // Chasis (HTML)
+        document.body.style.backgroundColor = "#ffffff";            // Cuerpo (BODY)
+        document.documentElement.style.colorScheme = "light";       // Modo Claro
+    };
 
+    // 1. Pintar ya
+    paintItWhite();
+
+    // 2. Insistir cada 50ms durante medio segundo (para vencer al scroll elástico)
+    const intervalId = setInterval(paintItWhite, 50);
+    setTimeout(() => clearInterval(intervalId), 1000);
+
+    // Transición de entrada
     setTimeout(() => { setIsPageLoaded(true); }, 100);
 
     return () => {
-      // Limpieza
-      document.documentElement.style.colorScheme = "";
-      document.body.style.backgroundColor = "";
+      clearInterval(intervalId);
       document.documentElement.style.backgroundColor = "";
-      document.body.style.overscrollBehaviorY = "";
+      document.body.style.backgroundColor = "";
     };
   }, []);
 
@@ -79,37 +89,37 @@ export default function BotBodaAsistente() {
     <>
       <Head>
         <title>Asistente de Boda</title>
+        
+        {/* METAETIQUETAS CRÍTICAS PARA IPHONE */}
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
         
-        {/* --- LA SOLUCIÓN DEFINITIVA --- */}
-        {/* Le decimos al iPhone: "Esta web es CLARA (Light), no uses modo oscuro aquí" */}
-        <meta name="color-scheme" content="light" />
-        <meta name="supported-color-schemes" content="light" />
-        
-        <style>{`
+        {/* IMPORTANTE: 'key' fuerza a Next.js a reemplazar este estilo en lugar de mezclarlo */}
+        <style key="global-bg-style">{`
           :root {
-            color-scheme: light; /* Desactiva modo oscuro a nivel de navegador */
+            color-scheme: light; 
           }
           html {
-            background-color: #ffffff !important;
-            height: 100dvh;
+            background-color: #ffffff !important; /* Blanco nuclear */
+            height: 100%; /* Cambiado de dvh a % para estabilidad en iOS */
           }
           body {
             background-color: #ffffff !important;
-            min-height: 100dvh;
+            min-height: 100%;
             margin: 0;
             padding: 0;
-            overscroll-behavior-y: auto; 
+            /* Importante: fixed a veces ayuda a que el rebote coja el color del html */
+            position: relative; 
           }
           #__next {
             background-color: #ffffff !important;
-            min-height: 100dvh;
+            height: 100%;
           }
         `}</style>
       </Head>
 
-      {/* CORTINA NEGRA DE TRANSICIÓN */}
+      {/* CORTINA NEGRA (Desaparece) */}
       <div style={{
         position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
         backgroundColor: 'black', zIndex: 9999, opacity: isPageLoaded ? 0 : 1, 
@@ -119,7 +129,7 @@ export default function BotBodaAsistente() {
       {/* CONTENEDOR PRINCIPAL */}
       <div style={{ 
         textAlign: "center", backgroundColor: "white", 
-        minHeight: "100dvh", 
+        minHeight: "100vh", 
         width: "100%",
         margin: "0", padding: "20px", boxSizing: "border-box", overflowX: "hidden"
       }}>
