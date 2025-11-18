@@ -31,9 +31,18 @@ export default function BotBodaAsistente() {
   const textAreaRef = useRef(null);
 
   useEffect(() => {
+    // Forzamos fondo blanco
+    document.body.style.backgroundColor = "#ffffff";
+    document.documentElement.style.backgroundColor = "#ffffff";
+
     setTimeout(() => {
       setIsPageLoaded(true);
     }, 100);
+
+    return () => {
+      document.body.style.backgroundColor = "";
+      document.documentElement.style.backgroundColor = "";
+    };
   }, []);
 
   useEffect(() => {
@@ -103,8 +112,6 @@ export default function BotBodaAsistente() {
     <>
       <Head>
         <title>Asistente de Boda</title>
-        {/* Forzamos que el body sea blanco por si acaso */}
-        <style>{`body { background-color: white; margin: 0; }`}</style>
       </Head>
 
       {/* CORTINA DE TRANSICIÓN */}
@@ -118,17 +125,18 @@ export default function BotBodaAsistente() {
         pointerEvents: 'none' 
       }}></div>
 
-      {/* CONTENEDOR PRINCIPAL */}
+      {/* CONTENEDOR PRINCIPAL (ESTILOS CORREGIDOS) */}
       <div style={{ 
         textAlign: "center",
         backgroundColor: "white",
         minHeight: "100vh",
         width: "100%",
         
-        // --- EL CAMBIO CLAVE ESTÁ AQUÍ ---
-        margin: "0",           // Quitamos márgenes externos
-        paddingTop: "20px",    // Usamos relleno interno para el espacio
-        boxSizing: "border-box" // Asegura que el padding no rompa el ancho
+        // --- CAMBIO AQUÍ: Padding general en lugar de solo Top ---
+        margin: "0",
+        padding: "20px",        // 20px de espacio en TODOS los lados (Arriba, Abajo, Izq, Der)
+        boxSizing: "border-box", // Esto asegura que el padding no ensanche la página más del 100%
+        overflowX: "hidden"
       }}>
         <h1>Asistente de Boda 💍</h1>
         <div
@@ -142,7 +150,7 @@ export default function BotBodaAsistente() {
             padding: "10px",
             backgroundColor: "#fff",
             boxShadow: "0 2px 5px rgba(0,0,0,0.1)",
-            margin: "20px auto",
+            margin: "0 auto 20px auto", // Centrado horizontalmente
           }}
         >
           {messages.map((msg, i) => (
@@ -170,7 +178,7 @@ export default function BotBodaAsistente() {
           {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
         </div>
 
-        <div style={{ maxWidth: "400px", margin: "10px auto", display: "flex", flexDirection: "column", paddingBottom: "20px" }}>
+        <div style={{ maxWidth: "400px", margin: "0 auto", display: "flex", flexDirection: "column", paddingBottom: "20px" }}>
           <textarea
             ref={textAreaRef}
             value={input}
