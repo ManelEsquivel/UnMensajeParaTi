@@ -5,7 +5,9 @@ import { useEffect, useRef, useState } from 'react';
 export default function IntroPage() {
   const router = useRouter();
   const playerRef = useRef(null);
-  const [isStarted, setIsStarted] = useState(false);
+  
+  const [isStarted, setIsStarted] = useState(false);     // Controla si hemos dado al botón
+  const [isFadingOut, setIsFadingOut] = useState(false); // <--- NUEVO: Controla el final
 
   // --- DATOS WHATSAPP ---
   const pageTitle = "Asistente de la Boda de Manel & Carla";
@@ -32,7 +34,7 @@ export default function IntroPage() {
           modestbranding: 1,
           loop: 0,
           fs: 0,
-          end: 7  // <--- ¡AQUÍ ESTÁ EL CAMBIO! (Corta al segundo 7)
+          end: 7 // Corta a los 7 segundos
         },
         events: {
           'onStateChange': onPlayerStateChange
@@ -55,9 +57,17 @@ export default function IntroPage() {
   };
 
   const onPlayerStateChange = (event) => {
-    // El evento 0 ("Ended") saltará ahora al segundo 7
+    // Cuando el video termina (o llega al segundo 7)
     if (event.data === 0) { 
-      router.push('/bot_boda_asistente');
+      
+      // 1. Activamos el fundido a negro
+      setIsFadingOut(true);
+
+      // 2. Esperamos 1.5 segundos (1500ms) para que la animación termine
+      // y entonces cambiamos de página sin que se note el corte.
+      setTimeout(() => {
+        router.push('/bot_boda_asistente');
+      }, 1500);
     }
   };
 
@@ -80,49 +90,65 @@ export default function IntroPage() {
         display: 'flex', justifyContent: 'center', alignItems: 'center'
       }}>
 
-        {!isStarted && (
-          <div 
-            onClick={startExperience}
-            style={{
-              position: 'absolute', zIndex: 100, top: 0, left: 0, width: '100%', height: '100%',
-              backgroundColor: 'black',
-              display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
-              color: 'white', cursor: 'pointer'
-            }}
-          >
-            <h1 style={{ fontFamily: 'serif', fontSize: '2rem', marginBottom: '20px', textAlign: 'center' }}>
-              Manel & Carla
-            </h1>
-            
-            <div style={{
-              padding: '12px 24px', 
-              border: '1px solid white', 
-              borderRadius: '4px', 
-              textTransform: 'uppercase', 
-              letterSpacing: '2px', 
-              fontSize: '0.9rem',
-              textAlign: 'center'
-            }}>
-              Entrar al asistente
-            </div>
-            
-            <p style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.6 }}>
-              (Toca para comenzar)
-            </p>
-          </div>
-        )}
-
-        <div style={{ 
-          width: '100%', 
-          height: '100%', 
-          pointerEvents: 'none',
-          transform: 'scale(1.4)', 
-          opacity: isStarted ? 1 : 0,
-          transition: 'opacity 1s'
+        {/* ENVOLTORIO DE CONTENIDO QUE SE DIFUMINA 
+            Todo lo que esté aquí dentro se volverá transparente al final,
+            dejando ver el fondo negro del 'div' padre.
+        */}
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex', justifyContent: 'center', alignItems: 'center',
+          // MAGIA CSS: Si isFadingOut es true, opacidad 0. Si no, opacidad 1.
+          opacity: isFadingOut ? 0 : 1, 
+          transition: 'opacity 1.5s ease-in-out' // Dura 1.5 segundos
         }}>
-          <div id="youtube-player" style={{ width: '100%', height: '100%' }}></div>
-        </div>
 
+            {/* PANTALLA DE BIENVENIDA */}
+            {!isStarted && (
+              <div 
+                onClick={startExperience}
+                style={{
+                  position: 'absolute', zIndex: 100, top: 0, left: 0, width: '100%', height: '100%',
+                  backgroundColor: 'black',
+                  display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center',
+                  color: 'white', cursor: 'pointer'
+                }}
+              >
+                <h1 style={{ fontFamily: 'serif', fontSize: '2rem', marginBottom: '20px', textAlign: 'center' }}>
+                  Manel & Carla
+                </h1>
+                
+                <div style={{
+                  padding: '12px 24px', 
+                  border: '1px solid white', 
+                  borderRadius: '4px', 
+                  textTransform: 'uppercase', 
+                  letterSpacing: '2px', 
+                  fontSize: '0.9rem',
+                  textAlign: 'center'
+                }}>
+                  Entrar al asistente
+                </div>
+                
+                <p style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.6 }}>
+                  (Toca para comenzar)
+                </p>
+              </div>
+            )}
+
+            {/* VIDEO */}
+            <div style={{ 
+              width: '100%', 
+              height: '100%', 
+              pointerEvents: 'none',
+              transform: 'scale(1.4)', 
+              opacity: isStarted ? 1 : 0,
+              transition: 'opacity 1s'
+            }}>
+              <div id="youtube-player" style={{ width: '100%', height: '100%' }}></div>
+            </div>
+
+        </div>
       </div>
     </>
   );
