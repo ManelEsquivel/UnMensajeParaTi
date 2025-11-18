@@ -1,5 +1,5 @@
 import Head from 'next/head';
-import { useRouter } from 'next/router'; // O 'next/navigation'
+import { useRouter } from 'next/router';
 import { useEffect, useRef, useState } from 'react';
 
 export default function IntroPage() {
@@ -7,12 +7,9 @@ export default function IntroPage() {
   const playerRef = useRef(null);
   const [isStarted, setIsStarted] = useState(false);
 
-  // --- CONFIGURACIÓN PARA WHATSAPP ---
+  // --- DATOS WHATSAPP ---
   const pageTitle = "Asistente de la Boda de Manel & Carla";
   const pageDescription = "Entra aquí para interactuar con nuestro asistente virtual.";
-  
-  // IMPORTANTE: WhatsApp necesita la URL completa (con https://...)
-  // Asegúrate de que 'icono.png' está en la carpeta 'public'
   const pageImage = "https://bodamanelcarla.vercel.app/icono.png"; 
 
   useEffect(() => {
@@ -34,7 +31,8 @@ export default function IntroPage() {
           playsinline: 1,
           modestbranding: 1,
           loop: 0,
-          fs: 0
+          fs: 0,
+          end: 7  // <--- ¡AQUÍ ESTÁ EL CAMBIO! (Corta al segundo 7)
         },
         events: {
           'onStateChange': onPlayerStateChange
@@ -57,6 +55,7 @@ export default function IntroPage() {
   };
 
   const onPlayerStateChange = (event) => {
+    // El evento 0 ("Ended") saltará ahora al segundo 7
     if (event.data === 0) { 
       router.push('/bot_boda_asistente');
     }
@@ -65,10 +64,7 @@ export default function IntroPage() {
   return (
     <>
       <Head>
-        {/* Título que se ve en la pestaña del navegador */}
         <title>{pageTitle}</title>
-        
-        {/* --- ETIQUETAS PARA WHATSAPP (Open Graph) --- */}
         <meta property="og:title" content={pageTitle} />
         <meta property="og:description" content={pageDescription} />
         <meta property="og:image" content={pageImage} />
@@ -84,7 +80,6 @@ export default function IntroPage() {
         display: 'flex', justifyContent: 'center', alignItems: 'center'
       }}>
 
-        {/* PANTALLA DE BIENVENIDA */}
         {!isStarted && (
           <div 
             onClick={startExperience}
@@ -117,7 +112,6 @@ export default function IntroPage() {
           </div>
         )}
 
-        {/* VIDEO */}
         <div style={{ 
           width: '100%', 
           height: '100%', 
