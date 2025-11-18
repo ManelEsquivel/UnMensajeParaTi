@@ -1,18 +1,24 @@
 import { useState, useRef, useEffect } from "react";
 import Head from "next/head";
 
-// 1. Mensaje de Bienvenida en HTML
+// 1. Mensaje de Bienvenida en HTML - ¡MÁS LARGO!
 const WELCOME_MESSAGE_HTML = `
-  <strong>¡Hola! 👋 Soy tu asistente para la boda de Manel y Carla</strong><br/><br/>
-  Estoy aquí para ayudarte con todas las dudas.<br/><br/>
-  Puedes preguntarme, por ejemplo:<br/>
+  <strong>¡Hola a todos! 👋 Soy BodaBot, el asistente virtual para la boda de Manel y Carla.</strong><br/><br/>
+  Estamos a solo unos días de un día inolvidable, y estoy aquí para resolver cualquier inquietud que tengáis.<br/>
+  Queremos que os sintáis cómodos y tengáis toda la información necesaria para disfrutar al máximo.<br/><br/>
+  
+  <strong>Información clave:</strong>
   <ul>
-    <li>&iquest;Qu&eacute; comida se va a servir?</li>
-    <li>Quiero confirmar mi asistencia</li>
-    <li>&iquest;Cu&aacute;l es el plan del d&iacute;a?</li>
-    <li>&iquest;D&oacute;nde es la ceremonia?</li>
+    <li>&iquest;Qu&eacute; comida se va a servir? (Men&uacute;, opciones vegetarianas/alergias)</li>
+    <li>Quiero confirmar mi asistencia (RSVP)</li>
+    <li>&iquest;Cu&aacute;l es el plan del d&iacute;a? (Horarios de ceremonia, aperitivo, cena y fiesta)</li>
+    <li>&iquest;D&oacute;nde es la ceremonia y la celebraci&oacute;n? (&iquest;C&oacute;mo llegar?)</li>
+    <li>&iquest;Hay alg&uacute;n c&oacute;digo de vestimenta?</li>
+    <li>&iquest;Hay parking disponible?</li>
+    <li>&iquest;Se pueden hacer regalos?</li>
   </ul>
-  &iexcl;Escribe tu pregunta abajo!
+  <br/>
+  <strong>¡Escribe tu pregunta abajo!</strong> Te responderé al instante. ¡Gracias por compartir este día con nosotros!
 `;
 
 export default function BotBodaAsistente() {
@@ -117,8 +123,8 @@ export default function BotBodaAsistente() {
           ref={chatBoxRef}
           style={{
             maxWidth: "400px",
-            // Altura ligeramente reducida
-            height: "280px", 
+            // Altura AUMENTADA para empujar el input hacia abajo
+            height: "500px", 
             overflowY: "auto",
             border: "1px solid #ccc",
             borderRadius: "10px",
@@ -154,6 +160,7 @@ export default function BotBodaAsistente() {
           {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
         </div>
 
+        {/* Esta sección del input se ha movido hacia abajo debido al aumento de altura del chatBox */}
         <div style={{ maxWidth: "400px", margin: "10px auto", display: "flex", flexDirection: "column" }}>
           <textarea
             ref={textAreaRef}
