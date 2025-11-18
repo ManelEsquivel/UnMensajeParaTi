@@ -31,6 +31,9 @@ export default function BotBodaAsistente() {
     document.documentElement.style.setProperty('background-color', '#ffffff', 'important');
     document.body.style.setProperty('background-color', '#ffffff', 'important');
     document.body.style.overflow = "hidden"; // <--- EL TRUCO MAESTRO (Bloquea el rebote negro)
+    document.documentElement.style.height = '100%';
+    document.body.style.height = '100%';
+
     
     // Forzamos modo claro
     document.documentElement.style.colorScheme = "light";
@@ -87,6 +90,9 @@ export default function BotBodaAsistente() {
         <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         
         <style>{`
+html, body, #__next { background-color: #ffffff !important; height: 100%; margin: 0; padding: 0; }
+.scroll-container { background-color: #ffffff; min-height: 100vh; }
+
           :root { color-scheme: light; }
           /* Bloqueamos el scroll nativo del navegador */
           html, body {
