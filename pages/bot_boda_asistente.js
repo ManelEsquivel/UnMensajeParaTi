@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import Head from "next/head"; 
+import Head from "next/head";
 
 const WELCOME_MESSAGE_HTML = `
   <strong>¡Hola a todos! 👋 Soy tu asistente para la boda de Manel y Carla.</strong><br/><br/>
@@ -17,9 +17,7 @@ const WELCOME_MESSAGE_HTML = `
 `;
 
 export default function BotBodaAsistente() {
-  const [opacity, setOpacity] = useState(1); // 1 = Negro total, 0 = Invisible
-  const [hideCurtain, setHideCurtain] = useState(false); // Para eliminar el div negro del HTML al acabar
-  
+  const [showContent, setShowContent] = useState(false); // Controla la animación del contenido
   const [messages, setMessages] = useState([{ role: "assistant", content: WELCOME_MESSAGE_HTML }]);
   const [input, setInput] = useState("");
   const [textAreaHeight, setTextAreaHeight] = useState("40px");
@@ -28,25 +26,27 @@ export default function BotBodaAsistente() {
   const textAreaRef = useRef(null);
 
   useEffect(() => {
-    // 1. LIMPIEZA RADICAL: Quitamos cualquier estilo raro que venga de la Intro
+    // 1. PREPARAR EL TERRENO (Técnica Anti-iPhone)
     document.documentElement.removeAttribute('style');
     document.body.removeAttribute('style');
-    
-    // 2. BASE BLANCA: Aseguramos que el 'suelo' sea blanco para el scroll del iPhone
-    document.documentElement.style.backgroundColor = "#ffffff";
-    document.body.style.backgroundColor = "#ffffff";
+    document.documentElement.style.setProperty('background-color', '#ffffff', 'important');
+    document.body.style.setProperty('background-color', '#ffffff', 'important');
+    document.body.style.overflow = "hidden"; 
+    document.documentElement.style.colorScheme = "light";
 
-    // 3. INICIAR EL DIFUMINADO (Fade Out de la lona negra)
-    // Esperamos un poquito (100ms) para que el ojo no note el cambio de página
-    setTimeout(() => {
-      setOpacity(0); // Empieza a volverse transparente
-    }, 100);
+    // 2. SECUENCIA DE ANIMACIÓN PREMIUM
+    // Paso A: Esperamos 500ms con la pantalla TOTALMENTE NEGRA.
+    // Esto da tiempo a que todo cargue debajo sin que se vea.
+    const timer = setTimeout(() => {
+      setShowContent(true); // Empieza el "desvanecimiento" y la entrada del chat
+    }, 500);
 
-    // 4. ELIMINAR LA LONA: A los 1.5s (cuando ya es transparente), la borramos para poder hacer clic debajo
-    setTimeout(() => {
-      setHideCurtain(true);
-    }, 1600);
-
+    return () => {
+      clearTimeout(timer);
+      document.body.style.overflow = "";
+      document.documentElement.style.backgroundColor = "";
+      document.body.style.backgroundColor = "";
+    };
   }, []);
 
   useEffect(() => {
@@ -85,89 +85,93 @@ export default function BotBodaAsistente() {
     <>
       <Head>
         <title>Asistente de Boda</title>
-        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
         <meta name="theme-color" content="#ffffff" />
         <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-
-        {/* ESTILOS GLOBALES: BLANCO PURO */}
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+        
         <style>{`
           :root { color-scheme: light; }
-          html, body {
-            background-color: #ffffff !important; /* El suelo siempre es blanco */
-            margin: 0;
-            padding: 0;
-            height: 100%;
-          }
-          #__next {
+          html, body, #__next {
             background-color: #ffffff !important;
             height: 100%;
+            overflow: hidden; /* Body congelado */
+            margin: 0; padding: 0;
           }
         `}</style>
       </Head>
 
-      {/* --- LA LONA NEGRA (Tu idea) --- 
-          Está fija encima de todo. Al principio es negra (opacity 1).
-          Luego baja a 0 y deja ver el fondo blanco que hay debajo.
+      {/* --- 1. EL CONTENEDOR DEL CHAT --- 
+          Tiene un efecto CSS suave: cuando 'showContent' es true,
+          pasa de Opacidad 0 a 1, y sube un poquito (scale).
       */}
-      {!hideCurtain && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, width: '100%', height: '100%',
-          backgroundColor: 'black',
-          zIndex: 99999, // Encima de todo lo humano y divino
-          opacity: opacity,
-          transition: 'opacity 1.5s ease-in-out',
-          pointerEvents: 'none' // Importante: para que no bloquee clics mientras desaparece
-        }}></div>
-      )}
-
-      {/* CONTENEDOR PRINCIPAL (FONDO BLANCO) */}
       <div style={{ 
-        textAlign: "center", backgroundColor: "white", 
-        minHeight: "100vh", 
-        width: "100%",
-        margin: "0", padding: "20px", boxSizing: "border-box",
-        overflowX: "hidden"
+        position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+        backgroundColor: 'white', 
+        overflowY: 'auto', 
+        WebkitOverflowScrolling: 'touch',
+        display: 'flex', flexDirection: 'column', alignItems: 'center',
+        zIndex: 1,
+        
+        // EFECTO PREMIUM EN EL CONTENIDO:
+        opacity: showContent ? 1 : 0, 
+        transform: showContent ? 'scale(1)' : 'scale(0.98)', // Ligero zoom in al aparecer
+        transition: 'opacity 1.5s ease-in-out, transform 1.5s ease-out' // Movimiento suave
       }}>
         
-        {/* TÍTULO */}
-        <h1 style={{marginTop: '20px'}}>Asistente de Boda 💍</h1>
-        
-        {/* CAJA DE CHAT */}
-        <div ref={chatBoxRef} style={{
-            maxWidth: "400px", height: "380px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "10px",
-            padding: "10px", backgroundColor: "#fff", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", margin: "20px auto", 
-          }}>
-          {messages.map((msg, i) => (
-            <div key={i} style={{ textAlign: msg.role === "user" ? "right" : "left", margin: "10px 0" }}>
-              <div style={{
-                  display: "inline-block", padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc",
-                  backgroundColor: msg.role === "user" ? "#d1e7dd" : "#cce5ff", maxWidth: "80%", wordWrap: "break-word",
-                }} dangerouslySetInnerHTML={{ __html: msg.content }} />
+        <div style={{ 
+          width: "100%", maxWidth: "400px", padding: "20px", boxSizing: "border-box",
+          display: "flex", flexDirection: "column", minHeight: "100%" 
+        }}>
+            <h1 style={{textAlign: 'center', marginTop: '0'}}>Asistente de Boda 💍</h1>
+            
+            <div ref={chatBoxRef} style={{
+                width: "100%", height: "380px", overflowY: "auto", border: "1px solid #ccc", borderRadius: "10px",
+                padding: "10px", backgroundColor: "#fff", boxShadow: "0 2px 5px rgba(0,0,0,0.1)", marginBottom: "20px",
+                boxSizing: "border-box"
+            }}>
+              {messages.map((msg, i) => (
+                <div key={i} style={{ textAlign: msg.role === "user" ? "right" : "left", margin: "10px 0" }}>
+                  <div style={{
+                      display: "inline-block", padding: "8px 12px", borderRadius: "8px", border: "1px solid #ccc",
+                      backgroundColor: msg.role === "user" ? "#d1e7dd" : "#cce5ff", maxWidth: "80%", wordWrap: "break-word",
+                  }} dangerouslySetInnerHTML={{ __html: msg.content }} />
+                </div>
+              ))}
+              {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
             </div>
-          ))}
-          {isTyping && <p style={{ textAlign: 'left' }}>...</p>} 
-        </div>
 
-        {/* INPUT Y BOTÓN */}
-        <div style={{ maxWidth: "400px", margin: "0 auto", display: "flex", flexDirection: "column", paddingBottom: "20px" }}>
-          <textarea ref={textAreaRef} value={input} onChange={handleInputChange} 
-            onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
-            placeholder="Escribe tu mensaje..."
-            style={{
-              resize: "none", height: textAreaHeight, maxHeight: "100px", padding: "10px 12px", borderRadius: "10px",
-              border: "1px solid #ccc", outline: "none", fontSize: "16px", lineHeight: "1.4", transition: "all 0.2s ease",
-              background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.1) inset", marginBottom: "10px",
-            }}
-          />
-          <button onClick={sendMessage} style={{
-              padding: "12px 20px", borderRadius: "12px", border: "1px solid #007bff", backgroundColor: "#007bff",
-              color: "#fff", fontSize: "16px", fontWeight: "bold", cursor: "pointer", boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
-              transition: "transform 0.2s ease, background-color 0.3s ease",
-            }}>Enviar</button>
+            <div style={{ width: "100%", display: "flex", flexDirection: "column", paddingBottom: "20px" }}>
+              <textarea ref={textAreaRef} value={input} onChange={handleInputChange} 
+                onKeyDown={(e) => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); sendMessage(); } }}
+                placeholder="Escribe tu mensaje..."
+                style={{
+                  resize: "none", height: textAreaHeight, maxHeight: "100px", padding: "10px 12px", borderRadius: "10px",
+                  border: "1px solid #ccc", outline: "none", fontSize: "16px", lineHeight: "1.4", transition: "all 0.2s ease",
+                  background: "#fff", boxShadow: "0 1px 3px rgba(0,0,0,0.1) inset", marginBottom: "10px", width: '100%', boxSizing: 'border-box'
+                }}
+              />
+              <button onClick={sendMessage} style={{
+                  padding: "12px 20px", borderRadius: "12px", border: "1px solid #007bff", backgroundColor: "#007bff",
+                  color: "#fff", fontSize: "16px", fontWeight: "bold", cursor: "pointer", boxShadow: "0 2px 5px rgba(0,0,0,0.2)",
+                  transition: "transform 0.2s ease, background-color 0.3s ease", width: '100%'
+                }}>Enviar</button>
+            </div>
         </div>
-
       </div>
+
+      {/* --- 2. LA LONA NEGRA (ENCIMA DE TODO) --- 
+          Está separada del contenido. Empieza visible y desaparece.
+          zIndex: 99999 asegura que tape el chat hasta que estemos listos.
+      */}
+      <div style={{
+        position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh',
+        backgroundColor: 'black', 
+        zIndex: 99999, // Máxima prioridad
+        opacity: showContent ? 0 : 1, // Si mostramos contenido, esto se vuelve transparente
+        transition: 'opacity 1.5s ease-in-out',
+        pointerEvents: 'none' // Permite clicar el chat en cuanto empieza a desaparecer
+      }}></div>
+
     </>
   );
 }
