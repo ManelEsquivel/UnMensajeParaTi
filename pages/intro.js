@@ -1,55 +1,50 @@
-import { useRouter } from 'next/router'; // O 'next/navigation' si usas app directory
-import { useState, useEffect, useRef } from 'react';
+import { useRouter } from 'next/router'; // O 'next/navigation' si usas App Router
+import { useEffect, useRef } from 'react';
 
 export default function IntroPage() {
   const router = useRouter();
   const videoRef = useRef(null);
-  
-  const handleVideoEnd = () => {
-    // Cuando acaba, vamos a la siguiente página
-    router.push('/bot_boda_asistente');
-  };
 
   useEffect(() => {
-    // Intentamos forzar el play cuando la página carga
-    if (videoRef.current) {
-      const playPromise = videoRef.current.play();
+    const videoElement = videoRef.current;
+
+    if (videoElement) {
+      // 1. Forzamos el silencio por código (Esto arregla el bug de React)
+      videoElement.muted = true; 
       
-      if (playPromise !== undefined) {
-        playPromise.catch(error => {
-          console.log("Autoplay bloqueado por el navegador:", error);
-          // Si entra aquí, es que el navegador requiere clic del usuario
-        });
-      }
+      // 2. Forzamos el play
+      videoElement.play().catch(error => {
+        console.log("Autoplay falló:", error);
+      });
     }
   }, []);
 
+  const handleVideoEnd = () => {
+    router.push('/bot_boda_asistente');
+  };
+
   return (
-    <div style={{ height: '100vh', width: '100vw', backgroundColor: 'black', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-      
+    <div style={{ 
+      height: '100vh', 
+      width: '100vw', 
+      backgroundColor: 'black', 
+      display: 'flex', 
+      justifyContent: 'center', 
+      alignItems: 'center',
+      overflow: 'hidden'
+    }}>
       <video
         ref={videoRef}
-        width="100%"
-        height="100%"
-        
-        // 1. ATRIBUTOS CRÍTICOS
+        // Usamos estos atributos como respaldo
+        playsInline
+        muted
         autoPlay
-        muted        // OBLIGATORIO
-        playsInline  // OBLIGATORIO PARA MOVIL
-        preload="auto" // Ayuda a cargar rápido
-        
-        // 2. DEJA ESTO ACTIVADO TEMPORALMENTE
-        controls={true} // Esto mostrará la barra de play/pausa.
-        
         onEnded={handleVideoEnd}
-        style={{ objectFit: 'cover' }}
+        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
       >
-        {/* 3. LA RUTA EXACTA (Fíjate en la barra al inicio) */}
+        {/* Usamos la URL que ME HAS CONFIRMADO que funciona */}
         <source src="/wedding-intro.mp4" type="video/mp4" />
-        
-        <p style={{color: 'white'}}>Tu navegador no soporta video o la ruta está mal.</p>
       </video>
-
     </div>
   );
 }
