@@ -50,8 +50,8 @@ export default function Home() {
           margin: 0;
           padding: 0;
           font-family: "Georgia", serif;
-          /* --- MODIFICACIÓN CLAVE: Nueva imagen de fondo con nombre actualizado --- */
-          background: url("/manel-carla-propuesta.jpg") /* RUTA DE TU IMAGEN */
+          /* --- CORRECCIÓN FINAL: Usando la extensión exacta .JPG --- */
+          background: url("/manel-carla-propuesta.JPG") /* RUTA CORREGIDA CON .JPG */
             no-repeat center center fixed;
           background-size: cover;
           color: #3e2f1c;
