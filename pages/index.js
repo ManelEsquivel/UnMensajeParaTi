@@ -19,7 +19,7 @@ export default function Home() {
         // Redirección a la URL
         window.location.href = "https://manelesquivel.github.io/UnMensajeParaTi/SavetheDate.html";
       }, 2000);
-    }, 7000); // Mantenemos 11 segundos para el inicio del FADE OUT (el punto final)
+    }, 7000); // Se mantiene el tiempo actual de 7 segundos
 
     return () => clearTimeout(timer);
   }, []);
@@ -31,6 +31,14 @@ export default function Home() {
         <meta name="description" content="Un mensaje especial para ti — Manel & Carla" />
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta charSet="UTF-8" />
+        
+        {/* --- NUEVAS ETIQUETAS OPEN GRAPH (PARA WHATSAPP/REDES SOCIALES) --- */}
+        <meta property="og:title" content="Tenemos un mensaje muy importante para ti" />
+        <meta property="og:description" content="Hemos pensado en ti para que guardes una fecha muy especial." />
+        <meta property="og:image" content="/boda_icon.png" /> {/* RUTA DE TU ICONO */}
+        <meta property="og:type" content="website" />
+        {/* ----------------------------------------------------------------- */}
+        
       </Head>
 
       <main>
