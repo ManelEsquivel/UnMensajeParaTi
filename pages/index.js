@@ -19,7 +19,7 @@ export default function Home() {
         // Redirección a la URL
         window.location.href = "https://manelesquivel.github.io/UnMensajeParaTi/SavetheDate.html";
       }, 2000);
-    }, 8000);
+    }, 9000); // <--- TIEMPO AMPLIADO a 9 segundos (9000ms)
 
     return () => clearTimeout(timer);
   }, []);
@@ -34,8 +34,8 @@ export default function Home() {
       </Head>
 
       <main>
-        <div className="overlay">
-          <div className="message-box">
+        <div class="overlay">
+          <div class="message-box">
             <h1>Tenemos algo muy importante que contarte</h1>
             <p>
               Hemos pensado en ti para que guardes una fecha muy especial, porque te
