@@ -234,14 +234,26 @@ Kike Masgrau,Masgrau,PENDIENTE
     `;
   } else {
     // CASO: NO ESTÁ EN LA LISTA
-    // Solo forzamos el rechazo si el usuario está intentando confirmar o presentarse
-    if (normalizedMessage.includes("soy") || normalizedMessage.includes("me llamo") || normalizedMessage.includes("confirmar") || normalizedMessage.includes("lista")) {
+    // Detectamos si el usuario está intentando decir un nombre aunque no use palabras clave.
+    // Si el mensaje es corto (menos de 5 palabras) o contiene palabras de identificación, asumimos que es un intento de nombre.
+    const messageWordCount = normalizedMessage.split(' ').length;
+    const isLikelyNameAttempt = messageWordCount <= 5 || 
+                                normalizedMessage.includes("soy") || 
+                                normalizedMessage.includes("me llamo") || 
+                                normalizedMessage.includes("confirmar") || 
+                                normalizedMessage.includes("lista");
+
+    if (isLikelyNameAttempt) {
         aiForcedInstruction = `
         ## 🎯 RESULTADO DE VERIFICACIÓN DE SEGURIDAD (JAVASCRIPT)
-        El sistema de código NO ha encontrado el nombre proporcionado en la lista oficial.
-        INSTRUCCIÓN OBLIGATORIA:
-        1. Si el usuario dio un nombre completo, dile amablemente que **NO** encuentras ese nombre en la lista y que contacte con Manel o Carla.
-        2. NO proporciones el enlace de confirmación.
+        El código JavaScript ha analizado el mensaje y **NO ha encontrado ninguna coincidencia** en la lista de invitados.
+        
+        INSTRUCCIÓN OBLIGATORIA DE RECHAZO:
+        1. **SI (y solo si)** el mensaje del usuario parece ser un nombre (ej: "Juan Perez", "Soy Juan") o una petición de confirmación, DEBES responder:
+           "Lo siento mucho, pero no encuentro ese nombre en la lista de invitados. Si crees que es un error, por favor contacta con Manel o Carla."
+        2. **NO** le saludes como si lo conocieras.
+        3. **NO** le des el enlace de confirmación.
+        4. Si el mensaje del usuario era una pregunta general (ej: "Donde es la boda"), IGNORA esta instrucción de rechazo y responde a la pregunta.
         `;
     }
   }
