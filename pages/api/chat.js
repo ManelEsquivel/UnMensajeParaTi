@@ -184,12 +184,68 @@ Kike Masgrau,Masgrau,PENDIENTE
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
   
-  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (LÓGICA ELIMINADA PARA OPTIMIZACIÓN) ---
-  const aiForcedInstruction = `
-      ## 🎯 INSTRUCCIÓN DE PRIORIDAD ABSOLUTA (¡Generada por JS!)
-      ESTA SECCIÓN ESTÁ INACTIVA. LA VERIFICACIÓN DE NOMBRES ES GESTIONADA POR LAS REGLAS DE LA IA.
-  `;
-  // --- FIN DE ELIMINACIÓN DE LÓGICA PESADA ---
+  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (LÓGICA RESTAURADA Y CORREGIDA) ---
+  // 1. Procesamos la lista CSV a un array de objetos para buscar mejor
+  const guestsRows = guestList.split('\n')
+    .slice(1) // Quitamos la cabecera
+    .filter(line => line.trim() !== ''); // Quitamos líneas vacías
+
+  const validGuests = guestsRows.map(row => {
+    const parts = row.split(',');
+    const nombre = parts[0] ? parts[0].trim() : '';
+    const apellido = parts[1] ? parts[1].trim() : '';
+    
+    if (!nombre) return null;
+
+    // Creamos versiones normalizadas para comparar
+    return {
+      original: `${nombre} ${apellido}`,
+      normFull: normalize(nombre + ' ' + apellido), // Nombre + Apellido
+      normName: normalize(nombre) // Solo nombre
+    };
+  }).filter(Boolean);
+
+  // 2. Buscamos coincidencias en el mensaje del usuario
+  // Prioridad: Coincidencia exacta de Nombre y Apellido
+  const foundExact = validGuests.find(g => normalizedMessage.includes(g.normFull));
+  // Prioridad secundaria: Solo nombre (para pedir apellido)
+  const foundNameOnly = !foundExact ? validGuests.find(g => normalizedMessage.includes(g.normName)) : null;
+
+  let aiForcedInstruction = "";
+
+  if (foundExact) {
+    // CASO: USUARIO ENCONTRADO EXACTAMENTE
+    aiForcedInstruction = `
+      ## 🎯 RESULTADO DE VERIFICACIÓN DE SEGURIDAD (JAVASCRIPT)
+      El sistema ha verificado por código que el usuario es: **${foundExact.original}**.
+      ESTA PERSONA ESTÁ EN LA LISTA DE INVITADOS OFICIAL.
+      
+      INSTRUCCIÓN OBLIGATORIA:
+      1. Informa al usuario que **SÍ** está en la lista.
+      2. Proporciona INMEDIATAMENTE este enlace para confirmar: [Confirmar Asistencia](${weddingInfo.urlConfirmacion})
+      3. Si existen reglas de "Prioridad Especial" (bromas personalizadas) para este nombre, úsalas, pero SIEMPRE incluyendo el enlace.
+    `;
+  } else if (foundNameOnly) {
+    // CASO: SOLO NOMBRE (AMBIGUO)
+    aiForcedInstruction = `
+      ## 🎯 RESULTADO DE VERIFICACIÓN DE SEGURIDAD (JAVASCRIPT)
+      El sistema detecta el nombre **"${foundNameOnly.original.split(' ')[0]}"** pero no el apellido completo.
+      INSTRUCCIÓN: Pregunta amablemente por el APELLIDO para poder confirmar si es la persona correcta.
+    `;
+  } else {
+    // CASO: NO ESTÁ EN LA LISTA
+    // Solo forzamos el rechazo si el usuario está intentando confirmar o presentarse
+    if (normalizedMessage.includes("soy") || normalizedMessage.includes("me llamo") || normalizedMessage.includes("confirmar") || normalizedMessage.includes("lista")) {
+        aiForcedInstruction = `
+        ## 🎯 RESULTADO DE VERIFICACIÓN DE SEGURIDAD (JAVASCRIPT)
+        El sistema de código NO ha encontrado el nombre proporcionado en la lista oficial.
+        INSTRUCCIÓN OBLIGATORIA:
+        1. Si el usuario dio un nombre completo, dile amablemente que **NO** encuentras ese nombre en la lista y que contacte con Manel o Carla.
+        2. NO proporciones el enlace de confirmación.
+        `;
+    }
+  }
+  // --- FIN DE PROCESAMIENTO DE NOMBRES ---
 
 
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (COMIDA) ---
