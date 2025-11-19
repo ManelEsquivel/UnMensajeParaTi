@@ -19,7 +19,7 @@ export default function Home() {
         // Redirección a la URL
         window.location.href = "https://manelesquivel.github.io/UnMensajeParaTi/SavetheDate.html";
       }, 2000);
-    }, 11000); // Mantenemos 11 segundos para el inicio del FADE OUT (el punto final)
+    }, 7000); // Mantenemos 11 segundos para el inicio del FADE OUT (el punto final)
 
     return () => clearTimeout(timer);
   }, []);
