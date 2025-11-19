@@ -202,8 +202,6 @@ Kike Masgrau,Masgrau,PENDIENTE
 
     // LÓGICA DE CONCATENACIÓN INTELIGENTE:
     // Si el apellido existe Y NO está ya contenido dentro del nombre, lo sumamos.
-    // Si el nombre es "Marta Oliver" y el apellido "Oliver", el resultado será "marta oliver".
-    // Si el nombre es "Manel" y el apellido "Esquivel", el resultado será "manel esquivel".
     let normFull = "";
     if (normApellido && !normNombre.includes(normApellido)) {
         normFull = `${normNombre} ${normApellido}`;
@@ -498,7 +496,7 @@ ${guestList}
 ## 🍽️ Aperitivo y Opciones Especiales
 - El banquete será **en el mismo recinto, justo después del aperitivo**.
 
-- **INSTRUCCIÓN CLAVE (MENU COMPLETO - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todo"** O **"completo"** O **"ambos"** O **"listado"**, DEBES responder ÚNICAMENTE y **DE FORMA EXHAUSTIVA, SIN CORTAR NI RESUMIR**, con el contenido de: ${menuCompletoResponse}.
+- **INSTRUCCIÓN CLAVE (MENU COMPLETO - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todo"**, **"completo"**, **"ambos"**, **"listado"** O la frase **"menu completo"** (aunque aparezca la palabra "banquete" o "comida"), DEBES responder ÚNICAMENTE y **DE FORMA EXHAUSTIVA, SIN CORTAR NI RESUMIR**, con el contenido de: ${menuCompletoResponse}.
 
 - **INSTRUCCIÓN CLAVE (APERTIVO COMPLETO - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"aperitivo"** O **"lista del aperitivo"** (y no "todo" o "completo"), DEBES responder ÚNICAMENTE con el contenido de ${aperitivoCompletoResponse}.
 
