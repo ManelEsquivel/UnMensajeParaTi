@@ -1,11 +1,9 @@
-// components/SavetheDate.js (o pages/SavetheDate.js si es una página)
+// components/SavetheDate.js
 import Head from 'next/head';
 
 export default function SavetheDate() {
     
     // Función para manejar el desplazamiento
-    // NOTE: En Next.js, window.onload no siempre es la mejor opción. Usaremos un useEffect si fuera necesario, 
-    // pero mantenemos la lógica básica para ser fieles al código original.
     if (typeof window !== 'undefined') {
         window.onload = function() {
             window.scrollTo(0, 50); 
@@ -23,16 +21,11 @@ export default function SavetheDate() {
                 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet" />
             </Head>
 
-            {/* Este div actúa como el contenedor principal con el fondo */}
             <div className="main-container">
                 
-                {/* Capa de Brillos Animados: Detrás de la tarjeta, encima del fondo fijo */}
-                <div className="sparkle-layer"></div>
-
                 <div className="invitation-frame"> 
 
                     {/* Íconos de Hoja (SVG) */}
-                    {/* He mantenido los SVGs en línea para simplicidad, como estaban en el HTML */}
                     <div className="leaf-detail top-left-leaf">
                         <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                             <path d="M 5 95 C 30 75, 75 30, 95 5" />
@@ -82,9 +75,11 @@ export default function SavetheDate() {
                         31 · 10 · 2026
                     </p>
                     <p></p>
-                    <p className="animated-item step-5 text-xl mt-16 mb-6 text-gray-800 font-normal">
+                    {/* --- CORRECCIÓN AQUÍ: Volviendo a la clase original (text-xl y text-gray-800) --- */}
+                    <p className="animated-item step-5 text-xl mt-16 mb-6 text-gray-800">
                         Masia Mas Llombart<br/>Sant Fost de Campsentelles, Barcelona
                     </p>
+                    {/* --------------------------------------------------------------------------------- */}
 
                     <p className="animated-item step-6 text-base italic text-gray-500 mb-8">
                         ¡Nos encantaría que nos acompañaras en nuestro gran día!
@@ -99,13 +94,16 @@ export default function SavetheDate() {
                 </div>
 
                 <style jsx global>{`
-                    /* Se asegura que el contenedor principal cubra todo y la fuente se herede */
                     .main-container {
                         min-height: 100vh;
                         width: 100%;
                         display: flex;
                         justify-content: center;
                         align-items: center;
+                        /* Revertimos el fondo a la imagen original */
+                        background: url('https://raw.githubusercontent.com/ManelEsquivel/SaveTheDate/main/anillos.png') no-repeat center center fixed;
+                        background-size: cover;
+                        overflow: hidden; 
                     }
                     
                     body {
@@ -116,69 +114,49 @@ export default function SavetheDate() {
                         align-items: center;
                         min-height: 100vh;
                         margin: 0;
-                        background-color: #f7f3ed; 
-                        /* --- REVERSIÓN DE ESTILOS --- */
-                        color: #3e2f1c; /* Color original de las letras */
-                        background: url('https://raw.githubusercontent.com/ManelEsquivel/SaveTheDate/main/anillos.png') no-repeat center center fixed;
-                        background-size: cover;
-                        overflow: hidden; /* Oculta el scroll si el contenido es más grande */
+                        background-color: #f7f3ed; /* Color de fondo base */
+                        color: #3e2f1c; /* <--- COLOR ORIGINAL REVERTIDO */
+                        overflow: hidden;
                     }
-
-                    /* --- FONDO CON BRILLOS (SPARKLE EFFECT) --- */
-                    .sparkle-layer {
-                        position: fixed;
-                        top: 0;
-                        left: 0;
-                        width: 100%;
-                        height: 100%;
-                        /* Gradiente para simular brillo suave */
-                        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(255, 255, 255, 0.05) 50%, transparent 100%);
-                        background-size: 200% 200%; /* Tamaño grande para que se desplace */
-                        z-index: 5; /* Detrás de la invitación, encima del fondo fijo */
-                        animation: sparkleMove 120s linear infinite; /* Animación de movimiento muy lento */
-                        pointer-events: none; /* Asegura que no bloquea la interacción */
-                    }
-
-                    @keyframes sparkleMove {
-                        0% { background-position: 0% 0%; }
-                        100% { background-position: 100% 100%; }
-                    }
-                    /* --- FIN BRILLOS --- */
 
                     .invitation-frame {
                         position: relative;
-                        z-index: 10; /* La invitación siempre por encima de los brillos */
+                        z-index: 10; 
                         width: 100%;
                         max-width: 400px;
                         padding: 3rem 1.5rem; 
                         text-align: center;
                         
-                        background-image: url('https://raw.githubusercontent.com/ManelEsquivel/SaveTheDate/main/anillos.png');
-                        background-size: cover;
-                        background-position: center 50%; 
-                        background-repeat: no-repeat;
-                        
-                        background-color: rgba(245, 245, 245, 0.7); 
+                        background-color: rgba(245, 245, 245, 0.7); /* Opacidad original */
                         background-blend-mode: overlay; 
 
-                        box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15); 
+                        /* --- EFECTO DE BRILLO EN EL BORDE DE LA CAJA (CASCADA DE LUCES) --- */
+                        box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0.8), 0 15px 50px rgba(0, 0, 0, 0.15); /* Sombra base */
                         border: 1px solid #e0d8c7; 
+                        border-radius: 12px;
                         display: flex;
                         flex-direction: column;
                         justify-content: center;
-                        border-radius: 12px;
+                        animation: borderGlow 6s ease-in-out infinite alternate; /* Animación para el brillo */
                     }
+
+                    @keyframes borderGlow {
+                        0% { box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0.8), 0 15px 50px rgba(0, 0, 0, 0.15); }
+                        50% { box-shadow: 0 0 20px 5px rgba(255, 255, 255, 0.8), 0 15px 50px rgba(0, 0, 0, 0.15); }
+                        100% { box-shadow: 0 0 0px 0px rgba(255, 255, 255, 0.8), 0 15px 50px rgba(0, 0, 0, 0.15); }
+                    }
+                    /* --- FIN EFECTO DE BRILLO --- */
                     
                     /* --- ADORNOS DE ESQUINA (LEAF DETAIL) --- */
                     .leaf-detail {
                         position: absolute;
                         width: 70px;
                         height: 70px;
-                        z-index: 15; /* Por encima de la tarjeta */
+                        z-index: 15; 
                         color: #d4af94; /* Color suave para los adornos */
                         opacity: 0;
-                        animation: fadeIn 0.8s forwards; /* Animación de aparición */
-                        animation-delay: 0.2s; /* Retraso para que aparezca después del fondo */
+                        animation: fadeIn 0.8s forwards; 
+                        animation-delay: 0.2s; 
                     }
                     .top-left-leaf { top: 5px; left: 5px; transform: rotate(0deg); }
                     .top-right-leaf { top: 5px; right: 5px; transform: rotate(90deg); }
