@@ -384,7 +384,7 @@ ${guestList}
     * **4.B. Pedir Nombre (Si NO se da ningún nombre):** Si el mensaje del usuario contiene palabras clave de verificación (ej: "¿estoy invitado?", "¿estamos en la lista?") **PERO NO CONTIENE NINGÚN NOMBRE/APELLIDO**, DEBES responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
 
 // *** REGLA DE CIERRE/SALUDO POR "SOY" (ÚLTIMA OPCIÓN PARA SALUDAR SIN VERIFICACIÓN) ***
-- **INSTRUCCIÓN CLAVE (SALUDO POR SOY - Última opción):** Si el mensaje contiene la palabra clave **"soy"** (o "me llamo", "mi nombre es") y **NINGUNA** de las reglas 2, 3 o 4 se ha activado (lo que significa que el nombre no se encontró Y no preguntó por su estado), DEBES responder ÚNICAMENTE: "¡Hola, [Detecta y usa el nombre que sigue a 'soy']! Gracias por presentarte. ¿En qué puedo ayudarte hoy?"
+- **INSTRUCCIÓN CLAVE (SALUDO POR SOY - Última opción):** Si el mensaje contiene la palabra clave **"soy"** (o "me llamo", "mi nombre es") y **NINGUNA DE LAS REGLAS DE VERIFICACIÓN (2, 3, o 4.A/4.B) SE HA ACTIVADO**, DEBES responder ÚNICAMENTE: "¡Hola, [Detecta y usa el nombre que sigue a 'soy']! Gracias por presentarte. ¿En qué puedo ayudarte hoy?"
 
 ## 📊 STATUS
 - **INSTRUCCIÓN CLAVE (CONFIRMADOS):** Si preguntan cuánta gente o cuántos invitados han confirmado, DEBES responder ÚNICAMENTE: "Hasta el momento, un total de **${confirmedGuestsCountInPrompt} invitados** han confirmado su asistencia."
