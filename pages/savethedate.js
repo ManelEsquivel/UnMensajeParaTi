@@ -116,7 +116,7 @@ export default function SavetheDate() {
                         min-height: 100vh;
                         margin: 0;
                         background-color: #f7f3ed; /* Color de fondo base */
-                        color: #1c2a38; /* <--- COLOR DE TEXTO MÁS OSCURO PARA BUEN CONTRASTE */
+                        color: #1c2a38; /* Color de texto más oscuro para buen contraste */
                         overflow: hidden;
                     }
 
@@ -128,7 +128,7 @@ export default function SavetheDate() {
                         padding: 3rem 1.5rem; 
                         text-align: center;
                         
-                        background-color: rgba(245, 245, 245, 0.95); /* <--- OPACIDAD AUMENTADA PARA EL CONTRASTE */
+                        background-color: rgba(245, 245, 245, 0.95); /* OPACIDAD AUMENTADA PARA EL CONTRASTE */
                         background-blend-mode: overlay; 
 
                         box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15); 
@@ -137,10 +137,9 @@ export default function SavetheDate() {
                         display: flex;
                         flex-direction: column;
                         justify-content: center;
-                        /* Eliminamos la animación de brillo en el borde directo */
                     }
 
-                    /* --- NUEVO: ESTILOS PARA EL EFECTO DE BRILLO INTERIOR --- */
+                    /* --- NUEVO: ESTILOS PARA EL EFECTO DE BRILLO INTERIOR (COPOS DE LUZ) --- */
                     .inner-sparkle-effect {
                         position: absolute;
                         top: 0;
@@ -148,12 +147,12 @@ export default function SavetheDate() {
                         width: 100%;
                         height: 100%;
                         overflow: hidden; /* Asegura que los brillos no se salgan del marco */
-                        border-radius: 12px; /* Hereda el border-radius del contenedor */
+                        border-radius: 12px; 
                         pointer-events: none; /* No interfiere con el clic del usuario */
                         z-index: 1; /* Detrás del texto pero dentro del marco */
                         background: radial-gradient(circle at top left, rgba(255,255,255,0.08) 0%, transparent 20%),
                                     radial-gradient(circle at bottom right, rgba(255,255,255,0.08) 0%, transparent 20%);
-                        background-size: 300% 300%; /* Tamaño grande para los gradientes */
+                        background-size: 300% 300%; 
                         animation: sparkleCascade 15s linear infinite alternate;
                     }
 
@@ -171,7 +170,7 @@ export default function SavetheDate() {
                         position: absolute;
                         width: 70px;
                         height: 70px;
-                        z-index: 15; /* Por encima de la tarjeta y los brillos */
+                        z-index: 15; 
                         color: #d4af94; /* Color suave para los adornos */
                         opacity: 0;
                         animation: fadeIn 0.8s forwards; 
@@ -237,4 +236,3 @@ export default function SavetheDate() {
         </>
     );
 }
-```http://googleusercontent.com/image_generation_content/5
