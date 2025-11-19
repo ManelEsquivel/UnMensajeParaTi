@@ -184,7 +184,7 @@ Kike Masgrau,Masgrau,PENDIENTE
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
   
-  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (LÓGICA RESTAURADA Y CORREGIDA) ---
+  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (LOGICA ACTUALIZADA) ---
   // 1. Procesamos la lista CSV a un array de objetos para buscar mejor
   const guestsRows = guestList.split('\n')
     .slice(1) // Quitamos la cabecera
@@ -223,7 +223,6 @@ Kike Masgrau,Masgrau,PENDIENTE
       INSTRUCCIÓN OBLIGATORIA:
       1. Informa al usuario que **SÍ** está en la lista.
       2. Proporciona INMEDIATAMENTE este enlace para confirmar: [Confirmar Asistencia](${weddingInfo.urlConfirmacion})
-      3. Si existen reglas de "Prioridad Especial" (bromas personalizadas) para este nombre, úsalas, pero SIEMPRE incluyendo el enlace.
     `;
   } else if (foundNameOnly) {
     // CASO: SOLO NOMBRE (AMBIGUO)
@@ -233,28 +232,45 @@ Kike Masgrau,Masgrau,PENDIENTE
       INSTRUCCIÓN: Pregunta amablemente por el APELLIDO para poder confirmar si es la persona correcta.
     `;
   } else {
-    // CASO: NO ESTÁ EN LA LISTA
-    // Detectamos si el usuario está intentando decir un nombre aunque no use palabras clave.
-    // Si el mensaje es corto (menos de 5 palabras) o contiene palabras de identificación, asumimos que es un intento de nombre.
-    const messageWordCount = normalizedMessage.split(' ').length;
-    const isLikelyNameAttempt = messageWordCount <= 5 || 
-                                normalizedMessage.includes("soy") || 
-                                normalizedMessage.includes("me llamo") || 
-                                normalizedMessage.includes("confirmar") || 
-                                normalizedMessage.includes("lista");
+    // CASO: NO ESTÁ EN LA LISTA o NO SE DETECTÓ NOMBRE
+    
+    // 1. REGLA NUEVA: DETECTAR INTENCIÓN DE CONFIRMAR SIN NOMBRE (Lo que pediste)
+    // Si el usuario dice "quiero confirmar", "asistencia", "invitado", pero no hemos encontrado su nombre arriba:
+    const isConfirmationIntent = normalizedMessage.includes("confirmar") || 
+                                 normalizedMessage.includes("asistencia") || 
+                                 normalizedMessage.includes("invitado") ||
+                                 normalizedMessage.includes("invitacion");
 
-    if (isLikelyNameAttempt) {
-        aiForcedInstruction = `
-        ## 🎯 RESULTADO DE VERIFICACIÓN DE SEGURIDAD (JAVASCRIPT)
-        El código JavaScript ha analizado el mensaje y **NO ha encontrado ninguna coincidencia** en la lista de invitados.
-        
-        INSTRUCCIÓN OBLIGATORIA DE RECHAZO:
-        1. **SI (y solo si)** el mensaje del usuario parece ser un nombre (ej: "Juan Perez", "Soy Juan") o una petición de confirmación, DEBES responder:
-           "Lo siento mucho, pero no encuentro ese nombre en la lista de invitados. Si crees que es un error, por favor contacta con Manel o Carla."
-        2. **NO** le saludes como si lo conocieras.
-        3. **NO** le des el enlace de confirmación.
-        4. Si el mensaje del usuario era una pregunta general (ej: "Donde es la boda"), IGNORA esta instrucción de rechazo y responde a la pregunta.
-        `;
+    // 2. Detectar si se está presentando explícitamente (Soy X)
+    const isPresentation = normalizedMessage.includes("soy") || 
+                           normalizedMessage.includes("me llamo") || 
+                           normalizedMessage.includes("mi nombre es");
+
+    if (isConfirmationIntent && !isPresentation) {
+         // El usuario quiere confirmar pero NO ha dicho "Soy [Nombre]" y no hemos encontrado el nombre.
+         aiForcedInstruction = `
+         ## 🎯 INSTRUCCIÓN DE PRIORIDAD: SOLICITAR IDENTIFICACIÓN
+         El usuario ha expresado deseo de confirmar asistencia o consultar invitación, pero **el sistema NO ha detectado un nombre válido en la frase**.
+         
+         INSTRUCCIÓN OBLIGATORIA (IGNORA CUALQUIER OTRA):
+         1. **NO** proporciones el enlace de confirmación todavía.
+         2. Responde: "¡Claro! Para poder gestionar tu confirmación, primero necesito verificar la lista. ¿Podrías decirme tu **Nombre y Apellido** completo, por favor?"
+         `;
+    } else {
+        // Lógica de RECHAZO: Si dijo "Soy [X]" o el mensaje es muy corto (parece un nombre) y no se encontró.
+        const isLikelyNameAttempt = (normalizedMessage.split(' ').length <= 5) || isPresentation;
+
+        if (isLikelyNameAttempt) {
+            aiForcedInstruction = `
+            ## 🎯 RESULTADO DE VERIFICACIÓN (NO ENCONTRADO)
+            El código JavaScript ha buscado el nombre en la lista y **NO ha encontrado ninguna coincidencia**.
+            
+            INSTRUCCIÓN OBLIGATORIA DE RECHAZO:
+            1. Dile amablemente que **NO** encuentras ese nombre en la lista.
+            2. **NO** le des el enlace de confirmación.
+            3. Sugiere contactar con los novios si cree que es un error.
+            `;
+        }
     }
   }
   // --- FIN DE PROCESAMIENTO DE NOMBRES ---
@@ -611,5 +627,6 @@ ${fullAccommodationResponse}
     res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
   }
 }
+
 
   
