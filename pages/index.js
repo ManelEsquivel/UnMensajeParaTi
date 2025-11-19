@@ -32,12 +32,12 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta charSet="UTF-8" />
         
-        {/* --- ETIQUETAS OPEN GRAPH MODIFICADAS --- */}
+        {/* --- ETIQUETAS OPEN GRAPH MODIFICADAS (SOLUCIÓN CACHÉ) --- */}
         <meta property="og:title" content="Tenemos un mensaje muy importante para ti" />
         <meta property="og:description" content="Hemos pensado en ti para que guardes una fecha muy especial." />
-        <meta property="og:image" content="/boda_icon_2.jpg" /> {/* RUTA DEL ICONO OPTIMIZADO */}
+        <meta property="og:image" content="/boda_icon_2.png?v=2" /> {/* CORREGIDO A .png y añadido ?v=2 */}
         <meta property="og:type" content="website" />
-        {/* -------------------------------------- */}
+        {/* -------------------------------------------------------- */}
         
       </Head>
 
