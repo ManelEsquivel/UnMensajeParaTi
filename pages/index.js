@@ -32,12 +32,12 @@ export default function Home() {
         <meta name="viewport" content="width=device-width, initial-scale=1.0" />
         <meta charSet="UTF-8" />
         
-        {/* --- NUEVAS ETIQUETAS OPEN GRAPH (PARA WHATSAPP/REDES SOCIALES) --- */}
+        {/* --- ETIQUETAS OPEN GRAPH MODIFICADAS --- */}
         <meta property="og:title" content="Tenemos un mensaje muy importante para ti" />
         <meta property="og:description" content="Hemos pensado en ti para que guardes una fecha muy especial." />
-        <meta property="og:image" content="/boda_icon.png" /> {/* RUTA DE TU ICONO */}
+        <meta property="og:image" content="/manel-carla-propuesta.JPG" /> {/* RUTA DE LA FOTO DE PROPUESTA */}
         <meta property="og:type" content="website" />
-        {/* ----------------------------------------------------------------- */}
+        {/* -------------------------------------- */}
         
       </Head>
 
