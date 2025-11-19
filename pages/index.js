@@ -19,7 +19,7 @@ export default function Home() {
         // Redirección a la URL
         window.location.href = "https://manelesquivel.github.io/UnMensajeParaTi/SavetheDate.html";
       }, 2000);
-    }, 9000); // <--- TIEMPO AMPLIADO a 9 segundos (9000ms)
+    }, 11000); // <--- TIEMPO AMPLIADO a 11 segundos (11000ms)
 
     return () => clearTimeout(timer);
   }, []);
