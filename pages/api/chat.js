@@ -184,31 +184,45 @@ Kike Masgrau,Masgrau,PENDIENTE
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
   
-  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (LOGICA ACTUALIZADA) ---
-  // 1. Procesamos la lista CSV a un array de objetos para buscar mejor
+  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (LOGICA INTELIGENTE) ---
+  // 1. Procesamos la lista CSV
   const guestsRows = guestList.split('\n')
     .slice(1) // Quitamos la cabecera
     .filter(line => line.trim() !== ''); // Quitamos líneas vacías
 
   const validGuests = guestsRows.map(row => {
     const parts = row.split(',');
-    const nombre = parts[0] ? parts[0].trim() : '';
-    const apellido = parts[1] ? parts[1].trim() : '';
+    const nombreRaw = parts[0] ? parts[0].trim() : '';
+    const apellidoRaw = parts[1] ? parts[1].trim() : '';
     
-    if (!nombre) return null;
+    if (!nombreRaw) return null;
 
-    // Creamos versiones normalizadas para comparar
+    const normNombre = normalize(nombreRaw);
+    const normApellido = normalize(apellidoRaw);
+
+    // LÓGICA DE CONCATENACIÓN INTELIGENTE:
+    // Si el apellido existe Y NO está ya contenido dentro del nombre, lo sumamos.
+    // Si el nombre es "Marta Oliver" y el apellido "Oliver", el resultado será "marta oliver".
+    // Si el nombre es "Manel" y el apellido "Esquivel", el resultado será "manel esquivel".
+    let normFull = "";
+    if (normApellido && !normNombre.includes(normApellido)) {
+        normFull = `${normNombre} ${normApellido}`;
+    } else {
+        normFull = normNombre;
+    }
+
     return {
-      original: `${nombre} ${apellido}`,
-      normFull: normalize(nombre + ' ' + apellido), // Nombre + Apellido
-      normName: normalize(nombre) // Solo nombre
+      original: `${nombreRaw} ${apellidoRaw}`.trim(), // Para mostrar bonito
+      normFull: normFull.trim(),
+      normName: normNombre
     };
   }).filter(Boolean);
 
   // 2. Buscamos coincidencias en el mensaje del usuario
-  // Prioridad: Coincidencia exacta de Nombre y Apellido
+  // Prioridad 1: Coincidencia exacta del nombre completo calculado
   const foundExact = validGuests.find(g => normalizedMessage.includes(g.normFull));
-  // Prioridad secundaria: Solo nombre (para pedir apellido)
+  
+  // Prioridad 2: Coincidencia solo de Nombre (para pedir apellido si falta)
   const foundNameOnly = !foundExact ? validGuests.find(g => normalizedMessage.includes(g.normName)) : null;
 
   let aiForcedInstruction = "";
@@ -234,8 +248,7 @@ Kike Masgrau,Masgrau,PENDIENTE
   } else {
     // CASO: NO ESTÁ EN LA LISTA o NO SE DETECTÓ NOMBRE
     
-    // 1. REGLA NUEVA: DETECTAR INTENCIÓN DE CONFIRMAR SIN NOMBRE (Lo que pediste)
-    // Si el usuario dice "quiero confirmar", "asistencia", "invitado", pero no hemos encontrado su nombre arriba:
+    // 1. REGLA: DETECTAR INTENCIÓN DE CONFIRMAR SIN NOMBRE
     const isConfirmationIntent = normalizedMessage.includes("confirmar") || 
                                  normalizedMessage.includes("asistencia") || 
                                  normalizedMessage.includes("invitado") ||
@@ -464,7 +477,7 @@ ${guestList}
         * **Si el estado es PENDIENTE:** "¡Sí, [Nombre] [Apellido], estás en la lista de invitados! Sin embargo, tu asistencia se encuentra **PENDIENTE** de confirmación. Por favor, confírmala en la web: [Confirmar Asistencia Aquí](${urlConfirmacionInPrompt}). ¡Te esperamos con mucha ilusión!.\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente."
     
 4.  **REGLA DE RECHAZO Y PEDIR NOMBRE (Regla Única de Control):**
-    * **4.A. No Encontrado (Rechazo Inmediato):** Si el mensaje del usuario **CONTIENE** un nombre/apellido (ej: "Juan Muñoz", "Pepe") que **NO SE ENCUENTRA EN LA LISTA** y **NO ACTIVA** ninguna de las reglas 2.A-2.P, DEBES responder ÚNICAMENTE: "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla."
+    * **4.A. No Encontrado (Rechazo Inmediato):** Si el mensaje del usuario **CONTIENE** un nombre/apellido (ej: "Juan Muñoz", "Pepe", "Marta") que **NO SE ENCUENTRA EN LA LISTA** y **NO ACTIVA** ninguna de las reglas 2.A-2.P, DEBES responder ÚNICAMENTE: "Lo siento mucho, pero no encuentro tu nombre en la lista de invitados. Si crees que puede ser un error, por favor, contacta directamente con Manel o Carla."
     * **4.B. Pedir Nombre (Si NO se da ningún nombre):** Si el mensaje del usuario contiene palabras clave de verificación (ej: "¿estoy invitado?", "¿estamos en la lista?", **"confirmar"**, **"asistencia"**, **"confirmo"**) **PERO NO CONTIENE NINGÚN NOMBRE/APELLIDO**, DEBES responder ÚNICAMENTE: "¡Qué buena pregunta! Para poder confirmarlo, ¿podrías indicarme tu nombre completo (Nombre y Apellido) por favor?".
 
 // *** REGLA DE CIERRE/SALUDO POR "SOY" (ÚLTIMA OPCIÓN PARA SALUDAR SIN VERIFICACIÓN) ***
