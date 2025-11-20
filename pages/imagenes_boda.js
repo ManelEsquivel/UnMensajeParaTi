@@ -1,6 +1,6 @@
 import React, { useState, useRef } from 'react';
 
-// NOTA: Ya no necesitamos importar 'firebase/storage' aquí porque la subida ocurre en el servidor.
+// NOTA: No se requiere ninguna importación de Firebase aquí.
 
 export default function ImagenesBoda() {
     const [files, setFiles] = useState([]);
@@ -24,6 +24,7 @@ export default function ImagenesBoda() {
 
         // Si el servidor (API Route) devuelve un error, lo lanzamos
         if (!response.ok) {
+            // Intentamos leer el mensaje de error que devuelve el servidor
             const result = await response.json();
             throw new Error(result.message || `Error del servidor: Código ${response.status}`);
         }
@@ -45,6 +46,7 @@ export default function ImagenesBoda() {
             setFiles([]); 
         } catch (error) {
             console.error("Error al subir:", error);
+            // Mostrar el error claro que devuelve el servidor
             alert(`Fallo en la subida. Causa: ${error.message}.`);
         } finally {
             setUploading(false);
