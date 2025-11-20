@@ -1,37 +1,33 @@
 import React, { useState, useRef } from 'react';
 
+// NOTA: Ya no necesitamos importar 'firebase/storage' aquí porque la subida ocurre en el servidor.
+
 export default function ImagenesBoda() {
     const [files, setFiles] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
-    const [uploading, setUploading] = useState(false); 
+    const [uploading, setUploading] = useState(false); // Indica si está subiendo
     const fileInputRef = useRef(null);
-    
-    // --- LÓGICA DE SUBIDA A FIREBASE (USANDO FETCH NATIVO) ---
-    
-    // Función que sube un solo archivo usando la API REST de Google Cloud.
-    const uploadFile = async (file) => {
-        // Tu bucket es boda-74934.appspot.com
-        const bucketName = "boda-74934.appspot.com";
-        const path = `bodas/${file.name}`;
-        
-        // URL directa a la API de Google Cloud Storage (Método PUT)
-        const url = `https://storage.googleapis.com/${bucketName}/${path}`;
 
-        const response = await fetch(url, {
-            method: 'PUT',
-            headers: {
-                'Content-Type': file.type || 'application/octet-stream',
-                // ESTE ENCABEZADO ES LA CLAVE FINAL PARA AUTORIZAR LA SUBIDA PÚBLICA:
-                'X-Goog-Acl': 'public-read', 
-            },
-            body: file, 
+    // --- LÓGICA DE ENVÍO A LA RUTA API DEL SERVIDOR ---
+    
+    // Función que envía un solo archivo al endpoint local de Vercel (/api/upload-photo)
+    const sendFileToServer = async (file) => {
+        const formData = new FormData();
+        // 'photos' es el nombre del campo que el servidor espera (pages/api/upload-photo.js)
+        formData.append('photos', file); 
+
+        // Enviamos la petición al API Route local de Next.js
+        const response = await fetch('/api/upload-photo', {
+            method: 'POST',
+            body: formData, // FormData maneja automáticamente los headers
         });
 
+        // Si el servidor (API Route) devuelve un error, lo lanzamos
         if (!response.ok) {
-            // Intenta leer el cuerpo del error para un diagnóstico más claro
-            const errorText = await response.text();
-            throw new Error(`Error ${response.status} (${response.statusText}): ${errorText.substring(0, 100)}...`);
+            const result = await response.json();
+            throw new Error(result.message || `Error del servidor: Código ${response.status}`);
         }
+        // Si response.ok es true, el archivo se subió a Firebase.
     };
 
     const handleSubmit = async () => {
@@ -42,7 +38,7 @@ export default function ImagenesBoda() {
 
         setUploading(true);
         try {
-            const uploadPromises = files.map(file => uploadFile(file));
+            const uploadPromises = files.map(file => sendFileToServer(file));
             await Promise.all(uploadPromises);
             
             alert(`¡Éxito! Se subieron ${files.length} fotos a tu Firebase Storage.`);
@@ -54,7 +50,7 @@ export default function ImagenesBoda() {
             setUploading(false);
         }
     };
-    // --- FIN LÓGICA DE SUBIDA ---
+    // --- FIN LÓGICA DE ENVÍO ---
 
 
     // --- LÓGICA DE MANEJO DE ARCHIVOS (UI) ---
