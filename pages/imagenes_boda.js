@@ -4,7 +4,7 @@ import React, { useState, useRef } from 'react';
 export default function ImagenesBoda() {
     const [files, setFiles] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
-    const [uploading, setUploading] = useState(false); // Nuevo estado
+    const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef(null);
 
     // --- LÓGICA DE DRAG AND DROP / UI ---
@@ -59,7 +59,10 @@ export default function ImagenesBoda() {
         // === PASO 2: SUBIR EL ARCHIVO DIRECTAMENTE A GOOGLE CLOUD ===
         const uploadResponse = await fetch(url, {
             method: 'PUT', 
-            // ⚠️ SOLUCIÓN FINAL AL ERROR CORS: No incluimos 'headers' para que el navegador use los que necesita.
+            // ⚠️ SOLUCIÓN FINAL AL CORS/CONTENT-TYPE: Forzamos el Content-Type genérico
+            headers: {
+                'Content-Type': 'application/octet-stream', 
+            },
             body: file, // Enviamos el objeto File (el payload de la foto)
         });
 
@@ -159,7 +162,7 @@ export default function ImagenesBoda() {
     );
 }
 
-// === ESTILOS (Mantenidos) ===
+// === ESTILOS ===
 const styles = {
     pageContainer: {
         display: 'flex',
