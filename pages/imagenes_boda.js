@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
- 
+  
 export default function ImagenesBoda() {
     const [fileItems, setFileItems] = useState([]); 
     const [galleryPhotos, setGalleryPhotos] = useState([]); 
