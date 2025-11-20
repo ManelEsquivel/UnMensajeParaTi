@@ -13,7 +13,7 @@
     "react-dom": "18.2.0",
     "marked": "^12.0.2",
     "firebase": "^10.0.0",
-    "formidable": "^3.5.1",   <--- ¡AQUÍ DEBE HABER COMA!
-    "firebase-admin": "^11.11.0"  <--- ¡AQUÍ NO DEBE HABER COMA!
+    "formidable": "^3.5.1",
+    "firebase-admin": "^11.11.0"
   }
 }
