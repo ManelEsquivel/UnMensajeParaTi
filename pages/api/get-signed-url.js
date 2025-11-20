@@ -1,39 +1,36 @@
-// pages/api/get-signed-url.js
-
 const { adminApp } = require('../../lib/firebase'); 
 
 export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Método no permitido.' });
-  }
+  if (req.method !== 'POST') return res.status(405).end();
 
   if (!adminApp) {
-    return res.status(500).json({ message: 'Error interno: Admin SDK no inicializado.' });
+    return res.status(500).json({ message: 'Error servidor: Admin SDK no cargado.' });
   }
 
-  const { fileName } = req.body;
-  
-  if (!fileName) {
-    return res.status(400).json({ message: 'Falta el nombre del archivo.' });
+  // Recibimos el nombre Y el tipo de archivo
+  const { fileName, fileType } = req.body;
+
+  if (!fileName || !fileType) {
+    return res.status(400).json({ message: 'Falta nombre o tipo de archivo.' });
   }
 
   try {
     const bucket = adminApp.storage().bucket();
     const file = bucket.file(`bodas/${fileName}`);
 
-    // ⚠️ CAMBIO CRÍTICO: Eliminamos 'contentType' y 'headers'.
-    // Esto permite subir CUALQUIER tipo de archivo sin romper la firma.
+    // ⚠️ CAMBIO CLAVE: Firmamos especificando el Content-Type real
     const options = {
       version: 'v4',
       action: 'write',
-      expires: Date.now() + 15 * 60 * 1000, // 15 minutos
+      expires: Date.now() + 15 * 60 * 1000, 
+      contentType: fileType, // "image/png", "image/jpeg", etc.
     };
 
     const [url] = await file.getSignedUrl(options);
 
     res.status(200).json({ url });
   } catch (error) {
-    console.error('Error generando URL:', error);
-    res.status(500).json({ message: `Error al generar URL: ${error.message}` });
+    console.error('Error firmando URL:', error);
+    res.status(500).json({ message: error.message });
   }
 }
