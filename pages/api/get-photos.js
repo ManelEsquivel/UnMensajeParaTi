@@ -1,36 +1,45 @@
 const { adminApp } = require('../../lib/firebase'); 
 
 export default async function handler(req, res) {
-  if (req.method !== 'GET') {
-    return res.status(405).json({ message: 'Método no permitido' });
-  }
-
-  if (!adminApp) {
-    return res.status(500).json({ message: 'Admin SDK no inicializado' });
-  }
+  if (req.method !== 'GET') return res.status(405).json({ message: 'Método no permitido' });
+  if (!adminApp) return res.status(500).json({ message: 'Admin SDK no inicializado' });
 
   try {
     const bucket = adminApp.storage().bucket();
     
-    // Listamos los archivos en la carpeta 'bodas/'
-    const [files] = await bucket.getFiles({ prefix: 'bodas/' });
+    // Leemos el token de la página siguiente si el frontend nos lo envía
+    const { pageToken } = req.query;
 
-    // Generamos URLs firmadas para lectura (válidas por mucho tiempo)
-    // para que el navegador pueda mostrarlas.
-    const urls = await Promise.all(
+    const options = {
+      prefix: 'bodas/',
+      maxResults: 12, // ⚠️ LÍMITE: Cargamos solo 12 fotos por vez
+      pageToken: pageToken || undefined, // Si hay token, seguimos desde ahí
+    };
+
+    // getFiles devuelve [files, nextQuery, apiResponse]
+    const [files, nextQuery] = await bucket.getFiles(options);
+
+    const photos = await Promise.all(
       files.map(async (file) => {
+        // Ignorar la carpeta misma
+        if (file.name.endsWith('/')) return null;
+        
         const [url] = await file.getSignedUrl({
           action: 'read',
-          expires: '01-01-2030', // Fecha lejana
+          expires: '01-01-2030',
         });
         return { name: file.name, url };
       })
     );
 
-    // Filtramos para no mostrar la carpeta en sí misma si aparece
-    const photos = urls.filter(f => !f.name.endsWith('/'));
+    // Filtramos los nulos (carpetas)
+    const validPhotos = photos.filter(p => p !== null);
 
-    res.status(200).json({ photos });
+    res.status(200).json({ 
+      photos: validPhotos, 
+      nextPageToken: nextQuery ? nextQuery.pageToken : null // Enviamos el token para la siguiente carga
+    });
+
   } catch (error) {
     console.error('Error al listar fotos:', error);
     res.status(500).json({ message: 'Error obteniendo la galería' });
