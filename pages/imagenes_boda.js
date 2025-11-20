@@ -151,7 +151,7 @@ const App = () => {
 
         try {
             await addDoc(collection(db, `artifacts/${appId}/public/data/wedding_photos`), {
-                // La descripción se envía como un string vacío, ya que no se está recogiendo
+                // La descripción se envía como un string vacío
                 description: '', 
                 userId: userId,
                 timestamp: Timestamp.now(),
@@ -161,7 +161,6 @@ const App = () => {
             });
             
             // Limpiar formulario y notificar éxito
-            // Se elimina la limpieza del estado 'description'
             setSelectedFile(null);
             if (fileInputRef.current) {
                 fileInputRef.current.value = ''; // Limpiar el input de archivo
@@ -193,7 +192,7 @@ const App = () => {
                         alt={photo.originalFileName || 'Foto de Boda'} 
                         className="w-full h-full object-cover rounded-t-xl"
                         onError={(e) => {
-                            // Fallback si la URL del placeholder falla (aunque no debería)
+                            // Fallback si la URL del placeholder falla
                             e.target.onerror = null; 
                             e.target.src = "https://placehold.co/600x400/884a4a/ffffff?text=Error+de+Carga";
                         }}
@@ -201,12 +200,14 @@ const App = () => {
                 </div>
                 {/* Contenido de la tarjeta más limpio y enfocado (sin descripción) */}
                 <div className={`p-3 transition-colors duration-300`}>
-                    <p className="text-gray-800 font-medium text-sm text-center mb-2 truncate">
+                    {/* Nombre del archivo */}
+                    <p className="text-gray-800 font-bold text-base text-center mb-3 truncate">
                         {photo.originalFileName || 'Archivo sin nombre'}
                     </p>
                     
-                    <div className="flex justify-between items-center text-xs text-gray-500 pt-1 mt-1 border-t border-gray-100">
-                        <span className="truncate text-[10px] md:text-xs">Subido por: {photo.userId.substring(0, 8)}...</span>
+                    {/* Metadatos */}
+                    <div className="flex justify-between items-center text-xs text-gray-500 pt-2 border-t border-gray-100">
+                        <span className="truncate text-[10px] md:text-xs">Usuario: {photo.userId.substring(0, 8)}...</span>
                         <span className="text-[10px] md:text-xs">{date}</span>
                     </div>
                 </div>
@@ -284,8 +285,6 @@ const App = () => {
                             )}
                         </div>
                         
-                        {/* Se ha eliminado el campo de descripción/comentario */}
-
                         <button 
                             type="submit" 
                             className="bg-[#884a4a] text-white w-full py-3 rounded-lg font-semibold shadow-md hover:bg-[#6a3939] hover:shadow-lg transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center"
@@ -332,5 +331,7 @@ const App = () => {
         </div>
     );
 };
+
+export default App;
 
 export default App;
