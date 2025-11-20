@@ -6,24 +6,38 @@ export default function ImagenesBoda() {
     const [uploading, setUploading] = useState(false); // Indica si está subiendo
     const fileInputRef = useRef(null);
 
-    // --- LÓGICA DE SUBIDA A FIREBASE ---
+    // --- LÓGICA DE SUBIDA A FIREBASE (USANDO FETCH NATIVO) ---
     
-    // Función que sube un solo archivo usando las funciones globales expuestas por el CDN.
+    // Función que sube un solo archivo usando la API REST de Google Cloud.
     const uploadFile = async (file) => {
-        // Verificación de acceso global al SDK
-        if (!window.storage || !window.storageRef || !window.uploadBytes) {
-            throw new Error("Firebase Storage no se ha inicializado correctamente. Revisa el script en el HTML principal.");
+        // Tu bucket es boda-74934.appspot.com
+        const bucketName = "boda-74934.appspot.com";
+        const path = `bodas/${file.name}`;
+        
+        // URL directa a la API de Google Cloud Storage (Método PUT)
+        const url = `https://storage.googleapis.com/${bucketName}/${path}`;
+
+        console.log(`Intentando subir a: ${url}`);
+
+        // La subida simple requiere el método PUT y el archivo en el cuerpo (body)
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                // El Content-Type debe coincidir con el tipo de archivo
+                'Content-Type': file.type || 'application/octet-stream',
+            },
+            body: file, // Envía el objeto de archivo directamente
+        });
+
+        if (!response.ok) {
+            // Si la respuesta no es OK (ej. 403 Forbidden, 404 Not Found)
+            const errorText = await response.text();
+            throw new Error(`Error ${response.status} (${response.statusText}): ${errorText.substring(0, 100)}...`);
         }
-        
-        // Define la ruta en Storage: /bodas/nombre-del-archivo.jpg
-        // Usa las funciones expuestas globalmente (window.)
-        const storageRef = window.storageRef(window.storage, 'bodas/' + file.name);
-        
-        // Sube el archivo
-        await window.uploadBytes(storageRef, file);
+        // Si response.ok es true, la promesa se resuelve y el archivo se subió.
     };
 
-    // Función principal del botón (AHORA ES ASÍNCRONA)
+    // Función principal del botón
     const handleSubmit = async () => {
         if (files.length === 0) {
             alert("Por favor selecciona al menos una foto.");
@@ -32,17 +46,14 @@ export default function ImagenesBoda() {
 
         setUploading(true);
         try {
-            // Sube todos los archivos de forma concurrente
             const uploadPromises = files.map(file => uploadFile(file));
             await Promise.all(uploadPromises);
             
             alert(`¡Éxito! Se subieron ${files.length} fotos a tu Firebase Storage.`);
-            setFiles([]); // Limpia la lista tras la subida
+            setFiles([]); 
         } catch (error) {
-            console.error("Error al subir a Firebase:", error);
-            alert(`Ocurrió un error al subir las fotos. 
-                   Causa: ${error.message}
-                   Revisa: 1) Las Reglas de Storage (debe ser 'allow read, write: if true;'). 2) Que el script Firebase CDN esté cargado en tu HTML.`);
+            console.error("Error al subir:", error);
+            alert(`Fallo en la subida. Causa: ${error.message}.`);
         } finally {
             setUploading(false);
         }
@@ -51,26 +62,14 @@ export default function ImagenesBoda() {
 
 
     // --- LÓGICA DE MANEJO DE ARCHIVOS (UI) ---
-    const handleZoneClick = () => {
-        fileInputRef.current.click();
-    };
-
+    const handleZoneClick = () => { fileInputRef.current.click(); };
     const handleFileSelect = (e) => {
         if (e.target.files && e.target.files.length > 0) {
-            // Añade los archivos seleccionados a la lista actual
             setFiles([...files, ...Array.from(e.target.files)]);
         }
     };
-
-    const handleDragOver = (e) => {
-        e.preventDefault();
-        setIsDragging(true);
-    };
-
-    const handleDragLeave = () => {
-        setIsDragging(false);
-    };
-
+    const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
+    const handleDragLeave = () => { setIsDragging(false); };
     const handleDrop = (e) => {
         e.preventDefault();
         setIsDragging(false);
@@ -99,7 +98,6 @@ export default function ImagenesBoda() {
                     onDrop={handleDrop}
                 >
                     <div style={styles.iconContainer}>
-                        {/* Icono SVG en línea */}
                         <svg viewBox="0 0 24 24" style={styles.iconSvg}>
                             <path d="M21 19V5c0-1.1-.9-2-2-2H5c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2zM8.5 13.5l2.5 3.01L14.5 12l4.5 6H5l3.5-4.5z"/>
                         </svg>
@@ -122,7 +120,6 @@ export default function ImagenesBoda() {
                     />
                 </div>
 
-                {/* Botón Submit */}
                 <button 
                     style={styles.submitBtn} 
                     onClick={handleSubmit}
