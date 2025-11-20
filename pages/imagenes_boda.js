@@ -1,4 +1,4 @@
-import React, { useState, useRef } from 'react'; 
+import React, { useState, useRef } from 'react';
 
 export default function ImagenesBoda() {
     const [files, setFiles] = useState([]);
@@ -31,24 +31,32 @@ export default function ImagenesBoda() {
     // --- LÓGICA DE SUBIDA ---
     
     const sendFileToServer = async (file) => {
-        // 1. Pedimos la URL firmada (sin especificar tipo)
+        // Aseguramos que siempre haya un tipo de archivo
+        const typeToSend = file.type || 'application/octet-stream';
+
+        // 1. Pedimos la URL firmada enviando el nombre Y EL TIPO
         const urlResponse = await fetch('/api/get-signed-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ fileName: file.name }), 
+            body: JSON.stringify({ 
+                fileName: file.name,
+                fileType: typeToSend // ⚠️ ESTO ES LO QUE FALTABA
+            }), 
         });
 
         if (!urlResponse.ok) {
             const error = await urlResponse.json();
-            throw new Error(error.message || 'Fallo al obtener permiso.');
+            throw new Error(error.message || 'Fallo al obtener permiso del servidor.');
         }
 
         const { url } = await urlResponse.json();
         
-        // 2. Subimos el archivo directamente
-        // ⚠️ CAMBIO FINAL: No ponemos headers. Dejamos que el navegador maneje el Content-Type.
+        // 2. Subimos el archivo a Google usando el MISMO tipo en la cabecera
         const uploadResponse = await fetch(url, {
             method: 'PUT', 
+            headers: {
+                'Content-Type': typeToSend, // ⚠️ Debe coincidir con lo enviado arriba
+            },
             body: file,
         });
 
