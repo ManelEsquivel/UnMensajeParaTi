@@ -1,5 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react'; 
-  
+import React, { useState, useRef, useEffect } from 'react';
+import Head from 'next/head';
+
 export default function ImagenesBoda() {
     const [fileItems, setFileItems] = useState([]); 
     const [galleryPhotos, setGalleryPhotos] = useState([]); 
@@ -8,16 +9,17 @@ export default function ImagenesBoda() {
     const [isDragging, setIsDragging] = useState(false);
     const [isGlobalUploading, setIsGlobalUploading] = useState(false);
     
-    // ESTADO PARA EL ZOOM (Lightbox)
+    // Estado para el Zoom (Modal de imagen)
     const [selectedImage, setSelectedImage] = useState(null);
 
     const fileInputRef = useRef(null);
 
-    // 🛑 CONFIGURACIÓN DE LÍMITE (50 MB)
+    // 🛑 CONFIGURACIÓN: Límite de 50 MB para vídeos
     const MAX_VIDEO_SIZE_MB = 50;
     const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024;
 
-    // --- 1. COMPRESIÓN DE IMÁGENES (AHORRO DE DATOS) ---
+    // --- 1. FUNCIÓN DE COMPRESIÓN DE IMÁGENES ---
+    // Reduce el tamaño de las fotos antes de subir para ahorrar datos y dinero
     const compressImage = async (file) => {
         return new Promise((resolve, reject) => {
             const reader = new FileReader();
@@ -27,7 +29,8 @@ export default function ImagenesBoda() {
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
-                    const MAX_WIDTH = 1280; // Calidad HD Móvil
+                    // Resolución máxima HD (suficiente para móviles)
+                    const MAX_WIDTH = 1280; 
                     const MAX_HEIGHT = 1280;
                     let width = img.width;
                     let height = img.height;
@@ -42,15 +45,16 @@ export default function ImagenesBoda() {
                     const ctx = canvas.getContext('2d');
                     ctx.drawImage(img, 0, 0, width, height);
 
+                    // Exportar a JPG con 70% de calidad
                     canvas.toBlob((blob) => {
-                        if (!blob) return reject(new Error('Error compresión'));
+                        if (!blob) return reject(new Error('Error al comprimir'));
                         const newFileName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
                         resolve(new File([blob], newFileName, { type: 'image/jpeg', lastModified: Date.now() }));
-                    }, 'image/jpeg', 0.7); // Calidad 70%
+                    }, 'image/jpeg', 0.7); 
                 };
-                img.onerror = (error) => reject(error);
+                img.onerror = (err) => reject(err);
             };
-            reader.onerror = (error) => reject(error);
+            reader.onerror = (err) => reject(err);
         });
     };
 
@@ -63,11 +67,8 @@ export default function ImagenesBoda() {
             const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
-                // Filtramos para mostrar solo imágenes en la galería visual
-                const onlyImages = data.photos.filter(p => !p.name.match(/\.(mp4|mov|avi|webm)$/i));
-                
                 if (reset) {
-                    setGalleryPhotos(data.photos); // (Opcional: usa onlyImages si prefieres ocultar videos)
+                    setGalleryPhotos(data.photos);
                 } else {
                     setGalleryPhotos(prev => [...prev, ...data.photos]);
                 }
@@ -79,10 +80,15 @@ export default function ImagenesBoda() {
             if (!reset) setIsLoadingGallery(false);
         }
     };
-    useEffect(() => { fetchGallery(); }, []);
-    const handleLoadMore = () => { if (nextPageToken) fetchGallery(nextPageToken, false); };
 
-    // --- 3. SELECCIÓN Y FILTRADO DE ARCHIVOS ---
+    // Cargar galería al iniciar
+    useEffect(() => { fetchGallery(); }, []);
+    
+    const handleLoadMore = () => { 
+        if (nextPageToken) fetchGallery(nextPageToken, false); 
+    };
+
+    // --- 3. SELECCIÓN Y VALIDACIÓN DE ARCHIVOS ---
     const processNewFiles = (incomingFiles) => {
         const validFiles = Array.from(incomingFiles).filter(file => {
             const isImage = file.type.startsWith('image/');
@@ -93,7 +99,7 @@ export default function ImagenesBoda() {
                 return false;
             }
 
-            // Validación de tamaño para vídeos
+            // Validar tamaño de vídeo
             if (isVideo && file.size > MAX_VIDEO_SIZE_BYTES) {
                 alert(`⚠️ El vídeo "${file.name}" es demasiado grande.\nLímite: ${MAX_VIDEO_SIZE_MB}MB.`);
                 return false;
@@ -108,11 +114,12 @@ export default function ImagenesBoda() {
             file: file,
             previewUrl: URL.createObjectURL(file),
             isVideo: file.type.startsWith('video/'),
-            status: 'idle' 
+            status: 'idle' // idle, uploading, success, error
         }));
         setFileItems(prev => [...prev, ...newItems]);
     };
 
+    // Limpieza de memoria de las previsualizaciones
     useEffect(() => {
         return () => { fileItems.forEach(item => URL.revokeObjectURL(item.previewUrl)); };
     }, [fileItems]);
@@ -148,7 +155,7 @@ export default function ImagenesBoda() {
         try {
             let fileToUpload = item.file;
 
-            // Si es IMAGEN -> Comprimir. Si es VIDEO -> Original.
+            // Si es FOTO, comprimimos. Si es VIDEO, subimos original.
             if (item.file.type.startsWith('image/')) {
                 try {
                     fileToUpload = await compressImage(item.file);
@@ -157,10 +164,9 @@ export default function ImagenesBoda() {
                 }
             }
 
-            // IMPORTANTE: Usar siempre el tipo del archivo final
-            const typeToSend = fileToUpload.type; 
+            const typeToSend = fileToUpload.type; // El tipo real final
 
-            // 1. Obtener URL Firmada
+            // A. Pedir URL Firmada al servidor
             const urlRes = await fetch('/api/get-signed-url', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -173,17 +179,17 @@ export default function ImagenesBoda() {
             }
             const { url } = await urlRes.json();
             
-            // 2. Subir a Google (SIN HEADERS MANUALES para evitar CORS)
-            // El navegador detectará automáticamente el Content-Type del Blob/File
+            // B. Subir a Google (PUT directo)
             const uploadRes = await fetch(url, {
                 method: 'PUT', 
+                headers: { 'Content-Type': typeToSend }, // Coincide con la firma
                 body: fileToUpload,
             });
             
             if (!uploadRes.ok) throw new Error('Error subida');
 
+            // C. Éxito y refresco
             updateItemStatus(item.id, 'success');
-            // Recargar galería en segundo plano
             fetchGallery(null, true); 
 
         } catch (error) {
@@ -195,15 +201,18 @@ export default function ImagenesBoda() {
     const handleUploadAll = async () => {
         const itemsToUpload = fileItems.filter(i => i.status === 'idle' || i.status === 'error');
         if (itemsToUpload.length === 0) return alert("No hay archivos nuevos para subir.");
+
         setIsGlobalUploading(true);
         await Promise.all(itemsToUpload.map(item => uploadSingleItem(item)));
         setIsGlobalUploading(false);
+
+        // Limpiar los exitosos después de un momento
         setTimeout(() => {
             setFileItems(prev => prev.filter(i => i.status !== 'success'));
         }, 2000);
     };
 
-    // Helper para abrir modal o video
+    // Abrir modal (foto) o nueva pestaña (vídeo)
     const openMedia = (url) => {
         if (url.match(/\.(mp4|mov|avi|webm)$/i)) {
             window.open(url, '_blank');
@@ -215,6 +224,21 @@ export default function ImagenesBoda() {
     // --- RENDERIZADO ---
     return (
         <div style={styles.pageContainer}>
+            
+            {/* Etiquetas para WhatsApp / Redes Sociales */}
+            <Head>
+                <title>Sube tus Fotos de la Boda 📸</title>
+                <meta name="description" content="Comparte tus mejores momentos con nosotros." />
+                <meta property="og:title" content="📸 Fotos Boda: ¡Sube las tuyas!" />
+                <meta property="og:description" content="Entra aquí para compartir las fotos y vídeos que vas hacer en la boda. ¡Queremos verlas todas!" />
+                {/* Asegúrate de que boda_icon_3.JPG esté en la carpeta /public */}
+                <meta property="og:image" content="https://bodamanelcarla.vercel.app/boda_icon_3.JPG" />
+                <meta property="og:image:width" content="800" />
+                <meta property="og:image:height" content="800" />
+                <meta property="og:url" content="https://bodamanelcarla.vercel.app/imagenes_boda" />
+                <meta property="og:type" content="website" />
+            </Head>
+
             <div style={styles.card}>
                 <h1 style={styles.title}>Sube tus fotos de la boda 🥂</h1>
                 <p style={styles.subtitle}>Fotos y vídeos cortos (máx 50MB)</p>
@@ -231,6 +255,7 @@ export default function ImagenesBoda() {
                     <input type="file" ref={fileInputRef} onChange={handleFileSelect} style={{display:'none'}} multiple accept="image/*,video/*" />
                 </div>
                 
+                {/* Lista de previsualización */}
                 {fileItems.length > 0 && (
                     <ul style={styles.previewList}>
                         {fileItems.map((item) => (
@@ -266,15 +291,20 @@ export default function ImagenesBoda() {
                 </button>
             </div>
 
+            {/* Galería de Fotos */}
             <div style={styles.galleryContainer}>
                 <h2 style={styles.galleryTitle}>📸 Galería en Vivo</h2>
                 <div style={styles.grid}>
                     {galleryPhotos.map((media, index) => {
+                        // Detectar si es video por extensión
                         const isVid = media.name.match(/\.(mp4|mov|avi|webm)$/i);
                         return (
                             <div key={index} style={styles.gridItem} onClick={() => openMedia(media.url)}>
                                 {isVid ? (
-                                    <div style={styles.videoThumb}>🎥 VIDEO</div>
+                                    <div style={styles.videoThumb}>
+                                        <span style={{fontSize: '24px'}}>▶️</span>
+                                        <br/>VIDEO
+                                    </div>
                                 ) : (
                                     <img src={media.url} alt="Boda" style={styles.image} loading="lazy" onContextMenu={(e) => e.preventDefault()} />
                                 )}
@@ -289,7 +319,7 @@ export default function ImagenesBoda() {
                 )}
             </div>
 
-            {/* MODAL ZOOM */}
+            {/* Modal Zoom (Lightbox) */}
             {selectedImage && (
                 <div style={styles.modalOverlay} onClick={() => setSelectedImage(null)}>
                     <div style={styles.modalContent}>
@@ -302,13 +332,14 @@ export default function ImagenesBoda() {
     );
 }
 
+// --- ESTILOS ---
 const styles = {
     pageContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f0f2f5', fontFamily: 'sans-serif', padding: '15px' },
     card: { backgroundColor: 'white', borderRadius: '16px', padding: '25px', width: '100%', maxWidth: '500px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: '30px' },
     title: { margin: '0 0 8px 0', color: '#2d3748', fontSize: '22px' },
     subtitle: { margin: '0 0 25px 0', color: '#718096', fontSize: '14px' },
     dropZone: { border: '3px dashed #cbd5e0', borderRadius: '12px', padding: '30px 15px', cursor: 'pointer', backgroundColor: '#fafafa', marginBottom: '20px' },
-    dropZoneActive: { borderColor: '#5a67d8', backgroundColor: '#eef2ff' },
+    dropZoneActive: { borderColor: '#5a67d8', backgroundColor: '#ebf4ff' },
     iconContainer: { marginBottom: '10px', fontSize: '30px' },
     dropText: { margin: 0, color: '#4a5568', fontWeight: '500' },
     previewList: { listStyle: 'none', padding: 0, margin: '0 0 20px 0', textAlign: 'left', maxHeight: '350px', overflowY: 'auto' },
@@ -319,15 +350,13 @@ const styles = {
     fileName: { display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 'bold', color: '#2d3748', marginBottom: '4px' },
     removeBtn: { background: '#fff5f5', border: '1px solid #feb2b2', color: '#c53030', cursor: 'pointer', fontSize: '20px', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '10px' },
     submitBtn: { width: '100%', padding: '15px', borderRadius: '10px', border: 'none', backgroundColor: '#5a67d8', color: 'white', fontWeight: 'bold', fontSize: '18px', cursor: 'pointer', boxShadow: '0 4px 6px rgba(90, 103, 216, 0.3)' },
-    
     galleryContainer: { width: '100%', maxWidth: '800px', textAlign: 'center', paddingBottom: '40px' },
     galleryTitle: { color: '#2d3748', marginBottom: '20px', fontSize: '20px', fontWeight: 'bold' },
     grid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px', width: '100%' },
-    gridItem: { backgroundColor: '#fff', borderRadius: '4px', overflow: 'hidden', aspectRatio: '1 / 1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' },
+    gridItem: { backgroundColor: '#fff', borderRadius: '4px', overflow: 'hidden', aspectRatio: '1 / 1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #eee' },
     image: { width: '100%', height: '100%', objectFit: 'cover' },
-    videoThumb: { fontSize: '12px', color: '#333', fontWeight: 'bold' },
+    videoThumb: { fontSize: '12px', color: '#333', fontWeight: 'bold', textAlign: 'center' },
     loadMoreBtn: { marginTop: '25px', padding: '12px 25px', backgroundColor: 'white', border: '2px solid #5a67d8', color: '#5a67d8', borderRadius: '30px', fontWeight: 'bold', fontSize: '14px' },
-    
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.9)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000, cursor: 'zoom-out' },
     modalContent: { position: 'relative', maxWidth: '95%', maxHeight: '95%' },
     modalImage: { maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain', borderRadius: '4px', boxShadow: '0 0 20px rgba(0,0,0,0.5)' },
