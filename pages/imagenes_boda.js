@@ -1,10 +1,29 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 
 export default function ImagenesBoda() {
     const [files, setFiles] = useState([]);
+    const [galleryPhotos, setGalleryPhotos] = useState([]); // Estado para las fotos de la galería
     const [isDragging, setIsDragging] = useState(false);
     const [uploading, setUploading] = useState(false);
     const fileInputRef = useRef(null);
+
+    // --- CARGAR GALERÍA AL INICIO ---
+    const fetchGallery = async () => {
+        try {
+            const res = await fetch('/api/get-photos');
+            if (res.ok) {
+                const data = await res.json();
+                setGalleryPhotos(data.photos);
+            }
+        } catch (error) {
+            console.error("Error cargando galería:", error);
+        }
+    };
+
+    // Cargar fotos cuando se monta la página
+    useEffect(() => {
+        fetchGallery();
+    }, []);
 
     // --- UI HANDLERS ---
     const handleZoneClick = () => fileInputRef.current.click();
@@ -29,40 +48,27 @@ export default function ImagenesBoda() {
     };
 
     // --- LÓGICA DE SUBIDA ---
-    
     const sendFileToServer = async (file) => {
-        // Aseguramos que siempre haya un tipo de archivo
         const typeToSend = file.type || 'application/octet-stream';
 
-        // 1. Pedimos la URL firmada enviando el nombre Y EL TIPO
+        // 1. Pedir URL
         const urlResponse = await fetch('/api/get-signed-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ 
-                fileName: file.name,
-                fileType: typeToSend // ⚠️ ESTO ES LO QUE FALTABA
-            }), 
+            body: JSON.stringify({ fileName: file.name, fileType: typeToSend }), 
         });
 
-        if (!urlResponse.ok) {
-            const error = await urlResponse.json();
-            throw new Error(error.message || 'Fallo al obtener permiso del servidor.');
-        }
-
+        if (!urlResponse.ok) throw new Error('Fallo al obtener permiso.');
         const { url } = await urlResponse.json();
         
-        // 2. Subimos el archivo a Google usando el MISMO tipo en la cabecera
+        // 2. Subir a Google
         const uploadResponse = await fetch(url, {
             method: 'PUT', 
-            headers: {
-                'Content-Type': typeToSend, // ⚠️ Debe coincidir con lo enviado arriba
-            },
+            headers: { 'Content-Type': typeToSend },
             body: file,
         });
 
-        if (!uploadResponse.ok) {
-            throw new Error(`Error subiendo a Google: ${uploadResponse.status}`);
-        }
+        if (!uploadResponse.ok) throw new Error(`Error subiendo: ${uploadResponse.status}`);
     };
 
     const handleSubmit = async () => {
@@ -75,6 +81,10 @@ export default function ImagenesBoda() {
             
             alert(`🎉 ¡Éxito! Se subieron ${files.length} fotos.`);
             setFiles([]); 
+            
+            // ⚠️ RECARGAR LA GALERÍA DESPUÉS DE SUBIR
+            setTimeout(fetchGallery, 1000); // Esperamos un poco para que Firebase procese
+
         } catch (error) {
             console.error(error);
             alert(`Error: ${error.message}`);
@@ -129,13 +139,30 @@ export default function ImagenesBoda() {
                     {uploading ? 'Subiendo...' : 'Enviar Fotos'}
                 </button>
             </div>
+
+            {/* --- SECCIÓN DE GALERÍA --- */}
+            <div style={styles.galleryContainer}>
+                <h2 style={styles.galleryTitle}>📸 Galería de la Boda</h2>
+                <div style={styles.grid}>
+                    {galleryPhotos.length === 0 ? (
+                        <p style={{color: '#888', width: '100%'}}>Aún no hay fotos. ¡Sé el primero!</p>
+                    ) : (
+                        galleryPhotos.map((photo, index) => (
+                            <div key={index} style={styles.gridItem}>
+                                <img src={photo.url} alt="Boda" style={styles.image} loading="lazy" />
+                            </div>
+                        ))
+                    )}
+                </div>
+            </div>
+
         </div>
     );
 }
 
 const styles = {
-    pageContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f0f2f5', fontFamily: 'sans-serif' },
-    card: { backgroundColor: 'white', borderRadius: '12px', padding: '30px', width: '90%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },
+    pageContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f0f2f5', fontFamily: 'sans-serif', padding: '20px 10px' },
+    card: { backgroundColor: 'white', borderRadius: '12px', padding: '30px', width: '100%', maxWidth: '450px', textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', marginBottom: '40px' },
     title: { margin: '0 0 10px 0', color: '#333' },
     subtitle: { margin: '0 0 20px 0', color: '#666', fontSize: '14px' },
     dropZone: { border: '2px dashed #ccc', borderRadius: '8px', padding: '40px 20px', cursor: 'pointer', backgroundColor: '#fafafa' },
@@ -148,5 +175,27 @@ const styles = {
     fileList: { listStyle: 'none', padding: 0, margin: 0 },
     fileItem: { display: 'flex', justifyContent: 'space-between', fontSize: '13px', padding: '5px 0', borderBottom: '1px solid #eee' },
     fileName: { overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '80%' },
-    removeBtn: { background: 'none', border: 'none', color: 'red', cursor: 'pointer' }
+    removeBtn: { background: 'none', border: 'none', color: 'red', cursor: 'pointer' },
+    
+    // Estilos de la Galería
+    galleryContainer: { width: '100%', maxWidth: '800px', textAlign: 'center' },
+    galleryTitle: { color: '#333', marginBottom: '20px', fontSize: '20px' },
+    grid: { 
+        display: 'grid', 
+        gridTemplateColumns: 'repeat(auto-fill, minmax(150px, 1fr))', // Crea columnas automáticas
+        gap: '10px',
+        width: '100%'
+    },
+    gridItem: { 
+        backgroundColor: '#fff', 
+        borderRadius: '8px', 
+        overflow: 'hidden', 
+        boxShadow: '0 2px 5px rgba(0,0,0,0.1)',
+        aspectRatio: '1 / 1' // Cuadrados perfectos
+    },
+    image: { 
+        width: '100%', 
+        height: '100%', 
+        objectFit: 'cover' 
+    }
 };
