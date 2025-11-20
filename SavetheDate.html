@@ -180,7 +180,12 @@
         </p>
 
         <div class="animated-item step-7">
-            <a href="#" class="btn-details" onclick="handleConfirmation(); return false;">
+            <a 
+                href="https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3" 
+                target="_blank" 
+                class="btn-details" 
+                onclick="triggerCalendarDownload()"
+            >
                 Confirmar Asistencia
             </a>
         </div>
@@ -188,21 +193,26 @@
     </div>
 
     <script>
-        // Función que gestiona la apertura de la web y la redirección a Google Calendar
-        function handleConfirmation() {
-            var confirmationUrl = 'https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3';
+        // Esta función dispara la descarga del calendario (o el diálogo nativo en móvil)
+        function triggerCalendarDownload() {
+            // El navegador ejecutará esto ANTES de seguir el 'href' del botón principal.
             
-            // Enlace de Google Calendar con los detalles precargados
-            var calendarUrl = 'https://www.google.com/calendar/render?action=TEMPLATE&text=Boda+de+Manel+y+Carla&dates=20261031T170000/20261031T230000&details=Nos+encantaría+que+nos+acompañaras.+Confirma+asistencia+aquí: https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3&location=Masia+Mas+Llombart,+Sant+Fost+de+Campsentelles,+Barcelona&sf=true&output=xml';
-            
-            // 1. ABRIR LA WEB DE CONFIRMACIÓN EN UNA NUEVA PESTAÑA INMEDIATAMENTE.
-            // Esto es crucial para que el navegador no lo bloquee.
-            window.open(confirmationUrl, '_blank'); 
+            // 1. Data del evento de calendario (formato iCalendar)
+            var icsData = "data:text/calendar;charset=utf8,BEGIN:VCALENDAR%0AVERSION:2.0%0APRODID:-//Manel%20&%20Carla%20Wedding//NONSGML%20v1.0//EN%0ABEGIN:VEVENT%0AUID:ManelyCarlaBoda20261031%0ADTSTAMP:20251120T073908Z%0ADTSTART:20261031T170000%0ADTEND:20261031T230000%0ASUMMARY:Boda%20de%20Manel%20y%20Carla%0ALOCATION:Masia%20Mas%20Llombart%2C%20Sant%20Fost%20de%20Campsentelles%2C%20Barcelona%0ADESCRIPTION:Confirma%20asistencia%20en%20la%20web:%20https%3A%2F%2Fwww.bodas.net%2Fweb%2Fmanel-y-carla%2Fconfirmatuasistencia-3%0AEND:VEVENT%0AEND:VCALENDAR";
 
-            // 2. REDIRIGIR LA PESTAÑA ACTUAL a la página de Google Calendar.
-            // De esta forma, ambas acciones se realizan con un solo clic: la web en una pestaña nueva
-            // y el calendario en la pestaña original.
-            window.location.href = calendarUrl; 
+            // 2. Crea un enlace temporal (oculto)
+            var calendarLink = document.createElement('a');
+            calendarLink.href = icsData;
+            calendarLink.download = 'Boda_Manel_Carla.ics';
+            calendarLink.style.display = 'none'; // Aseguramos que no se vea
+
+            // 3. Simula el clic. Esto inicia el diálogo de calendario en iOS/Android 
+            // y la descarga en PC.
+            document.body.appendChild(calendarLink);
+            calendarLink.click();
+            document.body.removeChild(calendarLink);
+            
+            // 4. Se permite que el navegador siga con el 'href' del botón principal (que abrirá la nueva pestaña).
         }
 
         // Desplaza la página 50 píxeles hacia abajo al cargarse
@@ -211,5 +221,7 @@
         };
     </script>
 
+</body>
+</html>
 </body>
 </html>
