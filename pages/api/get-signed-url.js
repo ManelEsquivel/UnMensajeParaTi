@@ -1,17 +1,25 @@
-// pages/api/get-signed-url.js (FINAL ROBUSTA)
+// pages/api/get-signed-url.js (FINAL ULTRA-ESTABLE)
 
 // Importamos la instancia del Admin App directamente
 const { adminApp } = require('../../lib/firebase'); 
 
 export default async function handler(req, res) {
+  // Manejamos OPTIONS y métodos no permitidos
+  if (req.method === 'OPTIONS') {
+    res.setHeader("Access-Control-Allow-Origin", "https://bodamanelcarla.vercel.app");
+    res.setHeader("Access-Control-Allow-Methods", "POST, OPTIONS");
+    res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+    return res.status(200).end();
+  }
   if (req.method !== 'POST') {
-    return res.status(405).json({ message: 'Método no permitido.' });
+    res.setHeader("Allow", "POST");
+    return res.status(405).end();
   }
 
-  // 1. Verificación de Autenticación del Servidor
+  // 1. Verificación Crítica: Si el Admin SDK no se cargó, fallamos explícitamente.
   if (!adminApp) {
-    console.error('ERROR: Admin SDK no inicializado. Faltan variables de entorno.');
-    return res.status(500).json({ message: 'Error interno del servidor: Credenciales de Firebase Admin incompletas.' });
+    console.error('CRASH: Admin SDK no inicializado. Revise la variable de entorno FIREBASE_PRIVATE_KEY.');
+    return res.status(500).json({ message: 'Error interno: Credenciales de Firebase Admin no cargadas o malformadas.' });
   }
 
   const { fileName } = req.body;
@@ -20,28 +28,28 @@ export default async function handler(req, res) {
   }
 
   try {
-    // 2. Usar la instancia del Admin App para acceder a Storage
+    // 2. Uso de la instancia Admin App
     const bucket = adminApp.storage().bucket();
     const file = bucket.file(`bodas/${fileName}`);
 
-    // 3. Configuración para la URL firmada (FIX FINAL DE CONTENT-TYPE)
+    // Configuración para la URL firmada
     const options = {
       version: 'v4',
       action: 'write',
       expires: Date.now() + 5 * 60 * 1000, 
       contentType: 'application/octet-stream', 
-      // ✅ Solución final: Incluimos el encabezado Content-Type que el cliente usará.
       headers: {
           'Content-Type': 'application/octet-stream' 
       }
     };
 
-    // 4. Generar la URL
+    // 3. Generar la URL
     const [url] = await file.getSignedUrl(options);
 
-    res.status(200).json({ url, fileName });
+    return res.status(200).json({ url, fileName });
   } catch (error) {
-    console.error('Error al generar URL firmada. Posiblemente permisos:', error);
-    res.status(500).json({ message: 'Error interno de autenticación para Storage. Revisa tus variables y el rol de tu Service Account.' });
+    // 4. Capturamos el error y devolvemos un JSON válido (para evitar el 'Unexpected end of JSON')
+    console.error('Error FATAL al generar URL firmada:', error);
+    return res.status(500).json({ message: `Error al generar URL. Verifique clave privada. Detalle: ${error.message.substring(0, 50)}...` });
   }
 }
