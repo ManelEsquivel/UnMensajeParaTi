@@ -7,14 +7,13 @@ export default function ImagenesBoda() {
     const [uploading, setUploading] = useState(false); // Nuevo estado
     const fileInputRef = useRef(null);
 
-    // --- LÓGICA DE DRAG AND DROP ---
+    // --- LÓGICA DE DRAG AND DROP / UI ---
     const handleZoneClick = () => {
         fileInputRef.current.click();
     };
 
     const handleFileSelect = (e) => {
         if (e.target.files && e.target.files.length > 0) {
-            // Añade los nuevos archivos a la lista existente
             setFiles(prevFiles => [...prevFiles, ...Array.from(e.target.files)]);
         }
     };
@@ -32,19 +31,16 @@ export default function ImagenesBoda() {
         e.preventDefault();
         setIsDragging(false);
         if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
-             // Añade los archivos arrastrados a la lista
             setFiles(prevFiles => [...prevFiles, ...Array.from(e.dataTransfer.files)]);
         }
     };
     
-    // Función para remover un archivo de la lista antes de subir
     const handleRemoveFile = (index) => {
         setFiles(prevFiles => prevFiles.filter((_, i) => i !== index));
     };
 
     // --- LÓGICA DE SUBIDA CON URL FIRMADA (SIGNED URL) ---
     
-    // ⚠️ Función clave: pide permiso al servidor y sube el archivo directo a Google Cloud
     const sendFileToServer = async (file) => {
         // === PASO 1: PEDIR LA URL FIRMADA AL SERVIDOR DE VERCEL ===
         const urlResponse = await fetch('/api/get-signed-url', {
@@ -61,13 +57,9 @@ export default function ImagenesBoda() {
         const { url } = await urlResponse.json();
         
         // === PASO 2: SUBIR EL ARCHIVO DIRECTAMENTE A GOOGLE CLOUD ===
-        // Esto evita el Error 500 al no usar la memoria del servidor de Vercel
         const uploadResponse = await fetch(url, {
-            method: 'PUT', // Usamos PUT para subir a la URL de Google Cloud Storage
-            headers: {
-                // Definimos el tipo de archivo para GCS
-                'Content-Type': file.type || 'application/octet-stream', 
-            },
+            method: 'PUT', 
+            // ⚠️ SOLUCIÓN FINAL AL ERROR CORS: No incluimos 'headers' para que el navegador use los que necesita.
             body: file, // Enviamos el objeto File (el payload de la foto)
         });
 
@@ -76,7 +68,7 @@ export default function ImagenesBoda() {
         }
     };
 
-    // Función principal del botón (AHORA ES ASÍNCRONA)
+    // Función principal del botón
     const handleSubmit = async () => {
         if (files.length === 0) {
             alert("Por favor selecciona al menos una foto.");
@@ -85,12 +77,11 @@ export default function ImagenesBoda() {
 
         setUploading(true);
         try {
-            // Sube todos los archivos de forma concurrente con Promise.all
             const uploadPromises = files.map(file => sendFileToServer(file));
             await Promise.all(uploadPromises);
             
             alert(`🎉 ¡Éxito! Se subieron ${files.length} fotos a tu Firebase Storage.`);
-            setFiles([]); // Limpiar la lista de archivos después del éxito
+            setFiles([]); 
         } catch (error) {
             console.error("Error al subir:", error);
             alert(`🛑 Fallo en la subida. Causa: ${error.message}.`);
@@ -127,8 +118,8 @@ export default function ImagenesBoda() {
                         ref={fileInputRef} 
                         onChange={handleFileSelect} 
                         style={{ display: 'none' }}
-                        multiple // Permite seleccionar múltiples archivos
-                        accept="image/*" // Solo permite imágenes
+                        multiple 
+                        accept="image/*" 
                     />
                 </div>
                 
@@ -168,7 +159,7 @@ export default function ImagenesBoda() {
     );
 }
 
-// === ESTILOS (Mantenidos desde tu código original) ===
+// === ESTILOS (Mantenidos) ===
 const styles = {
     pageContainer: {
         display: 'flex',
