@@ -107,6 +107,7 @@
             transition: background-color 0.3s, transform 0.1s;
             display: inline-block;
             box-shadow: 0 4px 10px rgba(177, 133, 121, 0.4);
+            cursor: pointer; /* Indica que es un elemento interactivo */
         }
 
         .btn-details:hover {
@@ -179,7 +180,7 @@
         </p>
 
         <div class="animated-item step-7">
-            <a href="https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3" target="_blank" class="btn-details">
+            <a href="#" class="btn-details" onclick="handleConfirmation(); return false;">
                 Confirmar Asistencia
             </a>
         </div>
@@ -187,6 +188,28 @@
     </div>
 
     <script>
+        // Función que gestiona tanto la descarga del calendario como la redirección
+        function handleConfirmation() {
+            // 1. Datos del evento de calendario (formato iCalendar)
+            var icsData = "data:text/calendar;charset=utf8,BEGIN:VCALENDAR%0AVERSION:2.0%0APRODID:-//Manel%20&%20Carla%20Wedding//NONSGML%20v1.0//EN%0ABEGIN:VEVENT%0AUID:ManelyCarlaBoda20261031%0ADTSTAMP:20251120T073908Z%0ADTSTART:20261031T170000%0ADTEND:20261031T230000%0ASUMMARY:Boda%20de%20Manel%20y%20Carla%0ALOCATION:Masia%20Mas%20Llombart%2C%20Sant%20Fost%20de%20Campsentelles%2C%20Barcelona%0ADESCRIPTION:Nos%20encantaría%20que%20nos%20acompañaras%20en%20nuestro%20gran%20día.%20Confirma%20asistencia%20aquí:%20https%3A%2F%2Fwww.bodas.net%2Fweb%2Fmanel-y-carla%2Fconfirmatuasistencia-3%0AEND:VEVENT%0AEND:VCALENDAR";
+
+            // 2. Crea un enlace temporal para forzar la descarga del .ics
+            var calendarLink = document.createElement('a');
+            calendarLink.href = icsData;
+            calendarLink.download = 'Boda_Manel_Carla.ics';
+            
+            // 3. Simula el clic para que inicie la descarga/prompt del calendario
+            document.body.appendChild(calendarLink);
+            calendarLink.click();
+            document.body.removeChild(calendarLink);
+
+            // 4. Redirige a la web de confirmación en una nueva pestaña
+            // Se usa un pequeño retraso (100ms) para que el navegador inicie la descarga del calendario primero
+            setTimeout(function() {
+                window.open('https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3', '_blank');
+            }, 100); 
+        }
+
         // Desplaza la página 50 píxeles hacia abajo al cargarse
         window.onload = function() {
             window.scrollTo(0, 50); 
