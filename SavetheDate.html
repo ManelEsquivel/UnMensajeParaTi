@@ -281,7 +281,7 @@
             title: "Boda Manel & Carla",
             location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
             description: "¡Nos encantaría que nos acompañaras en nuestro gran día! Confirma tu asistencia en: https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3",
-            // Fecha: 31 de Octubre de 2026. Hora: 12:00 (1 PM). Duración: 10 horas (10:00:00)
+            // Fecha: 31 de Octubre de 2026. Hora: 12:00. Duración: 10 horas (acaba a las 22:00)
             date: "20261031T120000",
             durationHours: 10 
         };
@@ -380,10 +380,11 @@
             }
         });
 
-        // 4. Guardar en Calendario (¡Ahora usa el método ICS universal!)
+        // 4. Guardar en Calendario (¡Ahora usa el método ICS universal y NO CIERRA el modal!)
         saveToCalendarBtn.addEventListener('click', () => {
             downloadICalFile(eventData);
-            closeModalBtn.click(); // Cierra el modal después de iniciar la descarga/importación
+            // ANTES: closeModalBtn.click(); 
+            // AHORA: El modal permanece abierto para que el usuario pueda pulsar "Continuar a Confirmar Asistencia"
         });
         
         // 5. Scroll (Mantenido)
