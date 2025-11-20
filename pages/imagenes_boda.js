@@ -216,7 +216,7 @@ export default function ImagenesBoda() {
     return (
         <div style={styles.pageContainer}>
             <div style={styles.card}>
-                <h1 style={styles.title}>Sube tus Recuerdos</h1>
+                <h1 style={styles.title}>Sube tus fotos de la boda 🥂</h1>
                 <p style={styles.subtitle}>Fotos y vídeos cortos (máx 50MB)</p>
                 
                 <div 
@@ -262,7 +262,7 @@ export default function ImagenesBoda() {
                     style={{...styles.submitBtn, opacity: (isGlobalUploading || fileItems.length === 0) ? 0.5 : 1}}
                     disabled={isGlobalUploading || fileItems.length === 0}
                 >
-                    {isGlobalUploading ? 'Subiendo...' : `ENVIAR ARCHIVOS`}
+                    {isGlobalUploading ? 'Subiendo...' : `SUBIR FOTOS`}
                 </button>
             </div>
 
