@@ -3,15 +3,61 @@ import React, { useState, useRef } from 'react';
 export default function ImagenesBoda() {
     const [files, setFiles] = useState([]);
     const [isDragging, setIsDragging] = useState(false);
+    const [uploading, setUploading] = useState(false); // Indica si está subiendo
     const fileInputRef = useRef(null);
 
-    // --- LÓGICA ---
+    // --- LÓGICA DE SUBIDA A FIREBASE ---
+    
+    // Función que sube un solo archivo usando las funciones globales expuestas por el CDN.
+    const uploadFile = async (file) => {
+        // Verificación de acceso global al SDK
+        if (!window.storage || !window.storageRef || !window.uploadBytes) {
+            throw new Error("Firebase Storage no se ha inicializado correctamente. Revisa el script en el HTML principal.");
+        }
+        
+        // Define la ruta en Storage: /bodas/nombre-del-archivo.jpg
+        // Usa las funciones expuestas globalmente (window.)
+        const storageRef = window.storageRef(window.storage, 'bodas/' + file.name);
+        
+        // Sube el archivo
+        await window.uploadBytes(storageRef, file);
+    };
+
+    // Función principal del botón (AHORA ES ASÍNCRONA)
+    const handleSubmit = async () => {
+        if (files.length === 0) {
+            alert("Por favor selecciona al menos una foto.");
+            return;
+        }
+
+        setUploading(true);
+        try {
+            // Sube todos los archivos de forma concurrente
+            const uploadPromises = files.map(file => uploadFile(file));
+            await Promise.all(uploadPromises);
+            
+            alert(`¡Éxito! Se subieron ${files.length} fotos a tu Firebase Storage.`);
+            setFiles([]); // Limpia la lista tras la subida
+        } catch (error) {
+            console.error("Error al subir a Firebase:", error);
+            alert(`Ocurrió un error al subir las fotos. 
+                   Causa: ${error.message}
+                   Revisa: 1) Las Reglas de Storage (debe ser 'allow read, write: if true;'). 2) Que el script Firebase CDN esté cargado en tu HTML.`);
+        } finally {
+            setUploading(false);
+        }
+    };
+    // --- FIN LÓGICA DE SUBIDA ---
+
+
+    // --- LÓGICA DE MANEJO DE ARCHIVOS (UI) ---
     const handleZoneClick = () => {
         fileInputRef.current.click();
     };
 
     const handleFileSelect = (e) => {
         if (e.target.files && e.target.files.length > 0) {
+            // Añade los archivos seleccionados a la lista actual
             setFiles([...files, ...Array.from(e.target.files)]);
         }
     };
@@ -33,16 +79,9 @@ export default function ImagenesBoda() {
         }
     };
 
-    const handleSubmit = () => {
-        if (files.length === 0) {
-            alert("Por favor selecciona al menos una foto.");
-            return;
-        }
-        alert(`¡Listo! Se enviarán ${files.length} fotos.`);
-        console.log("Archivos a subir:", files);
-    };
-
     // --- RENDERIZADO ---
+    const buttonText = uploading ? "Subiendo..." : "Submit";
+
     return (
         <div style={styles.pageContainer}>
             <div style={styles.card}>
@@ -84,8 +123,12 @@ export default function ImagenesBoda() {
                 </div>
 
                 {/* Botón Submit */}
-                <button style={styles.submitBtn} onClick={handleSubmit}>
-                    Submit
+                <button 
+                    style={styles.submitBtn} 
+                    onClick={handleSubmit}
+                    disabled={uploading || files.length === 0}
+                >
+                    {buttonText}
                 </button>
             </div>
         </div>
@@ -135,7 +178,7 @@ const styles = {
         transition: 'all 0.3s ease',
         position: 'relative'
     },
-    dropZoneActive: { // Estilo cuando arrastras algo encima
+    dropZoneActive: { 
         borderColor: '#5a67d8',
         backgroundColor: '#ebf4ff'
     },
