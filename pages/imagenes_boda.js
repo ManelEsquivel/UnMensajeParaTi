@@ -31,7 +31,7 @@ export default function ImagenesBoda() {
     // --- LÓGICA DE SUBIDA ---
     
     const sendFileToServer = async (file) => {
-        // 1. Pedimos la URL firmada (El servidor forzará 'application/octet-stream')
+        // 1. Pedimos la URL firmada (sin especificar tipo)
         const urlResponse = await fetch('/api/get-signed-url', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -45,12 +45,10 @@ export default function ImagenesBoda() {
 
         const { url } = await urlResponse.json();
         
-        // 2. Subimos el archivo a Google forzando el MISMO Content-Type de la firma
+        // 2. Subimos el archivo directamente
+        // ⚠️ CAMBIO FINAL: No ponemos headers. Dejamos que el navegador maneje el Content-Type.
         const uploadResponse = await fetch(url, {
             method: 'PUT', 
-            headers: {
-                'Content-Type': 'application/octet-stream', // ⚠️ Coincidencia exacta forzada
-            },
             body: file,
         });
 
@@ -127,7 +125,6 @@ export default function ImagenesBoda() {
     );
 }
 
-// Estilos
 const styles = {
     pageContainer: { display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f0f2f5', fontFamily: 'sans-serif' },
     card: { backgroundColor: 'white', borderRadius: '12px', padding: '30px', width: '90%', maxWidth: '400px', textAlign: 'center', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' },
