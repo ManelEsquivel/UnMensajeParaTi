@@ -1,5 +1,3 @@
-// pages/api/get-signed-url.js (SOLUCIÓN DE SINCRONIZACIÓN)
-
 const { adminApp } = require('../../lib/firebase'); 
 
 export default async function handler(req, res) {
@@ -11,23 +9,22 @@ export default async function handler(req, res) {
     return res.status(500).json({ message: 'Error interno: Admin SDK no inicializado.' });
   }
 
-  // Recibimos nombre Y tipo de archivo
-  const { fileName, fileType } = req.body;
+  const { fileName } = req.body;
   
-  if (!fileName || !fileType) {
-    return res.status(400).json({ message: 'Faltan datos del archivo (nombre o tipo).' });
+  if (!fileName) {
+    return res.status(400).json({ message: 'Falta el nombre del archivo.' });
   }
 
   try {
     const bucket = adminApp.storage().bucket();
     const file = bucket.file(`bodas/${fileName}`);
 
-    // Configuración para la URL firmada
+    // ⚠️ CAMBIO CLAVE: Forzamos SIEMPRE 'application/octet-stream' en la firma
     const options = {
       version: 'v4',
       action: 'write',
-      expires: Date.now() + 15 * 60 * 1000, // 15 minutos
-      contentType: fileType, // ⚠️ FIRMAMOS CON EL TIPO EXACTO DEL ARCHIVO
+      expires: Date.now() + 15 * 60 * 1000, 
+      contentType: 'application/octet-stream', 
     };
 
     const [url] = await file.getSignedUrl(options);
