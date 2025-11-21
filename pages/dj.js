@@ -11,7 +11,7 @@ const ENTRY_SONG   = "entry.38062662";
 const ENTRY_ARTIST = "entry.1279581249"; 
 const ENTRY_ALBUM  = "entry.2026891459"; 
 
-// Enlace a tu Excel
+// Tu enlace CSV
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ9RxSCBQemScY8lZhfg2Bbi4T5xOoNhTcmENIJSZWFo8yVF0bxd7yXy5gx0HoKIb87-chczYEccKr/pub?output=csv";
 // *******************************************************************
 
@@ -22,37 +22,76 @@ export default function DjPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [playlist, setPlaylist] = useState([]);
+    const [debugError, setDebugError] = useState(null); // Para ver errores en pantalla si los hay
 
     const fetchPlaylist = async () => {
         try {
-            const response = await fetch(`${SHEET_CSV_URL}&t=${Date.now()}`);
-            const text = await response.text();
-            const rows = text.split('\n').slice(1);
-            
-            const tracks = rows.map((row, index) => {
-                const columns = row.split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/); 
-                const clean = (str) => str ? str.replace(/^"|"$/g, '').trim() : '';
+            // 1. Forzamos 'no-cache' para obligar al navegador a descargar lo nuevo
+            const response = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`, {
+                cache: "no-store",
+                headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+            });
 
+            if (!response.ok) throw new Error("No se pudo conectar con Google");
+
+            const text = await response.text();
+            
+            // 2. Detectamos si el archivo está vacío
+            if (!text || text.length < 10) {
+                console.warn("Archivo CSV vacío o muy corto");
+                setIsLoading(false);
+                return;
+            }
+
+            // 3. Limpieza inteligente de saltos de línea (Windows/Mac/Linux)
+            const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
+            
+            // Quitamos la cabecera (fila 1)
+            const dataRows = rows.slice(1);
+
+            // 4. Detectamos si usa COMAS o PUNTOS Y COMA (Por si acaso)
+            const separator = text.indexOf(';') > -1 && text.indexOf(',') < text.indexOf(';') ? ';' : ',';
+
+            const tracks = dataRows.map((row, index) => {
+                // Si la fila está vacía, la saltamos
+                if (!row || row.trim() === "") return null;
+
+                // Separamos usando el separador detectado
+                // Esta Regex maneja comillas correctamente (ej: "Canción, con coma", Artista)
+                const regex = new RegExp(`${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
+                const columns = row.split(regex); 
+                
+                const clean = (str) => str ? str.replace(/^"|"$/g, '').replace(/""/g, '"').trim() : '';
+
+                // Mapeo seguro: Si falta una columna, no explota
                 return {
-                    id: index,
-                    song: clean(columns[1]) || "Canción desconocida",
-                    artist: clean(columns[2]) || "Desconocido",
-                    album: clean(columns[3]) || "Single"
+                    id: `track-${index}`, 
+                    song: clean(columns[1]),   // Columna B
+                    artist: clean(columns[2]) || "Desconocido", // Columna C
+                    album: clean(columns[3]) || "Single"        // Columna D
                 };
             });
 
-            const validTracks = tracks.filter(t => t.song && t.song !== "Canción desconocida").reverse();
+            // Filtramos nulos y canciones sin nombre
+            const validTracks = tracks
+                .filter(t => t && t.song && t.song.length > 0 && t.song !== "Canción desconocida")
+                .reverse();
+
             setPlaylist(validTracks);
             setIsLoading(false);
+            setDebugError(null); // Todo ok
+
         } catch (error) {
-            console.error("Error cargando lista:", error);
+            console.error("Error cargando:", error);
+            setDebugError(error.message);
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
         fetchPlaylist();
-        const interval = setInterval(fetchPlaylist, 10000);
+        // Recarga automática cada 7 segundos
+        const interval = setInterval(fetchPlaylist, 7000);
         return () => clearInterval(interval);
     }, []);
 
@@ -63,7 +102,6 @@ export default function DjPage() {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.song) return;
-
         setIsSubmitting(true);
 
         const formBody = new URLSearchParams();
@@ -79,6 +117,7 @@ export default function DjPage() {
                 body: formBody
             });
             
+            // Feedback visual inmediato (ilusión óptica para el usuario)
             const newTrack = {
                 id: Date.now(), 
                 song: formData.song,
@@ -86,13 +125,16 @@ export default function DjPage() {
                 album: formData.album || 'Single'
             };
             setPlaylist(prev => [newTrack, ...prev]);
+
         } catch (error) {
             console.error("Error enviando");
         }
 
         setFormData({ song: '', artist: '', album: '' });
         setIsSubmitting(false);
-        setTimeout(fetchPlaylist, 4000);
+        
+        // Intentamos recargar la lista real un poco después
+        setTimeout(fetchPlaylist, 3000);
     };
 
     return (
@@ -107,7 +149,6 @@ export default function DjPage() {
             {/* FORMULARIO */}
             <div className="form-section">
                 <div className="header">
-                    {/* Icono ajustado para que no se monte */}
                     <div className="vinyl-container">
                         <div className="vinyl-icon">💿</div>
                     </div>
@@ -149,12 +190,22 @@ export default function DjPage() {
                     </div>
                     <div className="chalk-divider"></div>
                     
+                    {/* ZONA DE DEBUG: Si hay error lo muestra, si no, lista normal */}
+                    {debugError && (
+                        <div style={{background:'red', color:'white', padding:'10px', fontSize:'12px', borderRadius:'5px', marginBottom:'10px'}}>
+                            ⚠️ Error: {debugError}
+                        </div>
+                    )}
+
                     {isLoading ? (
                         <p style={{textAlign:'center', color:'rgba(255,255,255,0.5)'}}>Cargando lista...</p>
                     ) : (
                         <div className="requests-list">
                             {playlist.length === 0 ? (
-                                <p style={{textAlign:'center', opacity:0.5}}>Aún no hay peticiones. ¡Sé el primero!</p>
+                                <div style={{textAlign:'center', opacity:0.5, padding:'20px'}}>
+                                    <p>Aún no hay peticiones...</p>
+                                    <small style={{fontSize:'10px'}}>¡Sé el primero en pedir!</small>
+                                </div>
                             ) : (
                                 playlist.map((track) => (
                                     <div key={track.id} className="chalk-item">
@@ -174,173 +225,41 @@ export default function DjPage() {
             </div>
 
             <style jsx global>{`
-                /* 🔥 RESET GLOBAL: Esto arregla el desbordamiento lateral */
-                *, *::before, *::after {
-                    box-sizing: border-box;
-                }
+                *, *::before, *::after { box-sizing: border-box; }
                 body { margin: 0; padding: 0; background: #1a202c; }
             `}</style>
 
             <style jsx>{`
-                .container {
-                    min-height: 100vh;
-                    display: flex;
-                    flex-direction: column;
-                    font-family: 'Poppins', sans-serif;
-                    background: #1a202c;
-                    overflow-x: hidden; /* Previene scroll horizontal indeseado */
-                }
-
-                /* SECCIÓN FORMULARIO: Ajustada para no pegarse arriba */
-                .form-section {
-                    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-                    padding: 60px 20px 40px 20px; /* Más padding arriba (60px) para salvar el notch */
-                    border-bottom-left-radius: 30px;
-                    border-bottom-right-radius: 30px;
-                    display: flex;
-                    flex-direction: column;
-                    align-items: center;
-                    box-shadow: 0 10px 30px rgba(0,0,0,0.3);
-                    width: 100%;
-                }
-
-                .header { 
-                    text-align: center; 
-                    color: white; 
-                    margin-bottom: 25px; 
-                    width: 100%;
-                }
-
+                .container { min-height: 100vh; display: flex; flex-direction: column; font-family: 'Poppins', sans-serif; background: #1a202c; overflow-x: hidden; }
+                .form-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 60px 20px 40px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%; }
+                .header { text-align: center; color: white; margin-bottom: 25px; width: 100%; }
                 .vinyl-container { height: 50px; margin-bottom: 10px; }
-                .vinyl-icon { 
-                    font-size: 45px; 
-                    display: inline-block; 
-                    animation: spin 4s linear infinite; 
-                }
-
-                .title { 
-                    margin: 5px 0; 
-                    font-size: 28px; 
-                    font-weight: 800; 
-                    letter-spacing: 1px;
-                    line-height: 1.2;
-                }
-                
+                .vinyl-icon { font-size: 45px; display: inline-block; animation: spin 4s linear infinite; }
+                .title { margin: 5px 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; line-height: 1.2; }
                 .subtitle { margin: 0; opacity: 0.9; font-size: 14px; }
-
-                /* TARJETA: Ahora nunca será más ancha que la pantalla */
-                .form-card {
-                    background: rgba(255, 255, 255, 0.96);
-                    padding: 25px 20px; /* Menos padding lateral */
-                    border-radius: 20px;
-                    width: 100%;
-                    max-width: 400px; /* Tope máximo para escritorio */
-                    box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-                    margin: 0 auto; /* Centrado perfecto */
-                }
-
+                .form-card { background: rgba(255, 255, 255, 0.96); padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin: 0 auto; }
                 .input-group { margin-bottom: 15px; width: 100%; }
-                .input-group label { 
-                    display: block; 
-                    font-size: 12px; 
-                    font-weight: 800; 
-                    color: #4a5568; 
-                    margin-bottom: 6px; 
-                    text-transform: uppercase; 
-                }
-
-                .input-group input {
-                    width: 100%; /* Ocupa el 100% de su contenedor padre */
-                    padding: 14px;
-                    border-radius: 12px;
-                    border: 2px solid #e2e8f0;
-                    font-size: 16px; /* Evita zoom en iOS */
-                    outline: none;
-                    background-color: #f7fafc;
-                    font-family: 'Poppins', sans-serif;
-                    -webkit-appearance: none; 
-                }
-
+                .input-group label { display: block; font-size: 12px; font-weight: 800; color: #4a5568; margin-bottom: 6px; text-transform: uppercase; }
+                .input-group input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 16px; outline: none; background-color: #f7fafc; font-family: 'Poppins', sans-serif; -webkit-appearance: none; }
                 .input-group input:focus { border-color: #667eea; background: #fff; }
-
-                .row-group { 
-                    display: flex; 
-                    gap: 12px; 
-                    width: 100%;
-                }
-                
-                .half-width { flex: 1; width: 50%; } /* Asegura que no se rompan */
-
-                .submit-btn {
-                    width: 100%;
-                    padding: 18px;
-                    margin-top: 10px;
-                    background: #2d3748;
-                    color: #fff;
-                    border: none;
-                    border-radius: 14px;
-                    font-size: 16px;
-                    font-weight: 800;
-                    cursor: pointer;
-                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-                    touch-action: manipulation;
-                }
-
-                .back-btn { 
-                    background: none; 
-                    border: none; 
-                    color: rgba(255,255,255,0.8); 
-                    margin-top: 20px; 
-                    padding: 10px; 
-                    font-size: 14px;
-                    font-weight: 600;
-                }
-
-                /* SECCIÓN PIZARRA */
-                .board-section {
-                    flex: 1;
-                    padding: 30px 20px;
-                    display: flex;
-                    justify-content: center;
-                    width: 100%;
-                }
-
-                .chalkboard {
-                    width: 100%;
-                    max-width: 500px;
-                    background: #2b2b2b;
-                    border: 10px solid #5D4037;
-                    border-radius: 8px;
-                    padding: 20px;
-                    color: #fff;
-                    font-family: 'Permanent Marker', cursive;
-                    min-height: 300px;
-                    background-image: url("https://www.transparenttextures.com/patterns/black-chalk.png");
-                }
-
+                .row-group { display: flex; gap: 12px; width: 100%; }
+                .half-width { flex: 1; width: 50%; }
+                .submit-btn { width: 100%; padding: 18px; margin-top: 10px; background: #2d3748; color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); touch-action: manipulation; }
+                .back-btn { background: none; border: none; color: rgba(255,255,255,0.8); margin-top: 20px; padding: 10px; font-size: 14px; font-weight: 600; }
+                .board-section { flex: 1; padding: 30px 20px; display: flex; justifyContent: center; width: 100%; }
+                .chalkboard { width: 100%; max-width: 500px; background: #2b2b2b; border: 10px solid #5D4037; border-radius: 8px; padding: 20px; color: #fff; font-family: 'Permanent Marker', cursive; min-height: 300px; background-image: url("https://www.transparenttextures.com/patterns/black-chalk.png"); }
                 .chalk-title { font-size: 22px; color: rgba(255,255,255,0.95); letter-spacing: 1px; }
                 .chalk-divider { height: 2px; background: rgba(255,255,255,0.2); margin-bottom: 15px; }
-                
                 .chalk-item { margin-bottom: 15px; animation: slideIn 0.4s ease-out; }
                 .chalk-song { font-size: 20px; margin-bottom: 5px; color: white; line-height: 1.3; }
                 .chalk-details { font-size: 14px; opacity: 0.8; font-family: 'Poppins', sans-serif; }
                 .artist { color: #f6e05e; }
                 .album { color: #63b3ed; }
                 .chalk-line { margin-top: 10px; border-bottom: 1px dashed rgba(255,255,255,0.15); }
-
                 .refresh-btn { background: none; border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; cursor: pointer; padding: 5px 10px; }
-
                 @keyframes spin { 100% { transform: rotate(360deg); } }
                 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-
-                /* MÓVIL PEQUEÑO (iPhone SE / Antiguos) */
-                @media (max-width: 380px) {
-                    .form-section { padding-top: 50px; padding-left: 15px; padding-right: 15px; }
-                    .title { font-size: 24px; }
-                    .form-card { padding: 20px 15px; }
-                    .row-group { flex-direction: column; gap: 0; } /* Apila artista/album si no cabe */
-                    .input-group { margin-bottom: 12px; }
-                }
+                @media (max-width: 380px) { .form-section { padding-top: 50px; padding-left: 15px; padding-right: 15px; } .title { font-size: 24px; } .form-card { padding: 20px 15px; } .row-group { flex-direction: column; gap: 0; } .input-group { margin-bottom: 12px; } }
             `}</style>
         </div>
     );
