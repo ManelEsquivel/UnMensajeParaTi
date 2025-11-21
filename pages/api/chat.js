@@ -513,7 +513,7 @@ ${aperitivoVegetarianoResponse}
 
 ## 🥂 Bebidas
 
-- **INSTRUCCIÓN CLAVE (BEBIDAS TODO - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todas"** O **"bebidas completas"** (refiriéndose a bebidas) O **"ambos"** (refiriéndose a bebidas), DEBES responder ÚNICAMENTE con el contenido de ${allDrinksResponse}.
+- **INSTRUCCIÓN CLAVE (BEBIDAS TODO - ALTA PRIORIDAD):** Si el mensaje del usuario contiene las palabras clave **"todas"**, **"todas las bebidas"**, **"bebidas completas"** O **"ambos"** (refiriéndose a bebidas), DEBES responder ÚNICAMENTE con el contenido de ${allDrinksResponse}.
 
 - **INSTRUCCIÓN CLAVE (VINOS - ALTA PRIORIDAD):** Si el mensaje del usuario contiene la palabra clave **"vinos"**, DEBES responder ÚNICAMENTE con el contenido de ${winesResponse}.
 
@@ -527,8 +527,7 @@ ${aperitivoVegetarianoResponse}
 
 - **INSTRUCCIÓN CLAVE (FIESTA BEBIDAS - Detalle - ALTA PRIORIDAD):** Si el mensaje del usuario contiene la palabra clave **"fiesta"** (o "en la fiesta"), DEBES responder ÚNICAMENTE con el contenido de ${partyDrinksResponse}.
 
-- **INSTRUCCIÓN CLAVE (BEBIDAS GENERAL - Inicio - BAJA PRIORIDAD):** Si preguntan en general por las **bebidas** o **que hay de beber** y NINGUNA de las instrucciones de ALTA PRIORIDAD se ha activado, DEBES responder ÚNICAMENTE: "¿Qué te interesa saber? ¿Las bebidas de la **ceremonia**? ¿Del **aperitivo**? ¿Del **banquete**? ¿O de la **fiesta**?"
-
+- **INSTRUCCIÓN CLAVE (BEBIDAS GENERAL - Inicio - BAJA PRIORIDAD):** Si preguntan en general por las **bebidas** o **que hay de beber** y NINGUNA de las instrucciones de ALTA PRIORIDAD se ha activado, DEBES responder ÚNICAMENTE: "¿Qué te interesa saber? ¿Las bebidas de la **ceremonia**? ¿Del **aperitivo**? ¿Del **banquete**? ¿De la **fiesta**? ¿O prefieres verlas **todas**?"
 
 
 
