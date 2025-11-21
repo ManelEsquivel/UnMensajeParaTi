@@ -24,7 +24,7 @@ const ALL_QUESTIONS = [
     { id: 'q5', entry: ENTRY_Q5, label: '5. Número de tatuajes Entre Carla y Manel', options: ['6', '7', '8', '10'] },
 ];
 
-// Mapeo de IDs (Incluyendo el nombre)
+// Mapeo de IDs
 const entryMap = {
     guestName: ENTRY_NAME,
     q1: ENTRY_Q1,
@@ -51,6 +51,10 @@ const QuizBodaPage = () => {
     const currentQuestion = ALL_QUESTIONS[currentQuestionIndex];
 
     useEffect(() => {
+        // LIMPIEZA DE ESTILOS ANTERIORES (Homepage/Bot)
+        document.documentElement.removeAttribute('style');
+        document.body.removeAttribute('style');
+
         if (typeof window !== 'undefined' && localStorage.getItem(QUIZ_COMPLETED_KEY) === 'true') {
             setIsCompleted(true);
             setCurrentStep(8); 
@@ -59,20 +63,19 @@ const QuizBodaPage = () => {
         }
     }, []);
 
-    // Maneja la selección de respuesta para las preguntas (Steps 2-6)
+    // Maneja la selección de respuesta
     const handleAnswerSelect = (value, questionId) => {
         const newAnswers = { ...answers, [questionId]: value };
         setAnswers(newAnswers);
 
-        // Si es la última pregunta (índice 4), vamos a la pantalla de envío
         if (currentQuestionIndex === 4) {
-            handleSubmit(newAnswers); // Enviar inmediatamente
+            handleSubmit(newAnswers); 
         } else {
-            setCurrentStep(prev => prev + 1); // Siguiente pregunta
+            setCurrentStep(prev => prev + 1); 
         }
     };
     
-    // Maneja el input de texto (Name) (Step 1)
+    // Maneja el input de nombre
     const handleNameChange = (e) => {
         const name = e.target.value;
         setAnswers(prev => ({ ...prev, guestName: name }));
@@ -80,12 +83,11 @@ const QuizBodaPage = () => {
     };
 
 
-    // --- Lógica de Envío (Método GET / window.open) ---
+    // --- Lógica de Envío ---
     const handleSubmit = (finalAnswers) => { 
         setIsSubmitting(true);
-        setCurrentStep(7); // Muestra la pantalla "Enviando"
+        setCurrentStep(7); 
         
-        // 1. Construir la URL de Envío (GET Request)
         let submissionUrl = `${BASE_FORM_URL}?`;
         submissionUrl += `&${entryMap.guestName}=${encodeURIComponent(finalAnswers.guestName)}`; 
         submissionUrl += `&${entryMap.q1}=${encodeURIComponent(finalAnswers.q1)}`;
@@ -97,17 +99,14 @@ const QuizBodaPage = () => {
 
         submissionUrl = submissionUrl.replace('?&', '?');
 
-        // 2. Abrir la URL en una nueva pestaña (El método que funcionó)
         window.open(submissionUrl, '_blank');
 
-        // 3. Transición local garantizada
         localStorage.setItem(QUIZ_COMPLETED_KEY, 'true');
         setIsCompleted(true);
         
-        // Esperar 2 segundos y forzar la transición a la pantalla final
         setTimeout(() => { 
              setIsSubmitting(false);
-             setCurrentStep(8); // Muestra el mensaje final
+             setCurrentStep(8); 
         }, 2000); 
     };
     
@@ -115,14 +114,13 @@ const QuizBodaPage = () => {
     // --- Renderizado de Vistas ---
 
     const renderStep = () => {
-        // Pantalla de bloqueo/éxito (STEP 8)
+        // PANTALLA FINAL
         if (isCompleted || currentStep === 8) {
              return (
                  <div className="step-content success-screen">
-                    {/* Mensaje de éxito personalizado */}
                     <h2>¡Respuestas Enviadas con Éxito! 🎉</h2>
-                    <p>¡Vuestro conocimiento sobre los novios han sido registrado, **{answers.guestName || 'invitado/a'}**!</p>
-                    <p>Vuestras respuestas han sido validadas. Si habéis acertado las preguntas o sois de las personas con mayor acierto, **¡tendréis un Detalle Especial!**</p>
+                    <p>¡Vuestro conocimiento sobre los novios ha sido registrado, <strong>{answers.guestName || 'invitado/a'}</strong>!</p>
+                    <p>Vuestras respuestas han sido validadas. Si habéis acertado las preguntas o sois de las personas con mayor acierto, <strong>¡tendréis un Detalle Especial!</strong></p>
                     <p>¡Gracias por jugar y nos vemos muy pronto en la boda!</p>
                     <p style={{ marginTop: '20px', fontWeight: 'bold', fontSize: '1.2rem', color: '#f0e1c9' }}>Con cariño, Manel y Carla.</p>
                 </div>
@@ -136,7 +134,7 @@ const QuizBodaPage = () => {
                 return (
                     <div className="step-content welcome-screen">
                         <h1>💍 ¡Bienvenido/a al Gran Quiz de Manel y Carla!</h1>
-                        <p>Pon a prueba cuánto sabes sobre nosotros!. Entre todas las personas que participen, <strong>quienes consigan el mayor número de aciertos recibirán un regalo exclusivo el día de la boda </strong>.</p>
+                        <p>Pon a prueba cuánto sabes sobre nosotros. Entre todas las personas que participen, <strong>quienes consigan el mayor número de aciertos recibirán un regalo exclusivo el día de la boda</strong>.</p>
                         <p>¡Demuestra tu conocimiento y mucha suerte! 🎁✨</p>
                         <button 
                             className="button" 
@@ -148,12 +146,12 @@ const QuizBodaPage = () => {
                     </div>
                 );
             
-            // STEP 1: NOMBRE Y APELLIDO 
+            // STEP 1: NOMBRE
             case 1:
                  return (
                     <div className="step-content name-screen">
                         <h2>Tu Identificación</h2>
-                        <label htmlFor="guestName">Nombre y Apellido (Necesario para identificarte si eres el premiado 🎉)</label>
+                        <label htmlFor="guestName">Nombre y Apellido (Necesario para identificarte si ganas 🎉)</label>
                         <br></br>
                         <input
                             type="text"
@@ -162,6 +160,7 @@ const QuizBodaPage = () => {
                             value={answers.guestName}
                             onChange={handleNameChange}
                             required
+                            placeholder="Escribe aquí..."
                         />
                         <button 
                             className="button next-button" 
@@ -197,7 +196,7 @@ const QuizBodaPage = () => {
                     </div>
                 );
             
-            // STEP 7: ENVIANDO RESPUESTAS
+            // STEP 7: SPINNER
             case 7:
                 return (
                     <div className="step-content submit-screen">
@@ -216,14 +215,15 @@ const QuizBodaPage = () => {
         <>
             <Head>
                 <title>El Gran Quiz de Manel y Carla 💍</title>
-                <meta name="description" content="Pon a prueba cuánto sabes de nosotros" />
+                <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+                {/* CAMBIO IMPORTANTE: Color de la barra del navegador MORADO OSCURO */}
+                <meta name="theme-color" content="#23074d" />
             </Head>
 
             <div className="container">
                 <div className="card">
                     {renderStep()}
                     
-                    {/* Indicador de progreso (Steps 1-6) */}
                     {(currentStep >= 1 && currentStep <= 6) && (
                         <div className="progress-bar-container">
                              <div 
@@ -236,99 +236,146 @@ const QuizBodaPage = () => {
                 </div>
             </div>
 
-            {/* --- 🎯 ESTILOS DE VIDEOJUEGO MODERNO/FANTASÍA --- */}
+            {/* --- ESTILOS GLOBALES UNIFICADOS --- */}
             <style jsx global>{`
-                 /* Importamos fuentes épicas y legibles */
-                 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap'); 
-            .question-screen .options-grid { display:grid !important; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)) !important; gap:10px !important; }
-.question-screen button.option-button { display:block !important; width:100% !important; min-height:60px !important; padding:0.6rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:8px !important; font-size:1rem !important; font-weight:600 !important; cursor:pointer !important; position:relative !important; overflow:hidden !important; transition:all 0.3s ease !important;}
-.question-screen button.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.4), transparent); animation:shine 3s infinite linear; pointer-events:none; }
-.question-screen button.option-button:hover { background:rgba(255,255,255,0.2) !important; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;}
-@keyframes shine { 0%{left:-100%;} 100%{left:100%;} }
-@keyframes clickBounce { 0%{transform:scale(1);}50%{transform:scale(0.9);}75%{transform:scale(1.05);}100%{transform:scale(1);} }
-.question-screen button.option-button:active { animation: clickBounce 0.3s ease-in-out !important;}
+                @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap');
 
-`}</style>
-            <style jsx global>{`
-@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap');
+                /* RESET TOTAL PARA EVITAR FONDO BLANCO */
+                html, body {
+                    margin: 0;
+                    padding: 0;
+                    width: 100%;
+                    height: 100%;
+                    background: linear-gradient(135deg, #23074d, #440a5b) !important; /* Fondo forzado */
+                    color: #fff;
+                    font-family: 'Lato', sans-serif;
+                    overflow-x: hidden;
+                }
 
-.container {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  min-height: 100vh;
-  background: linear-gradient(135deg, #23074d, #440a5b);
-  font-family: 'Lato', sans-serif;
-  padding: 20px;
-}
-.card {
-  background: #1f2937;
-  color: #fff;
-  padding: 3rem;
-  border-radius: 16px;
-  border: 2px solid #a88a53;
-  box-shadow: 0 0 25px rgba(168,138,83,0.3);
-  text-align: center;
-  max-width: 700px;
-  width: 100%;
-  animation: fadeIn 0.8s ease-in-out;
-}
-@keyframes fadeIn { from { opacity: 0; transform: scale(0.95);} to { opacity: 1; transform: scale(1);} }
+                /* CONTENEDOR PRINCIPAL */
+                .container {
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
+                    min-height: 100vh;
+                    padding: 20px;
+                    box-sizing: border-box;
+                }
 
-h1, h2 { font-family: 'Cinzel', serif; color: #f0e1c9; text-shadow: 0 0 10px rgba(240,225,201,0.3); }
-.button {
-  display: inline-block;
-  padding: 1.5rem 3.5rem;
-  background: linear-gradient(145deg, #d4af37, #b8860b);
-  color: #1f2937;
-  border: none;
-  border-radius: 50px;
-  font-weight: 700;
-  font-size: 1.4rem;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  box-shadow: 0 6px 0 #8c690a;
-  text-transform: uppercase;
-  font-family: 'Cinzel', serif;
-  animation: pulse-gold 1.5s infinite;
-}
-@keyframes pulse-gold { 0% { transform: scale(1);} 50% { transform: scale(1.08);} 100% { transform: scale(1);} }
-.button:hover { transform: scale(1.1); box-shadow: 0 8px 0 #8c690a; }
-.button:active { animation: clickBounce 0.3s; }
-@keyframes clickBounce { 0%{transform:scale(1);}50%{transform:scale(0.9);}100%{transform:scale(1);} }
+                /* TARJETA DEL JUEGO */
+                .card {
+                    background: #1f2937;
+                    color: #fff;
+                    padding: 2rem; /* Reducido un poco para móviles */
+                    border-radius: 16px;
+                    border: 2px solid #a88a53;
+                    box-shadow: 0 0 25px rgba(168,138,83,0.3);
+                    text-align: center;
+                    max-width: 600px;
+                    width: 100%;
+                    animation: fadeIn 0.8s ease-in-out;
+                    position: relative;
+                    z-index: 10;
+                }
 
-.next-button {
-  width: 100%;
-  font-size: 1.2rem;
-  padding: 1rem;
-  margin-top: 10px;
-  background: #e5e7eb; /* Gris claro */
-  color: #1f2937; /* Texto oscuro */
-  border: 1px solid #d1d5db; /* Borde suave */
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: background 0.3s ease;
-}
-.next-button:hover {
-  background: #d1d5db; /* Un poco más oscuro al hover */
-}
-100%{left:150%;} }
+                @keyframes fadeIn { from { opacity: 0; transform: scale(0.95);} to { opacity: 1; transform: scale(1);} }
 
-.option-button { min-height:90px; padding:1.8rem; background:#374151; color:#f0e1c9; border-radius:12px; font-size:1.3rem; font-weight:700; transition:all 0.3s ease; position:relative; overflow:hidden;  margin-bottom: 10px;}
+                h1, h2 { 
+                    font-family: 'Cinzel', serif; 
+                    color: #f0e1c9; 
+                    text-shadow: 0 0 10px rgba(240,225,201,0.3); 
+                    margin-top: 0;
+                }
+                
+                p { line-height: 1.6; }
 
-.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:radial-gradient(circle,rgba(255,255,255,0.4),transparent); animation:shine 2s infinite linear; }
-.spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
-@keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
-.question-screen .options-grid { display:grid !important; grid-template-columns:repeat(auto-fit, minmax(120px, 1fr)) !important; gap:10px !important; }
-.question-screen button.option-button { display:block !important; width:100% !important; min-height:60px !important; padding:0.6rem !important; background:rgba(255,255,255,0.15) !important; backdrop-filter:blur(12px) !important; -webkit-backdrop-filter:blur(12px) !important; color:#f0e1c9 !important; border:1px solid rgba(255,255,255,0.3) !important; border-radius:8px !important; font-size:1rem !important; font-weight:600 !important; cursor:pointer !important; position:relative !important; overflow:hidden !important; transition:all 0.3s ease !important;}
-.question-screen button.option-button::after { content:''; position:absolute; top:0; left:-100%; width:100%; height:100%; background:linear-gradient(120deg, rgba(255,255,255,0.4), transparent); animation:shine 3s infinite linear; pointer-events:none; }
-.question-screen button.option-button:hover { background:rgba(255,255,255,0.2) !important; box-shadow:0 2px 8px rgba(0,0,0,0.15) !important;}
-@keyframes shine { 0%{left:-100%;} 100%{left:100%;} }
-@keyframes clickBounce { 0%{transform:scale(1);}50%{transform:scale(0.9);}75%{transform:scale(1.05);}100%{transform:scale(1);} }
-.question-screen button.option-button:active { animation: clickBounce 0.3s ease-in-out !important;}
+                /* BOTÓN PRINCIPAL (EMPEZAR) */
+                .button {
+                    display: inline-block;
+                    padding: 1rem 2rem;
+                    margin-top: 20px;
+                    background: linear-gradient(145deg, #d4af37, #b8860b);
+                    color: #1f2937;
+                    border: none;
+                    border-radius: 50px;
+                    font-weight: 700;
+                    font-size: 1.2rem;
+                    cursor: pointer;
+                    box-shadow: 0 4px 0 #8c690a;
+                    text-transform: uppercase;
+                    font-family: 'Cinzel', serif;
+                    animation: pulse-gold 1.5s infinite;
+                    width: 100%; /* Ancho completo en móvil */
+                    max-width: 300px;
+                }
 
-`}</style>
+                @keyframes pulse-gold { 0% { transform: scale(1);} 50% { transform: scale(1.05);} 100% { transform: scale(1);} }
+                .button:active { transform: scale(0.95); }
+
+                /* INPUT TEXTO */
+                input[type="text"] {
+                    width: 100%;
+                    padding: 15px;
+                    border-radius: 8px;
+                    border: 1px solid #a88a53;
+                    background: rgba(255,255,255,0.1);
+                    color: white;
+                    font-size: 1.1rem;
+                    margin: 15px 0;
+                    box-sizing: border-box;
+                }
+
+                /* BOTÓN SIGUIENTE (PASO 1) */
+                .next-button {
+                    background: #f3f4f6; 
+                    color: #1f2937; 
+                    border: none;
+                    box-shadow: none;
+                    animation: none;
+                    font-family: 'Lato', sans-serif;
+                }
+
+                /* BOTONES DE RESPUESTA (OPCIONES) */
+                .options-grid { 
+                    display: grid; 
+                    grid-template-columns: 1fr; /* Una columna en móvil por defecto */
+                    gap: 15px; 
+                    margin-top: 20px;
+                }
+                @media (min-width: 500px) {
+                    .options-grid { grid-template-columns: 1fr 1fr; }
+                }
+
+                .option-button { 
+                    min-height: 70px; 
+                    padding: 1rem; 
+                    background: #374151; 
+                    color: #f0e1c9; 
+                    border: 1px solid rgba(168, 138, 83, 0.3);
+                    border-radius: 12px; 
+                    font-size: 1rem; 
+                    font-weight: 700; 
+                    cursor: pointer;
+                    transition: all 0.2s ease; 
+                    position: relative; 
+                    overflow: hidden;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                }
+
+                .option-button:active { transform: scale(0.98); background: #4b5563; }
+
+                /* SPINNER */
+                .spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
+                @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
+
+                /* BARRA PROGRESO */
+                .progress-bar-container { margin-top: 20px; width: 100%; background: #374151; height: 8px; border-radius: 4px; position: relative; }
+                .progress-bar { height: 100%; background: #d4af37; border-radius: 4px; transition: width 0.3s ease; }
+                .progress-text { font-size: 0.8rem; color: #9ca3af; margin-top: 5px; }
+
+            `}</style>
         </>
     );
 };
