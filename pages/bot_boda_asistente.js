@@ -8,9 +8,9 @@ const WELCOME_MESSAGE_HTML = `
   <strong>Ejemplos de preguntas:</strong>
   <ul>
     <li>&iquest;Qu&eacute; comida se va a servir?</li>
+    <li>&iquest;Que bebidas se van a servir?</li>
     <li>Quiero confirmar mi asistencia</li>
     <li>&iquest;Cu&aacute;l es el plan del d&iacute;a?</li>
-    <li>&iquest;Donde puedo subir mis fotos?</li>
   </ul>
   <br/>
   <strong>¡Escribe tu pregunta abajo!</strong> Te responderé al instante. ¡Gracias por compartir este día con nosotros!
