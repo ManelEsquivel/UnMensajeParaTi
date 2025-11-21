@@ -11,7 +11,6 @@ const ENTRY_SONG   = "entry.38062662";
 const ENTRY_ARTIST = "entry.1279581249"; 
 const ENTRY_ALBUM  = "entry.2026891459"; 
 
-// Tu enlace CSV
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ9RxSCBQemScY8lZhfg2Bbi4T5xOoNhTcmENIJSZWFo8yVF0bxd7yXy5gx0HoKIb87-chczYEccKr/pub?output=csv";
 // *******************************************************************
 
@@ -22,76 +21,70 @@ export default function DjPage() {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
     const [playlist, setPlaylist] = useState([]);
-    const [debugError, setDebugError] = useState(null); // Para ver errores en pantalla si los hay
 
+    // --- LÓGICA DE MEZCLA (LOCAL + GOOGLE) ---
     const fetchPlaylist = async () => {
         try {
-            // 1. Forzamos 'no-cache' para obligar al navegador a descargar lo nuevo
+            // 1. Descargar lista OFICIAL de Google
             const response = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`, {
                 cache: "no-store",
                 headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
             });
-
-            if (!response.ok) throw new Error("No se pudo conectar con Google");
-
-            const text = await response.text();
             
-            // 2. Detectamos si el archivo está vacío
-            if (!text || text.length < 10) {
-                console.warn("Archivo CSV vacío o muy corto");
-                setIsLoading(false);
-                return;
+            let remoteTracks = [];
+            const text = await response.text();
+
+            if (text && text.length > 10) {
+                const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').slice(1);
+                const separator = text.indexOf(';') > -1 && text.indexOf(',') < text.indexOf(';') ? ';' : ',';
+
+                remoteTracks = rows.map((row, index) => {
+                    if (!row || row.trim() === "") return null;
+                    const regex = new RegExp(`${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
+                    const columns = row.split(regex); 
+                    const clean = (str) => str ? str.replace(/^"|"$/g, '').replace(/""/g, '"').trim() : '';
+
+                    return {
+                        id: `remote-${index}`, // ID remoto
+                        song: clean(columns[1]),
+                        artist: clean(columns[2]) || "Desconocido",
+                        album: clean(columns[3]) || "Single",
+                        isLocal: false
+                    };
+                }).filter(t => t && t.song && t.song.length > 0 && t.song !== "Canción desconocida").reverse();
             }
 
-            // 3. Limpieza inteligente de saltos de línea (Windows/Mac/Linux)
-            const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n');
-            
-            // Quitamos la cabecera (fila 1)
-            const dataRows = rows.slice(1);
+            // 2. Recuperar mis canciones PENDIENTES del navegador
+            const localData = localStorage.getItem('dj_pending_tracks');
+            let localTracks = localData ? JSON.parse(localData) : [];
 
-            // 4. Detectamos si usa COMAS o PUNTOS Y COMA (Por si acaso)
-            const separator = text.indexOf(';') > -1 && text.indexOf(',') < text.indexOf(';') ? ';' : ',';
-
-            const tracks = dataRows.map((row, index) => {
-                // Si la fila está vacía, la saltamos
-                if (!row || row.trim() === "") return null;
-
-                // Separamos usando el separador detectado
-                // Esta Regex maneja comillas correctamente (ej: "Canción, con coma", Artista)
-                const regex = new RegExp(`${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
-                const columns = row.split(regex); 
-                
-                const clean = (str) => str ? str.replace(/^"|"$/g, '').replace(/""/g, '"').trim() : '';
-
-                // Mapeo seguro: Si falta una columna, no explota
-                return {
-                    id: `track-${index}`, 
-                    song: clean(columns[1]),   // Columna B
-                    artist: clean(columns[2]) || "Desconocido", // Columna C
-                    album: clean(columns[3]) || "Single"        // Columna D
-                };
+            // 3. LIMPIEZA: Si una canción local YA aparece en Google, la borramos de local
+            // (Para que no salga duplicada cuando Google por fin se actualice)
+            localTracks = localTracks.filter(local => {
+                const alreadyInRemote = remoteTracks.some(remote => 
+                    remote.song.toLowerCase().trim() === local.song.toLowerCase().trim()
+                );
+                return !alreadyInRemote; // Solo mantenemos las que NO han llegado a Google aún
             });
 
-            // Filtramos nulos y canciones sin nombre
-            const validTracks = tracks
-                .filter(t => t && t.song && t.song.length > 0 && t.song !== "Canción desconocida")
-                .reverse();
+            // Actualizamos el localStorage con la lista limpia
+            localStorage.setItem('dj_pending_tracks', JSON.stringify(localTracks));
 
-            setPlaylist(validTracks);
+            // 4. FUSIÓN: Ponemos las locales (nuevas) primero, luego las de Google
+            const finalPlaylist = [...localTracks.reverse(), ...remoteTracks];
+            
+            setPlaylist(finalPlaylist);
             setIsLoading(false);
-            setDebugError(null); // Todo ok
 
         } catch (error) {
             console.error("Error cargando:", error);
-            setDebugError(error.message);
             setIsLoading(false);
         }
     };
 
     useEffect(() => {
         fetchPlaylist();
-        // Recarga automática cada 7 segundos
-        const interval = setInterval(fetchPlaylist, 7000);
+        const interval = setInterval(fetchPlaylist, 5000); // Refrescar cada 5 seg
         return () => clearInterval(interval);
     }, []);
 
@@ -110,6 +103,7 @@ export default function DjPage() {
         formBody.append(ENTRY_ALBUM, formData.album);
 
         try {
+            // 1. Enviar a Google (Segundo plano)
             await fetch(FORM_URL, {
                 method: 'POST',
                 mode: 'no-cors',
@@ -117,14 +111,21 @@ export default function DjPage() {
                 body: formBody
             });
             
-            // Feedback visual inmediato (ilusión óptica para el usuario)
+            // 2. Guardar en MEMORIA LOCAL (LocalStorage) inmediatamente
             const newTrack = {
-                id: Date.now(), 
+                id: `local-${Date.now()}`, 
                 song: formData.song,
                 artist: formData.artist || 'Desconocido',
-                album: formData.album || 'Single'
+                album: formData.album || 'Single',
+                isLocal: true // Marca para saber que es nuestra
             };
-            setPlaylist(prev => [newTrack, ...prev]);
+
+            const currentLocals = JSON.parse(localStorage.getItem('dj_pending_tracks') || '[]');
+            currentLocals.push(newTrack);
+            localStorage.setItem('dj_pending_tracks', JSON.stringify(currentLocals));
+
+            // 3. Forzar actualización visual inmediata
+            fetchPlaylist();
 
         } catch (error) {
             console.error("Error enviando");
@@ -132,9 +133,6 @@ export default function DjPage() {
 
         setFormData({ song: '', artist: '', album: '' });
         setIsSubmitting(false);
-        
-        // Intentamos recargar la lista real un poco después
-        setTimeout(fetchPlaylist, 3000);
     };
 
     return (
@@ -146,7 +144,6 @@ export default function DjPage() {
                 <link href="https://fonts.googleapis.com/css2?family=Permanent+Marker&family=Poppins:wght@400;600;800&display=swap" rel="stylesheet" />
             </Head>
 
-            {/* FORMULARIO */}
             <div className="form-section">
                 <div className="header">
                     <div className="vinyl-container">
@@ -181,7 +178,6 @@ export default function DjPage() {
                 <button onClick={() => router.push('/homepage')} className="back-btn">← Volver</button>
             </div>
 
-            {/* PIZARRA */}
             <div className="board-section">
                 <div className="chalkboard">
                     <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}>
@@ -190,13 +186,6 @@ export default function DjPage() {
                     </div>
                     <div className="chalk-divider"></div>
                     
-                    {/* ZONA DE DEBUG: Si hay error lo muestra, si no, lista normal */}
-                    {debugError && (
-                        <div style={{background:'red', color:'white', padding:'10px', fontSize:'12px', borderRadius:'5px', marginBottom:'10px'}}>
-                            ⚠️ Error: {debugError}
-                        </div>
-                    )}
-
                     {isLoading ? (
                         <p style={{textAlign:'center', color:'rgba(255,255,255,0.5)'}}>Cargando lista...</p>
                     ) : (
@@ -209,7 +198,11 @@ export default function DjPage() {
                             ) : (
                                 playlist.map((track) => (
                                     <div key={track.id} className="chalk-item">
-                                        <div className="chalk-song">"{track.song}"</div>
+                                        <div className="chalk-song">
+                                            "{track.song}" 
+                                            {/* Indicador visual de que se está enviando (opcional) */}
+                                            {track.isLocal && <span style={{fontSize:'12px', color:'#68D391', marginLeft:'5px'}}> (Enviando...)</span>}
+                                        </div>
                                         <div className="chalk-details">
                                             <span className="artist">🎤 {track.artist}</span>
                                             <span className="separator">|</span>
