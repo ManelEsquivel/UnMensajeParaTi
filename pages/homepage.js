@@ -6,28 +6,24 @@ export default function Homepage() {
     const router = useRouter();
     
     // --- ESTADOS PARA EL EFECTO TELÓN ---
-    const [opacity, setOpacity] = useState(1); // Empieza opaca (Negro total)
+    const [opacity, setOpacity] = useState(1);
     const [showCurtain, setShowCurtain] = useState(true);
     // ------------------------------------
 
     const [isVisible, setIsVisible] = useState(false);
 
     useEffect(() => {
-        // 1. Limpieza y configuración de color base
         document.documentElement.removeAttribute('style');
         document.body.removeAttribute('style');
         
-        // Forzamos el color de fondo
         document.documentElement.style.backgroundColor = "#fdfbfb";
         document.body.style.backgroundColor = "#fdfbfb";
 
-        // 2. SECUENCIA "CINE"
         setTimeout(() => {
             setOpacity(0); 
             setIsVisible(true); 
         }, 500);
 
-        // 3. Quitamos la lona
         setTimeout(() => {
             setShowCurtain(false);
         }, 2000);
@@ -69,7 +65,7 @@ export default function Homepage() {
                     transform: isVisible ? 'translateY(0)' : 'translateY(20px)'
                 }}>
                     
-                    {/* ENCABEZADO */}
+                    {/* ENCABEZADO (Márgenes reducidos) */}
                     <header style={styles.header}>
                         <h1 style={styles.title}>Manel & Carla</h1>
                         <p style={styles.date}>31 de Octubre de 2026</p>
@@ -92,9 +88,9 @@ export default function Homepage() {
                             <span style={styles.arrow}>➔</span>
                         </div>
 
-                        {/* TARJETA 2: WEB DE LA BODA (NUEVO) */}
+                        {/* TARJETA 2: WEB DE LA BODA */}
                         <div style={styles.card} onClick={() => openExternalLink('https://www.bodas.net/web/manel-y-carla/bienvenidos-1')}>
-                            <div style={{...styles.iconBg, background: '#f3e5f5'}}> {/* Fondo lila pastel */}
+                            <div style={{...styles.iconBg, background: '#f3e5f5'}}>
                                 <span style={styles.emoji}>💒</span>
                             </div>
                             <div style={styles.textContainer}>
@@ -103,8 +99,20 @@ export default function Homepage() {
                             </div>
                             <span style={styles.arrow}>➔</span>
                         </div>
+                        
+                        {/* 🌟 TARJETA 3: DJ (NUEVA) 🌟 */}
+                        <div style={styles.card} onClick={() => navigateTo('/dj')}>
+                            <div style={{...styles.iconBg, background: '#ffe0b2'}}> {/* Naranja suave */}
+                                <span style={styles.emoji}>🎵</span>
+                            </div>
+                            <div style={styles.textContainer}>
+                                <h3 style={styles.cardTitle}>Añade tu canción</h3>
+                                <p style={styles.cardText}>Pide tu temazo para la playlist colaborativa.</p>
+                            </div>
+                            <span style={styles.arrow}>➔</span>
+                        </div>
 
-                        {/* TARJETA 3: FOTOS */}
+                        {/* TARJETA 4: FOTOS */}
                         <div style={styles.card} onClick={() => navigateTo('/imagenes_boda')}>
                             <div style={{...styles.iconBg, background: '#fce4ec'}}>
                                 <span style={styles.emoji}>📸</span>
@@ -116,7 +124,7 @@ export default function Homepage() {
                             <span style={styles.arrow}>➔</span>
                         </div>
 
-                        {/* TARJETA 4: JUEGO */}
+                        {/* TARJETA 5: JUEGO */}
                         <div style={styles.card} onClick={() => navigateTo('/game')}>
                             <div style={{...styles.iconBg, background: '#fff3e0'}}>
                                 <span style={styles.emoji}>🎮</span>
@@ -146,7 +154,7 @@ const styles = {
         fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
         display: 'flex',
         justifyContent: 'center',
-        padding: '15px', // Reducido de 20 a 15
+        padding: '15px', 
         paddingBottom: '40px', 
         boxSizing: 'border-box',
     },
@@ -160,11 +168,11 @@ const styles = {
     },
     header: {
         textAlign: 'center',
-        marginBottom: '25px', // Reducido drásticamente de 40 a 25 para ganar espacio
-        marginTop: '10px',    // Reducido de 20 a 10
+        marginBottom: '15px', // 👈 AJUSTE: Reducido de 25px a 15px
+        marginTop: '5px',    // 👈 AJUSTE: Reducido de 10px a 5px
     },
     title: {
-        fontSize: '2.2rem', // Ligeramente más pequeño (era 2.5) para evitar saltos de línea innecesarios
+        fontSize: '2.2rem',
         color: '#2d3748',
         fontFamily: '"Times New Roman", serif',
         margin: '0 0 5px 0',
@@ -172,7 +180,7 @@ const styles = {
         lineHeight: '1.2',
     },
     date: {
-        fontSize: '1rem', // Ajustado
+        fontSize: '1rem',
         color: '#718096',
         textTransform: 'uppercase',
         letterSpacing: '2px',
@@ -182,7 +190,7 @@ const styles = {
         width: '50px',
         height: '3px',
         backgroundColor: '#d6bcfa',
-        margin: '15px auto', // Reducido margen
+        margin: '15px auto',
         borderRadius: '2px',
     },
     welcome: {
@@ -192,13 +200,13 @@ const styles = {
     grid: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '12px', // Reducido de 20 a 12 para pegar más las tarjetas
+        gap: '12px',
         width: '100%',
     },
     card: {
         backgroundColor: 'white',
-        borderRadius: '16px', // Un poco menos redondeado para ahorrar espacio visual
-        padding: '16px',      // Reducido de 20 a 16 (clave para que quepan más)
+        borderRadius: '16px',
+        padding: '16px',
         display: 'flex',
         alignItems: 'center', 
         boxShadow: '0 5px 15px rgba(0,0,0,0.03)',
@@ -208,8 +216,8 @@ const styles = {
         overflow: 'hidden',
     },
     iconBg: {
-        width: '50px',  // Iconos un poco más compactos (era 60)
-        height: '50px', // Era 60
+        width: '50px',
+        height: '50px',
         borderRadius: '12px',
         display: 'flex',
         justifyContent: 'center',
@@ -218,7 +226,7 @@ const styles = {
         flexShrink: 0, 
     },
     emoji: {
-        fontSize: '24px', // Ajustado al nuevo tamaño del icono
+        fontSize: '24px',
     },
     textContainer: {
         flex: 1, 
@@ -249,10 +257,12 @@ const styles = {
         flexShrink: 0, 
     },
     footer: {
-        marginTop: '30px', // Reducido de 40
+        marginTop: '15px', // 👈 AJUSTE: Reducido de 30px a 15px
         color: '#a0aec0',
         fontSize: '0.75rem',
         textAlign: 'center',
         paddingBottom: '10px',
     }
 };
+
+}
