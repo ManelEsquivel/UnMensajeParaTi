@@ -38,17 +38,18 @@ export default function IntroPage() {
   const [isReady, setIsReady] = useState(false); 
   // --------------------------------------------------------------------------------------------------
 
-  const pageTitle = "Asistente de la Boda de Manel & Carla";
-  const pageDescription = "Entra aquí para interactuar con nuestro asistente virtual.";
+  const pageTitle = "Boda de Manel & Carla";
+  const pageDescription = "Bienvenidos a nuestra boda.";
   const pageImage = "https://bodamanelcarla.vercel.app/icono.png"; 
 
   // Función de redirección centralizada y registro en Local Storage
-  const redirectToBot = () => {
+  const navigateToHome = () => {
     if (typeof window !== 'undefined') {
         // Guardar la marca de tiempo de la visita en el Local Storage
         localStorage.setItem(LAST_VISIT_KEY, new Date().toISOString());
     }
-    router.push('/bot_boda_asistente');
+    // CAMBIO REALIZADO: Redirige a /homepage
+    router.push('/homepage');
   }
 
   useEffect(() => {
@@ -88,7 +89,7 @@ export default function IntroPage() {
 
   const onPlayerStateChange = (event) => {
     if (event.data === 0 && !isFadingOut) { 
-       redirectToBot();
+       navigateToHome();
     }
   };
 
@@ -101,11 +102,11 @@ export default function IntroPage() {
         playerRef.current.setVolume(100);
         playerRef.current.playVideo();
         setTimeout(() => { setIsFadingOut(true); }, 7000);
-        setTimeout(redirectToBot, 8500);
+        setTimeout(navigateToHome, 8500);
       }
     } else {
-      // Flujo: Redirección Inmediata
-      redirectToBot();
+      // Flujo: Redirección Inmediata si ya lo vieron hoy
+      navigateToHome();
     }
   };
 
@@ -149,8 +150,8 @@ export default function IntroPage() {
               <div onClick={handleStart} style={{ position: 'absolute', zIndex: 100, top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'black', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' }}>
                 <h1 style={{ fontFamily: 'serif', fontSize: '2rem', marginBottom: '20px', textAlign: 'center' }}>Manel & Carla</h1>
                 <div style={{ padding: '12px 24px', border: '1px solid white', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem', textAlign: 'center' }}>
-                  {/* El texto del botón cambia según el estado */}
-                  {showVideoExperience ? 'Entrar al asistente' : 'Acceder (Bienvenido de nuevo 😉)'}
+                  {/* CAMBIO REALIZADO: Texto cambiado a Bienvenidos */}
+                  {showVideoExperience ? 'Bienvenidos' : 'Acceder (Bienvenido de nuevo 😉)'}
                 </div>
                 <p style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.6 }}>(Toca para comenzar)</p>
               </div>
