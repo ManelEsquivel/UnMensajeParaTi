@@ -132,7 +132,7 @@ export default function ImagenesBoda() {
         });
     };
 
-    // --- 4. SUBIDA ---
+    // --- 4. SUBIDA (CORREGIDO PARA EVITAR FALSOS ERRORES) ---
     const updateItemStatus = (id, newStatus, errorMessage = null) => {
         setFileItems(prev => prev.map(item => 
             item.id === id ? { ...item, status: newStatus, error: errorMessage } : item
@@ -145,7 +145,8 @@ export default function ImagenesBoda() {
 
         try {
             let fileToUpload = item.file;
-            // ⚠️ IMPORTANTE: Solo comprimimos fotos. El vídeo va directo.
+            
+            // Compresión SOLO para imágenes
             if (item.file.type.startsWith('image/')) {
                 try {
                     fileToUpload = await compressImage(item.file);
@@ -156,6 +157,7 @@ export default function ImagenesBoda() {
 
             const typeToSend = fileToUpload.type; 
 
+            // A. Obtener URL firmada
             const urlRes = await fetch('/api/get-signed-url', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -165,6 +167,7 @@ export default function ImagenesBoda() {
             if (!urlRes.ok) throw new Error('Error permiso');
             const { url } = await urlRes.json();
             
+            // B. Subir archivo
             const uploadRes = await fetch(url, {
                 method: 'PUT', 
                 headers: { 'Content-Type': typeToSend },
@@ -173,8 +176,14 @@ export default function ImagenesBoda() {
             
             if (!uploadRes.ok) throw new Error('Error subida');
 
+            // --- FIX: MARCAR ÉXITO ANTES DE REFRESCAR GALERÍA ---
+            // Esto asegura que si el refresco de galería falla, el usuario ve el tick verde igual.
             updateItemStatus(item.id, 'success');
-            fetchGallery(null, true); 
+
+            // C. Esperar un poco y refrescar galería (Independiente del éxito de subida)
+            setTimeout(() => {
+                fetchGallery(null, true).catch(err => console.warn("Error refrescando galería (no crítico):", err));
+            }, 1500); // Esperamos 1.5s para asegurar que el servidor ha indexado el archivo
 
         } catch (error) {
             console.error(error);
@@ -190,9 +199,10 @@ export default function ImagenesBoda() {
         await Promise.all(itemsToUpload.map(item => uploadSingleItem(item)));
         setIsGlobalUploading(false);
 
+        // Limpiar lista de completados
         setTimeout(() => {
             setFileItems(prev => prev.filter(i => i.status !== 'success'));
-        }, 2000);
+        }, 3000);
     };
 
     // --- ABRIR MEDIOS ---
@@ -271,13 +281,11 @@ export default function ImagenesBoda() {
                 <h2 style={styles.galleryTitle}>📸 Galería en Vivo</h2>
                 <div style={styles.grid}>
                     {galleryPhotos.map((media, index) => {
-                        // Detectar vídeo
                         const isVid = media.name.match(/\.(mp4|mov|avi|webm|m4v|hevc)$/i);
                         return (
                             <div key={index} style={styles.gridItem} onClick={() => openMediaInModal(media.url)}>
                                 {isVid ? (
                                     <div style={styles.videoContainer}>
-                                        {/* OPTIMIZACIÓN: Usamos preload="metadata" para intentar coger el primer frame sin descargar todo */}
                                         <video 
                                             src={`${media.url}#t=0.1`} 
                                             preload="metadata"
@@ -301,19 +309,18 @@ export default function ImagenesBoda() {
                 )}
             </div>
 
-            {/* Modal Zoom (OPTIMIZADO PARA VELOCIDAD) */}
+            {/* Modal Zoom */}
             {selectedMedia && (
                 <div style={styles.modalOverlay} onClick={() => setSelectedMedia(null)}>
                     <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
                         
                         {selectedMedia.type === 'video' ? (
-                            // AQUÍ ESTÁ LA MAGIA DEL VIDEO
                             <video 
                                 src={selectedMedia.url} 
                                 controls 
                                 autoPlay 
-                                playsInline // CLAVE PARA IPHONE
-                                preload="auto" // INTENTA DESCARGAR TODO AGRESIVAMENTE
+                                playsInline 
+                                preload="auto" 
                                 style={styles.modalMedia}
                             >
                                 Tu navegador no soporta este video.
@@ -362,7 +369,6 @@ const styles = {
     
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
     modalContent: { position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
-    // Ajuste para que el vídeo no se salga de pantalla
     modalMedia: { width: '100%', maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain', borderRadius: '4px' },
     closeButton: { position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: '24px', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }
 };
