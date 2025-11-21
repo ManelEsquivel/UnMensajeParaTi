@@ -15,49 +15,39 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ9RxSCB
 export default function DjPage({ initialTracks }) {
     const router = useRouter();
     
-    // Estados
     const [formData, setFormData] = useState({ song: '', artist: '', album: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
+    
     const [playlist, setPlaylist] = useState(initialTracks || []);
     const [isLoading, setIsLoading] = useState(!initialTracks || initialTracks.length === 0);
     const [showNotice, setShowNotice] = useState(false); 
 
-    // 🧠 MEMORIA: Guardamos las canciones remotas (de Google) aquí para no perderlas
     const remoteTracksRef = useRef(initialTracks || []);
 
-    // --- FUNCIÓN CENTRAL DE MEZCLA (El Cerebro) ---
-    // Esta función es la ÚNICA que decide qué se muestra en pantalla.
-    // Mezcla lo que tenemos guardado de Google + Lo que hay en el LocalStorage.
+    // --- LÓGICA DE MEZCLA (Igual que antes) ---
     const updateUI = (newRemoteTracks = null) => {
-        // 1. Si nos pasan nuevas remotas, actualizamos la referencia. Si no, usamos la vieja.
         if (newRemoteTracks) {
             remoteTracksRef.current = newRemoteTracks;
         }
         const remotes = remoteTracksRef.current;
 
-        // 2. Leemos SIEMPRE del LocalStorage (la verdad absoluta del usuario)
         const localData = localStorage.getItem('dj_pending_tracks');
         let localTracks = localData ? JSON.parse(localData) : [];
 
-        // 3. Limpieza: Si una local ya aparece en las remotas (Google ya la actualizó), la quitamos de local
         localTracks = localTracks.filter(local => {
             const existsInRemote = remotes.some(r => r.id === local.id);
-            return !existsInRemote;
+            return !existsInRemote; 
         });
+        
         localStorage.setItem('dj_pending_tracks', JSON.stringify(localTracks));
 
-        // 4. FUSIONAMOS: Locales (Nuevas) ARRIBA + Remotas (Viejas) DEBAJO
-        // Usamos .reverse() en locales para que la más reciente añadida por el usuario salga la #1
         const finalPlaylist = [...localTracks.reverse(), ...remotes];
-        
-        // 5. Quitamos duplicados por si acaso
         const uniquePlaylist = finalPlaylist.filter((v,i,a)=>a.findIndex(t=>(t.id === v.id))===i);
 
         setPlaylist(uniquePlaylist);
         if (uniquePlaylist.length > 0) setIsLoading(false);
     };
 
-    // --- CLIENTE: Petición a Google en segundo plano ---
     const fetchGoogleSheet = async () => {
         try {
             const response = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`, {
@@ -66,8 +56,6 @@ export default function DjPage({ initialTracks }) {
             });
             const text = await response.text();
             
-            // Si Google falla o devuelve HTML de error, NO hacemos nada y salimos.
-            // Así no borramos la lista.
             if (!text || text.trim().startsWith("<") || text.length < 50) return;
 
             const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').slice(1);
@@ -86,9 +74,8 @@ export default function DjPage({ initialTracks }) {
                 return {
                     id: uniqueId, song: songName, artist: artistName, album: clean(columns[3]) || "Single", isLocal: false
                 };
-            }).filter(t => t && t.song).reverse(); // Las nuevas de Google arriba
+            }).filter(t => t && t.song).reverse(); 
 
-            // Llamamos al cerebro para actualizar la pantalla
             updateUI(fetchedTracks);
 
         } catch (error) {
@@ -97,10 +84,7 @@ export default function DjPage({ initialTracks }) {
     };
 
     useEffect(() => {
-        // 1. Al iniciar, actualizamos con lo que tengamos (Server + Local)
         updateUI(); 
-
-        // 2. Intervalo cada 10s
         const interval = setInterval(fetchGoogleSheet, 10000);
         return () => clearInterval(interval);
     }, []);
@@ -121,22 +105,16 @@ export default function DjPage({ initialTracks }) {
             id: uniqueId, song: songClean, artist: artistClean, album: formData.album || 'Single', isLocal: true 
         };
 
-        // 1. GUARDAMOS EN LOCALSTORAGE PRIMERO (La fuente de la verdad)
         const currentLocals = JSON.parse(localStorage.getItem('dj_pending_tracks') || '[]');
-        // Añadimos al final del array de locales (luego el reverse lo pone arriba)
-        currentLocals.push(newTrack); 
+        currentLocals.push(newTrack);
         localStorage.setItem('dj_pending_tracks', JSON.stringify(currentLocals));
 
-        // 2. FORZAMOS ACTUALIZACIÓN VISUAL INMEDIATA
-        // Al llamar a updateUI(), leerá el LocalStorage que acabamos de guardar.
-        // Esto garantiza que la canción NO desaparezca aunque el fetch de Google ocurra ahora mismo.
         updateUI();
         
         setFormData({ song: '', artist: '', album: '' });
         setShowNotice(true);
-        setTimeout(() => setShowNotice(false), 8000);
+        setTimeout(() => setShowNotice(false), 8000); 
 
-        // 3. Enviamos a Google (Silencioso)
         const formBody = new URLSearchParams();
         formBody.append(ENTRY_SONG, songClean);
         formBody.append(ENTRY_ARTIST, artistClean);
@@ -188,18 +166,20 @@ export default function DjPage({ initialTracks }) {
                 <button onClick={() => router.push('/homepage')} className="back-btn">← Volver</button>
             </div>
 
+            {/* ✅ MENSAJE ACTUALIZADO */}
             {showNotice && (
                 <div className="notice-box">
                     <div className="notice-title">✅ ¡Anotada en la pizarra!</div>
-                    <div className="notice-text">Ya aparece arriba de la lista.</div>
+                    <div className="notice-text">
+                        Tú ya la ves, pero <strong>para que el resto de usuarios vean tu reciente canción puede tardar 5 min.</strong> 🐢
+                    </div>
                 </div>
             )}
 
             <div className="board-section">
                 <div className="chalkboard">
-                    <div style={{display:'flex', justifyContent:'space-between', alignItems:'center', marginBottom:'10px'}}>
+                    <div style={{display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'10px'}}>
                         <h2 className="chalk-title" style={{margin:0}}>PETICIONES</h2>
-                        <button onClick={() => fetchGoogleSheet()} className="refresh-btn">↻</button>
                     </div>
                     <div className="chalk-divider-top"></div>
                     
@@ -214,24 +194,26 @@ export default function DjPage({ initialTracks }) {
                             ) : (
                                 playlist.map((track) => (
                                     <div key={track.id} className="chalk-item">
-                                        {/* Contenido de la canción */}
                                         <div className="chalk-content">
                                             <div className="chalk-song">"{track.song}"</div>
                                             <div className="chalk-details">
                                                 <span className="artist">🎤 {track.artist}</span>
                                                 <span className="separator"> | </span>
                                                 <span className="album">💿 {track.album}</span>
-                                                {track.isLocal && <span className="sending-tag"> (Enviando...)</span>}
                                             </div>
                                         </div>
-                                        
-                                        {/* Separador visual entre canciones */}
                                         <div className="chalk-line-separator"></div>
                                     </div>
                                 ))
                             )}
                         </div>
                     )}
+                    
+                    {/* Mensaje pie de página */}
+                    <div className="chalk-footer">
+                        * Sincronización con la nube cada 5 minutos aprox.
+                    </div>
+
                 </div>
             </div>
 
@@ -265,29 +247,13 @@ export default function DjPage({ initialTracks }) {
 
                 .board-section { padding: 30px 20px; display: flex; justifyContent: center; width: 100%; flex-grow: 1; }
                 
-                /* PIZARRA Y LISTA */
-                .chalkboard { width: 100%; max-width: 500px; background: #2b2b2b; border: 10px solid #5D4037; border-radius: 8px; padding: 20px; color: #fff; font-family: 'Permanent Marker', cursive; min-height: 300px; height: fit-content; background-image: url("https://www.transparenttextures.com/patterns/black-chalk.png"); }
+                .chalkboard { width: 100%; max-width: 500px; background: #2b2b2b; border: 10px solid #5D4037; border-radius: 8px; padding: 20px; color: #fff; font-family: 'Permanent Marker', cursive; min-height: 300px; height: fit-content; background-image: url("https://www.transparenttextures.com/patterns/black-chalk.png"); display: flex; flex-direction: column; }
                 
-                /* AQUI ESTÁ EL CAMBIO DE DISEÑO IMPORTANTE */
-                .requests-list { 
-                    display: flex; 
-                    flex-direction: column; /* Forza una debajo de otra */
-                    gap: 0px; /* Gap 0 para controlar separación con el borde */
-                    width: 100%;
-                }
-                
-                .chalk-item { 
-                    width: 100%; 
-                    display: flex; 
-                    flex-direction: column; 
-                    animation: slideIn 0.4s ease-out;
-                }
+                .requests-list { display: flex; flex-direction: column; gap: 0px; width: 100%; margin-bottom: 15px; }
+                .chalk-item { width: 100%; display: flex; flex-direction: column; animation: slideIn 0.4s ease-out; }
+                .chalk-content { padding: 12px 5px; }
 
-                .chalk-content {
-                    padding: 10px 5px;
-                }
-
-                .chalk-title { font-size: 22px; color: rgba(255,255,255,0.95); letter-spacing: 1px; }
+                .chalk-title { font-size: 22px; color: rgba(255,255,255,0.95); letter-spacing: 1px; text-align: center; }
                 .chalk-divider-top { height: 2px; background: rgba(255,255,255,0.3); margin-bottom: 10px; }
                 
                 .chalk-song { font-size: 22px; margin-bottom: 4px; color: #fff; line-height: 1.2; word-break: break-word; }
@@ -295,17 +261,11 @@ export default function DjPage({ initialTracks }) {
                 .artist { color: #f6e05e; }
                 .album { color: #63b3ed; }
                 .separator { color: rgba(255,255,255,0.4); margin: 0 5px; }
-                .sending-tag { font-size: 11px; color: #68D391; margin-left: 6px; font-weight: 600; letter-spacing: 0.5px; }
+                
+                .chalk-line-separator { width: 100%; height: 1px; background-image: linear-gradient(to right, rgba(255,255,255,0.05), rgba(255,255,255,0.3), rgba(255,255,255,0.05)); margin: 2px 0; }
+                
+                .chalk-footer { margin-top: auto; text-align: center; font-size: 10px; font-family: 'Poppins', sans-serif; opacity: 0.4; font-style: italic; padding-top: 10px; }
 
-                /* SEPARADOR ENTRE CANCIONES */
-                .chalk-line-separator { 
-                    width: 100%;
-                    height: 1px;
-                    background-image: linear-gradient(to right, rgba(255,255,255,0.1), rgba(255,255,255,0.5), rgba(255,255,255,0.1));
-                    margin: 5px 0;
-                }
-
-                .refresh-btn { background: none; border: 1px solid rgba(255,255,255,0.4); color: white; border-radius: 6px; cursor: pointer; padding: 5px 10px; font-size: 16px; }
                 @keyframes spin { 100% { transform: rotate(360deg); } }
                 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
                 @media (max-width: 380px) { .form-section { padding-top: 50px; } .title { font-size: 24px; } .form-card { padding: 20px 15px; } }
@@ -314,7 +274,6 @@ export default function DjPage({ initialTracks }) {
     );
 }
 
-// SERVER SIDE (SIN CAMBIOS, FUNCIONA BIEN)
 export async function getServerSideProps() {
     try {
         const res = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`);
