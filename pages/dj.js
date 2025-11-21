@@ -12,36 +12,64 @@ const ENTRY_ALBUM  = "entry.2026891459";
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ9RxSCBQemScY8lZhfg2Bbi4T5xOoNhTcmENIJSZWFo8yVF0bxd7yXy5gx0HoKIb87-chczYEccKr/pub?output=csv";
 // *******************************************************************
 
+// ⏳ TIEMPO DE CONFIANZA LOCAL (5 Minutos)
+// Durante 5 min confiamos en el móvil. Después, confiamos SOLO en el Excel.
+// Esto garantiza que si el usuario vuelve tarde, vea la lista real actualizada.
+const LOCAL_TRUST_TIME = 5 * 60 * 1000; 
+
 export default function DjPage({ initialTracks }) {
     const router = useRouter();
     
     const [formData, setFormData] = useState({ song: '', artist: '', album: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     
+    // Inicializamos con los datos del servidor (la lista real)
     const [playlist, setPlaylist] = useState(initialTracks || []);
     const [isLoading, setIsLoading] = useState(!initialTracks || initialTracks.length === 0);
     const [showNotice, setShowNotice] = useState(false); 
 
     const remoteTracksRef = useRef(initialTracks || []);
 
-    // --- LÓGICA DE MEZCLA (Igual que antes) ---
+    // --- CEREBRO: Sincronización ---
     const updateUI = (newRemoteTracks = null) => {
+        // 1. Actualizamos datos de Excel si llegan nuevos
         if (newRemoteTracks) {
             remoteTracksRef.current = newRemoteTracks;
         }
         const remotes = remoteTracksRef.current;
 
+        // 2. Revisamos lo que el usuario tiene en su memoria local
         const localData = localStorage.getItem('dj_pending_tracks');
         let localTracks = localData ? JSON.parse(localData) : [];
+        const now = Date.now();
 
+        // 3. FILTRO INTELIGENTE:
+        // Solo mantenemos las locales si son RECIENTES (< 5 min) y NO están en el Excel.
+        // Si son viejas, asumimos que el Excel ya es la verdad absoluta (para ver la lista crecida).
         localTracks = localTracks.filter(local => {
+            // ¿Ya salió en el Excel? -> Borrar de local (ya es oficial)
             const existsInRemote = remotes.some(r => r.id === local.id);
-            return !existsInRemote; 
+            if (existsInRemote) return false;
+
+            // ¿Es muy vieja (> 5 min) y aún no sale? -> Borrar de local.
+            // Preferimos mostrar la lista real del servidor a mantener "fantasmas".
+            if (!local.timestamp || (now - local.timestamp > LOCAL_TRUST_TIME)) {
+                return false; 
+            }
+
+            // Si es reciente (< 5 min), la mantenemos visible
+            return true;
         });
         
+        // Actualizamos la memoria del teléfono
         localStorage.setItem('dj_pending_tracks', JSON.stringify(localTracks));
 
+        // 4. MEZCLA FINAL:
+        // Ponemos las recientes locales (pendientes) arriba del todo.
+        // Debajo, toda la lista del Excel actualizada.
         const finalPlaylist = [...localTracks.reverse(), ...remotes];
+        
+        // Filtro de seguridad anti-duplicados
         const uniquePlaylist = finalPlaylist.filter((v,i,a)=>a.findIndex(t=>(t.id === v.id))===i);
 
         setPlaylist(uniquePlaylist);
@@ -50,6 +78,7 @@ export default function DjPage({ initialTracks }) {
 
     const fetchGoogleSheet = async () => {
         try {
+            // Pedimos datos frescos
             const response = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`, {
                 cache: "no-store",
                 headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
@@ -74,7 +103,7 @@ export default function DjPage({ initialTracks }) {
                 return {
                     id: uniqueId, song: songName, artist: artistName, album: clean(columns[3]) || "Single", isLocal: false
                 };
-            }).filter(t => t && t.song).reverse(); 
+            }).filter(t => t && t.song).reverse(); // .reverse() para que las nuevas del Excel salgan arriba
 
             updateUI(fetchedTracks);
 
@@ -85,7 +114,8 @@ export default function DjPage({ initialTracks }) {
 
     useEffect(() => {
         updateUI(); 
-        const interval = setInterval(fetchGoogleSheet, 10000);
+        // Actualizamos cada 8 segundos para ver crecer la lista rápido
+        const interval = setInterval(fetchGoogleSheet, 8000);
         return () => clearInterval(interval);
     }, []);
 
@@ -102,19 +132,26 @@ export default function DjPage({ initialTracks }) {
         const uniqueId = `${songClean}-${artistClean}`.replace(/\s+/g, '-').toLowerCase();
 
         const newTrack = {
-            id: uniqueId, song: songClean, artist: artistClean, album: formData.album || 'Single', isLocal: true 
+            id: uniqueId, 
+            song: songClean, 
+            artist: artistClean, 
+            album: formData.album || 'Single', 
+            isLocal: true,
+            timestamp: Date.now() // Guardamos la hora exacta
         };
 
         const currentLocals = JSON.parse(localStorage.getItem('dj_pending_tracks') || '[]');
         currentLocals.push(newTrack);
         localStorage.setItem('dj_pending_tracks', JSON.stringify(currentLocals));
 
+        // Actualizamos visualmente YA
         updateUI();
         
         setFormData({ song: '', artist: '', album: '' });
         setShowNotice(true);
         setTimeout(() => setShowNotice(false), 8000); 
 
+        // Enviamos en segundo plano
         const formBody = new URLSearchParams();
         formBody.append(ENTRY_SONG, songClean);
         formBody.append(ENTRY_ARTIST, artistClean);
@@ -166,7 +203,6 @@ export default function DjPage({ initialTracks }) {
                 <button onClick={() => router.push('/homepage')} className="back-btn">← Volver</button>
             </div>
 
-            {/* ✅ MENSAJE ACTUALIZADO */}
             {showNotice && (
                 <div className="notice-box">
                     <div className="notice-title">✅ ¡Anotada en la pizarra!</div>
@@ -209,7 +245,6 @@ export default function DjPage({ initialTracks }) {
                         </div>
                     )}
                     
-                    {/* Mensaje pie de página */}
                     <div className="chalk-footer">
                         * Sincronización con la nube cada 5 minutos aprox.
                     </div>
@@ -274,10 +309,15 @@ export default function DjPage({ initialTracks }) {
     );
 }
 
-export async function getServerSideProps() {
+export async function getServerSideProps({ res }) {
+    // FORZAMOS AL MÁXIMO QUE NO SE GUARDE CACHÉ PARA QUE SALGA LA LISTA CRECIDA SIEMPRE
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    
     try {
-        const res = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`);
-        const text = await res.text();
+        const fetchRes = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`, {
+            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
+        });
+        const text = await fetchRes.text();
         let initialTracks = [];
         if (text && !text.trim().startsWith("<") && text.length > 50) {
             const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').slice(1);
