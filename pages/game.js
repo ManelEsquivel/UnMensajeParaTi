@@ -24,7 +24,6 @@ const ALL_QUESTIONS = [
     { id: 'q5', entry: ENTRY_Q5, label: '5. Número de tatuajes Entre Carla y Manel', options: ['6', '7', '8', '10'] },
 ];
 
-// Mapeo de IDs
 const entryMap = {
     guestName: ENTRY_NAME,
     q1: ENTRY_Q1,
@@ -36,9 +35,7 @@ const entryMap = {
 
 // *******************************************************************
 
-
 const QuizBodaPage = () => {
-    // currentStep: 0 (Bienvenida), 1 (Nombre), 2-6 (Preguntas), 7 (Enviando), 8 (Finalizado)
     const [currentStep, setCurrentStep] = useState(0); 
     const [answers, setAnswers] = useState({
         guestName: '', 
@@ -51,9 +48,19 @@ const QuizBodaPage = () => {
     const currentQuestion = ALL_QUESTIONS[currentQuestionIndex];
 
     useEffect(() => {
-        // LIMPIEZA DE ESTILOS ANTERIORES (Homepage/Bot)
+        // --- SOLUCIÓN DEFINITIVA PARA EL FONDO ---
+        // 1. Limpiamos cualquier estilo previo
         document.documentElement.removeAttribute('style');
         document.body.removeAttribute('style');
+
+        // 2. Aplicamos estilos INLINE forzosos al montar el componente
+        // Esto asegura que el navegador "pinte" de morado el fondo inmediatamente
+        const purpleColor = '#23074d';
+        document.documentElement.style.setProperty('background-color', purpleColor, 'important');
+        document.body.style.setProperty('background-color', purpleColor, 'important');
+        document.body.style.setProperty('background-image', 'linear-gradient(135deg, #23074d, #440a5b)', 'important');
+        document.body.style.setProperty('min-height', '100vh', 'important');
+        // -----------------------------------------
 
         if (typeof window !== 'undefined' && localStorage.getItem(QUIZ_COMPLETED_KEY) === 'true') {
             setIsCompleted(true);
@@ -63,11 +70,9 @@ const QuizBodaPage = () => {
         }
     }, []);
 
-    // Maneja la selección de respuesta
     const handleAnswerSelect = (value, questionId) => {
         const newAnswers = { ...answers, [questionId]: value };
         setAnswers(newAnswers);
-
         if (currentQuestionIndex === 4) {
             handleSubmit(newAnswers); 
         } else {
@@ -75,15 +80,12 @@ const QuizBodaPage = () => {
         }
     };
     
-    // Maneja el input de nombre
     const handleNameChange = (e) => {
         const name = e.target.value;
         setAnswers(prev => ({ ...prev, guestName: name }));
         localStorage.setItem('manel_carla_quiz_name', name);
     };
 
-
-    // --- Lógica de Envío ---
     const handleSubmit = (finalAnswers) => { 
         setIsSubmitting(true);
         setCurrentStep(7); 
@@ -98,7 +100,6 @@ const QuizBodaPage = () => {
         submissionUrl += `&submit=Submit`; 
 
         submissionUrl = submissionUrl.replace('?&', '?');
-
         window.open(submissionUrl, '_blank');
 
         localStorage.setItem(QUIZ_COMPLETED_KEY, 'true');
@@ -109,12 +110,8 @@ const QuizBodaPage = () => {
              setCurrentStep(8); 
         }, 2000); 
     };
-    
-    
-    // --- Renderizado de Vistas ---
 
     const renderStep = () => {
-        // PANTALLA FINAL
         if (isCompleted || currentStep === 8) {
              return (
                  <div className="step-content success-screen">
@@ -128,25 +125,17 @@ const QuizBodaPage = () => {
         }
 
         switch (currentStep) {
-            
-            // STEP 0: BIENVENIDA
             case 0:
                 return (
                     <div className="step-content welcome-screen">
                         <h1>💍 ¡Bienvenido/a al Gran Quiz de Manel y Carla!</h1>
                         <p>Pon a prueba cuánto sabes sobre nosotros. Entre todas las personas que participen, <strong>quienes consigan el mayor número de aciertos recibirán un regalo exclusivo el día de la boda</strong>.</p>
                         <p>¡Demuestra tu conocimiento y mucha suerte! 🎁✨</p>
-                        <button 
-                            className="button" 
-                            onClick={() => setCurrentStep(1)}
-                            disabled={isSubmitting}
-                        >
+                        <button className="button" onClick={() => setCurrentStep(1)} disabled={isSubmitting}>
                             ¡EMPEZAR A JUGAR!
                         </button>
                     </div>
                 );
-            
-            // STEP 1: NOMBRE
             case 1:
                  return (
                     <div className="step-content name-screen">
@@ -162,17 +151,11 @@ const QuizBodaPage = () => {
                             required
                             placeholder="Escribe aquí..."
                         />
-                        <button 
-                            className="button next-button" 
-                            onClick={() => setCurrentStep(2)}
-                            disabled={answers.guestName.trim().length < 3 || isSubmitting}
-                        >
+                        <button className="button next-button" onClick={() => setCurrentStep(2)} disabled={answers.guestName.trim().length < 3 || isSubmitting}>
                             SIGUIENTE PREGUNTA »
                         </button>
                     </div>
                 );
-
-            // STEPS 2-6: PREGUNTAS
             case 2:
             case 3:
             case 4:
@@ -195,8 +178,6 @@ const QuizBodaPage = () => {
                         </div>
                     </div>
                 );
-            
-            // STEP 7: SPINNER
             case 7:
                 return (
                     <div className="step-content submit-screen">
@@ -205,7 +186,6 @@ const QuizBodaPage = () => {
                         <p>No cierres la página, estamos registrando tu participación...</p>
                     </div>
                 );
-                
             default:
                 return null;
         }
@@ -216,37 +196,33 @@ const QuizBodaPage = () => {
             <Head>
                 <title>El Gran Quiz de Manel y Carla 💍</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
-                {/* CAMBIO IMPORTANTE: Color de la barra del navegador MORADO OSCURO */}
                 <meta name="theme-color" content="#23074d" />
             </Head>
 
             <div className="container">
                 <div className="card">
                     {renderStep()}
-                    
                     {(currentStep >= 1 && currentStep <= 6) && (
                         <div className="progress-bar-container">
-                             <div 
-                                className="progress-bar" 
-                                style={{ width: `${(currentStep / 6) * 100}%` }} 
-                            ></div>
+                             <div className="progress-bar" style={{ width: `${(currentStep / 6) * 100}%` }} ></div>
                             <p className="progress-text">Paso {currentStep} de 6</p>
                         </div>
                     )}
                 </div>
             </div>
 
-            {/* --- ESTILOS GLOBALES UNIFICADOS --- */}
             <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap');
 
-                /* RESET TOTAL PARA EVITAR FONDO BLANCO */
-                html, body {
+                /* --- FIX CRÍTICO PARA EL FONDO COMPLETO --- */
+                /* Apuntamos a html, body Y al contenedor raíz de Next.js (#__next) */
+                html, body, #__next {
                     margin: 0;
                     padding: 0;
                     width: 100%;
-                    height: 100%;
-                    background: linear-gradient(135deg, #23074d, #440a5b) !important; /* Fondo forzado */
+                    min-height: 100vh; /* Asegura altura completa */
+                    background-color: #23074d !important; /* Color sólido de respaldo */
+                    background: linear-gradient(135deg, #23074d, #440a5b) !important;
                     color: #fff;
                     font-family: 'Lato', sans-serif;
                     overflow-x: hidden;
@@ -260,13 +236,14 @@ const QuizBodaPage = () => {
                     min-height: 100vh;
                     padding: 20px;
                     box-sizing: border-box;
+                    /* Quitamos el background de aquí porque ya está en el body */
                 }
 
                 /* TARJETA DEL JUEGO */
                 .card {
                     background: #1f2937;
                     color: #fff;
-                    padding: 2rem; /* Reducido un poco para móviles */
+                    padding: 2rem;
                     border-radius: 16px;
                     border: 2px solid #a88a53;
                     box-shadow: 0 0 25px rgba(168,138,83,0.3);
@@ -289,7 +266,7 @@ const QuizBodaPage = () => {
                 
                 p { line-height: 1.6; }
 
-                /* BOTÓN PRINCIPAL (EMPEZAR) */
+                /* BOTÓN PRINCIPAL */
                 .button {
                     display: inline-block;
                     padding: 1rem 2rem;
@@ -305,7 +282,7 @@ const QuizBodaPage = () => {
                     text-transform: uppercase;
                     font-family: 'Cinzel', serif;
                     animation: pulse-gold 1.5s infinite;
-                    width: 100%; /* Ancho completo en móvil */
+                    width: 100%; 
                     max-width: 300px;
                 }
 
@@ -325,7 +302,7 @@ const QuizBodaPage = () => {
                     box-sizing: border-box;
                 }
 
-                /* BOTÓN SIGUIENTE (PASO 1) */
+                /* BOTÓN SIGUIENTE */
                 .next-button {
                     background: #f3f4f6; 
                     color: #1f2937; 
@@ -335,10 +312,10 @@ const QuizBodaPage = () => {
                     font-family: 'Lato', sans-serif;
                 }
 
-                /* BOTONES DE RESPUESTA (OPCIONES) */
+                /* BOTONES DE RESPUESTA */
                 .options-grid { 
                     display: grid; 
-                    grid-template-columns: 1fr; /* Una columna en móvil por defecto */
+                    grid-template-columns: 1fr; 
                     gap: 15px; 
                     margin-top: 20px;
                 }
@@ -363,14 +340,11 @@ const QuizBodaPage = () => {
                     align-items: center;
                     justify-content: center;
                 }
-
                 .option-button:active { transform: scale(0.98); background: #4b5563; }
 
-                /* SPINNER */
                 .spinner { border:4px solid #f3f3f3; border-top:4px solid #ffcc00; border-radius:50%; width:40px; height:40px; animation:spin 1s linear infinite; margin:20px auto; }
                 @keyframes spin { 0%{transform:rotate(0deg);}100%{transform:rotate(360deg);} }
 
-                /* BARRA PROGRESO */
                 .progress-bar-container { margin-top: 20px; width: 100%; background: #374151; height: 8px; border-radius: 4px; position: relative; }
                 .progress-bar { height: 100%; background: #d4af37; border-radius: 4px; transition: width 0.3s ease; }
                 .progress-text { font-size: 0.8rem; color: #9ca3af; margin-top: 5px; }
