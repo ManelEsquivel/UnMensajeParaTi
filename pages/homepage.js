@@ -124,18 +124,6 @@ export default function Homepage() {
                             <span style={styles.arrow}>➔</span>
                         </div>
 
-                        {/* TARJETA 5: JUEGO */}
-                        <div style={styles.card} onClick={() => navigateTo('/game')}>
-                            <div style={{...styles.iconBg, background: '#fff3e0'}}>
-                                <span style={styles.emoji}>🎮</span>
-                            </div>
-                            <div style={styles.textContainer}>
-                                <h3 style={styles.cardTitle}>El Quiz</h3>
-                                <p style={styles.cardText}>¿Cuánto sabes sobre nosotros?</p>
-                            </div>
-                            <span style={styles.arrow}>➔</span>
-                        </div>
-
                     </div>
 
                     <footer style={styles.footer}>
@@ -154,8 +142,8 @@ const styles = {
         fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
         display: 'flex',
         justifyContent: 'center',
-        padding: '15px', 
-        paddingBottom: '20px',
+        padding: '20px', 
+        paddingBottom: '30px',
         boxSizing: 'border-box',
     },
     content: {
@@ -168,11 +156,11 @@ const styles = {
     },
     header: {
         textAlign: 'center',
-        marginBottom: '10px',
-        marginTop: '0px',
+        marginBottom: '25px', // Aumentado margen inferior
+        marginTop: '10px',
     },
     title: {
-        fontSize: '2.0rem', // 👈 AJUSTE FINAL: Reducido de 2.2rem a 2.0rem
+        fontSize: '2.2rem', // Restaurado tamaño grande
         color: '#2d3748',
         fontFamily: '"Times New Roman", serif',
         margin: '0 0 5px 0',
@@ -187,46 +175,46 @@ const styles = {
         margin: 0,
     },
     divider: {
-        width: '50px',
+        width: '60px',
         height: '3px',
         backgroundColor: '#d6bcfa',
-        margin: '10px auto',
+        margin: '15px auto',
         borderRadius: '2px',
     },
     welcome: {
         color: '#4a5568',
-        fontSize: '0.95rem',
+        fontSize: '1rem',
     },
     grid: {
         display: 'flex',
         flexDirection: 'column',
-        gap: '8px',
+        gap: '20px', // Aumentado de 8px a 20px para separar más los botones
         width: '100%',
     },
     card: {
         backgroundColor: 'white',
-        borderRadius: '16px',
-        padding: '12px', // 👈 AJUSTE FINAL: Reducido de 16px a 12px
+        borderRadius: '20px', // Bordes más redondeados
+        padding: '25px 20px', // Aumentado padding interno considerablemente
         display: 'flex',
         alignItems: 'center', 
-        boxShadow: '0 5px 15px rgba(0,0,0,0.03)',
+        boxShadow: '0 8px 20px rgba(0,0,0,0.06)', // Sombra un poco más pronunciada
         cursor: 'pointer',
         transition: 'transform 0.2s ease, box-shadow 0.2s ease',
         position: 'relative',
         overflow: 'hidden',
     },
     iconBg: {
-        width: '45px', // 👈 AJUSTE FINAL: Reducido de 50px a 45px
-        height: '45px', // 👈 AJUSTE FINAL: Reducido de 50px a 45px
-        borderRadius: '12px',
+        width: '60px', // Aumentado de 45px a 60px
+        height: '60px', // Aumentado de 45px a 60px
+        borderRadius: '15px',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
-        marginRight: '15px', 
+        marginRight: '20px', 
         flexShrink: 0, 
     },
     emoji: {
-        fontSize: '20px', // 👈 AJUSTE FINAL: Reducido de 24px a 20px
+        fontSize: '30px', // Aumentado de 20px a 30px
     },
     textContainer: {
         flex: 1, 
@@ -237,29 +225,29 @@ const styles = {
         paddingRight: '10px',
     },
     cardTitle: {
-        margin: '0 0 2px 0',
-        fontSize: '1.1rem', 
+        margin: '0 0 5px 0',
+        fontSize: '1.3rem', // Aumentado tamaño de letra título
         color: '#2d3748',
         fontWeight: 'bold',
         lineHeight: '1.2',
     },
     cardText: {
         margin: 0,
-        fontSize: '0.85rem',
+        fontSize: '0.95rem', // Aumentado tamaño de letra descripción
         color: '#718096',
-        lineHeight: '1.3',
+        lineHeight: '1.4',
     },
     arrow: {
         marginLeft: 'auto', 
         color: '#cbd5e0',
-        fontSize: '1.2rem',
+        fontSize: '1.5rem', // Flecha más grande
         fontWeight: 'bold',
         flexShrink: 0, 
     },
     footer: {
-        marginTop: '5px',
+        marginTop: '30px',
         color: '#a0aec0',
-        fontSize: '0.75rem',
+        fontSize: '0.8rem',
         textAlign: 'center',
         paddingBottom: '10px',
     }
