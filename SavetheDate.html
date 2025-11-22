@@ -14,10 +14,8 @@
             display: flex;
             justify-content: center;
             align-items: center;
-            /* Aseguramos que ocupe toda la altura y quede centrado verticalmente */
             min-height: 100vh;
             margin: 0;
-            /* Scroll permitido */
             background-color: #f7f3ed; 
         }
 
@@ -26,14 +24,12 @@
             z-index: 10; 
             width: 100%;
             max-width: 400px;
-            /* Usamos padding para asegurar que haya espacio en dispositivos muy pequeños */
             padding: 3rem 1.5rem; 
             text-align: center;
             
-            /* IMAGEN DE FONDO COMPLETAMENTE NUEVA para forzar la recarga */
+            /* IMAGEN DE FONDO */
             background-image: url('https://raw.githubusercontent.com/ManelEsquivel/SaveTheDate/main/anillos_2.png');
             background-size: cover;
-            /* Posición ajustada al centro real */
             background-position: center 50%; 
             background-repeat: no-repeat;
             
@@ -95,7 +91,6 @@
         .step-5 { animation-delay: 4.0s; }
         .step-6 { animation-delay: 4.8s; }
         .step-7 { animation-delay: 5.6s; }
-        .step-8 { animation-delay: 6.6s; }
 
         .btn-details {
             font-family: 'Noto Sans', sans-serif;
@@ -105,79 +100,30 @@
             border-radius: 6px;
             text-decoration: none;
             transition: background-color 0.3s, transform 0.1s;
-            display: inline-block;
+            display: inline-flex; /* Para alinear icono y texto */
+            align-items: center;
+            justify-content: center;
             box-shadow: 0 4px 10px rgba(177, 133, 121, 0.4);
-            cursor: pointer; /* Añadido cursor pointer */
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
         }
 
         .btn-details:hover {
             background-color: #9c7569;
             transform: translateY(-1px);
         }
-
-        /* Estilos del Modal */
-        .modal-overlay {
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background-color: rgba(0, 0, 0, 0.6);
-            backdrop-filter: blur(4px);
-            z-index: 50;
-            display: none; /* Oculto por defecto */
-            align-items: center;
-            justify-content: center;
-            opacity: 0;
-            transition: opacity 0.3s ease-out;
+        
+        .btn-details svg {
+            margin-right: 8px;
         }
 
-        .modal-content {
-            background-color: #fff;
-            padding: 2rem;
-            border-radius: 12px;
-            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-            max-width: 90%;
-            width: 400px;
-            transform: scale(0.8) translateY(-20px);
-            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.27); /* Efecto pop */
-            font-family: 'Noto Sans', sans-serif;
-            text-align: center;
-        }
-
-        .modal-overlay.active {
-            display: flex;
-            opacity: 1;
-        }
-
-        .modal-overlay.active .modal-content {
-            transform: scale(1) translateY(0);
-        }
-
-        .modal-title {
-            font-family: 'Cormorant Garamond', serif;
-            color: #b18579;
-        }
-
-        .btn-secondary {
-            font-family: 'Noto Sans', sans-serif;
-            background-color: #f7f3ed; /* Fondo claro de la invitación */
-            color: #b18579;
-            border: 1px solid #b18579;
-            transition: background-color 0.3s;
-        }
-
-        .btn-secondary:hover {
-            background-color: #e0d8c7;
-        }
     </style>
 </head>
 <body>
     
     <div class="invitation-frame"> 
 
-        
-        <!-- Detalles de hoja SVG (Mantenidos) -->
         <div class="leaf-detail top-left-leaf">
             <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M 5 95 C 30 75, 75 30, 95 5" />
@@ -186,7 +132,6 @@
                 <circle cx="5" cy="95" r="3" fill="currentColor" stroke="none" />
             </svg>
         </div>
-        
         <div class="leaf-detail top-right-leaf">
             <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M 5 95 C 30 75, 75 30, 95 5" />
@@ -195,7 +140,6 @@
                 <circle cx="5" cy="95" r="3" fill="currentColor" stroke="none" />
             </svg>
         </div>
-
         <div class="leaf-detail bottom-right-leaf">
             <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M 5 95 C 30 75, 75 30, 95 5" />
@@ -204,7 +148,6 @@
                 <circle cx="5" cy="95" r="3" fill="currentColor" stroke="none" />
             </svg>
         </div>
-
         <div class="leaf-detail bottom-left-leaf">
             <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
                 <path d="M 5 95 C 30 75, 75 30, 95 5" />
@@ -215,7 +158,6 @@
         </div>
         
         
-        <!-- Contenido principal de la invitación (Mantenido) -->
         <p class="animated-item step-1 text-xl tracking-widest uppercase mb-6 text-gray-800">
             Save The Date
         </p>
@@ -227,8 +169,7 @@
         <p class="animated-item step-4 text-3xl font-bold mb-8 accent-color">
             31 · 10 · 2026
         </p>
-         <p>
-        </p>
+         
         <p class="animated-item step-5 text-xl mt-16 mb-6 text-gray-700">
             Masia Mas Llombart<br>Sant Fost de Campsentelles, Barcelona
         </p>
@@ -238,67 +179,31 @@
         </p>
 
         <div class="animated-item step-7">
-            <!-- Cambiamos la etiqueta 'a' por un 'button' y le añadimos un ID para el JS -->
-            <button id="openModalBtn" class="btn-details">
-                Confirmar Asistencia
+            <button id="saveDateBtn" class="btn-details">
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                Guardar en el Calendario
             </button>
         </div>
         
     </div>
 
-    <!-- Modal de Opciones (Nuevo) -->
-    <div id="rsvpModal" class="modal-overlay">
-        <div class="modal-content">
-            <h2 class="modal-title text-3xl font-bold mb-4">¡Gracias por confirmar!</h2>
-            <p class="text-gray-700 mb-8 font-light">
-                Para asegurarte de que no se te olvide, ¿quieres guardar la fecha en tu calendario o prefieres confirmar tu asistencia primero?
-            </p>
-            <div class="flex flex-col space-y-4">
-                
-                <!-- Botón de Calendario, ahora universal ICS -->
-                <button id="saveToCalendarBtn" class="btn-details w-full flex justify-center items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="mr-2"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
-                    Guardar en mi Calendario
-                </button>
-                
-                <!-- Botón de Continuar a Confirmar -->
-                <a id="continueRsvpBtn" href="https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3" class="btn-secondary w-full py-3 px-4 rounded-lg font-semibold text-center transition-colors duration-200">
-                    Continuar a Confirmar Asistencia
-                </a>
-
-                <!-- Botón de Cerrar/Cancelar -->
-                <button id="closeModalBtn" class="text-sm text-gray-500 hover:text-gray-800 mt-2 p-1">
-                    Ahora no, gracias
-                </button>
-            </div>
-        </div>
-    </div>
-
-
     <script>
-        // --- Variables y Configuración de Evento ---
+        // --- Datos del Evento ---
         const eventData = {
             title: "Boda Manel & Carla",
             location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
-            description: "¡Nos encantaría que nos acompañaras en nuestro gran día! Confirma tu asistencia en: https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3",
-            // Fecha: 31 de Octubre de 2026. Hora: 12:00. Duración: 10 horas (acaba a las 22:00)
+            description: "¡Nos encantaría que nos acompañaras en nuestro gran día! Web: https://www.bodas.net/web/manel-y-carla/bienvenidos-1",
+            // Fecha: 31 de Octubre de 2026. Hora: 12:00.
             date: "20261031T120000",
             durationHours: 10 
         };
 
-        const rsvpUrl = "https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3";
-        const modal = document.getElementById('rsvpModal');
-        const openModalBtn = document.getElementById('openModalBtn');
-        const closeModalBtn = document.getElementById('closeModalBtn');
-        const saveToCalendarBtn = document.getElementById('saveToCalendarBtn');
+        const saveDateBtn = document.getElementById('saveDateBtn');
 
-
-        // --- Funciones del Calendario ICS Universal ---
-
+        // --- Función para formatear fechas ICS ---
         function formatICSDate(dateString, isEnd = false) {
-            // dateString is YYYYMMDDTHHMMSS
             const year = parseInt(dateString.substring(0, 4));
-            const month = parseInt(dateString.substring(4, 6)) - 1; // 0-indexed
+            const month = parseInt(dateString.substring(4, 6)) - 1;
             const day = parseInt(dateString.substring(6, 8));
             const hour = parseInt(dateString.substring(9, 11));
             const minute = parseInt(dateString.substring(11, 13));
@@ -307,24 +212,20 @@
             let date = new Date(year, month, day, hour, minute, second);
 
             if (isEnd) {
-                // Añadir la duración de las horas para la hora de finalización
                 date.setHours(date.getHours() + eventData.durationHours);
             }
 
-            // Formato ICS (YYYYMMDDTHHMMSSZ para UTC o sin Z para fecha local)
-            // Usaremos la fecha local del evento y la marcamos como "fecha y hora flotantes" (sin Z)
-            // Esto permite que se muestre correctamente en diferentes husos horarios.
             const pad = (num) => num.toString().padStart(2, '0');
-            
+            // Formato flotante para respetar la hora local del usuario
             return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
         }
         
-        // Función para generar y descargar el archivo ICS
+        // --- Función para generar y descargar ICS ---
         function downloadICalFile(event) {
             const startDate = event.date;
             const endDate = formatICSDate(startDate, true);
             const stamp = formatICSDate(new Date().toISOString().replace(/[-:.]/g, '').substring(0, 15));
-            const uid = Date.now().toString() + "@manel-carla-boda.com"; // UID único
+            const uid = Date.now().toString() + "@manel-carla-boda.com";
 
             const icsContent = [
                 'BEGIN:VCALENDAR',
@@ -335,7 +236,6 @@
                 'BEGIN:VEVENT',
                 `UID:${uid}`,
                 `DTSTAMP:${stamp}`,
-                // Usamos el formato flotante (sin Z) para que la hora local sea correcta
                 `DTSTART:${formatICSDate(startDate)}`,
                 `DTEND:${endDate}`,
                 `SUMMARY:${event.title}`,
@@ -357,37 +257,14 @@
             URL.revokeObjectURL(url);
         }
 
-
-        // --- Event Listeners ---
-
-        // 1. Abrir Modal al hacer clic en el botón de confirmación
-        openModalBtn.addEventListener('click', (e) => {
-            e.preventDefault(); 
-            modal.style.display = 'flex';
-            setTimeout(() => modal.classList.add('active'), 10); 
-        });
-
-        // 2. Cerrar Modal al hacer clic en el botón de cerrar
-        closeModalBtn.addEventListener('click', () => {
-            modal.classList.remove('active');
-            setTimeout(() => modal.style.display = 'none', 300); 
-        });
-
-        // 3. Cerrar Modal al hacer clic fuera del contenido
-        modal.addEventListener('click', (e) => {
-            if (e.target === modal) {
-                closeModalBtn.click();
-            }
-        });
-
-        // 4. Guardar en Calendario (¡Ahora usa el método ICS universal y NO CIERRA el modal!)
-        saveToCalendarBtn.addEventListener('click', () => {
+        // --- Listener del botón principal ---
+        saveDateBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            // Ejecutamos la descarga directamente
             downloadICalFile(eventData);
-            // ANTES: closeModalBtn.click(); 
-            // AHORA: El modal permanece abierto para que el usuario pueda pulsar "Continuar a Confirmar Asistencia"
         });
         
-        // 5. Scroll (Mantenido)
+        // --- Scroll inicial suave ---
         window.onload = function() {
             window.scrollTo(0, 50); 
         };
