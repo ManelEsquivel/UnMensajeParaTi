@@ -1,16 +1,27 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 
 export default function InvitationEnvelope() {
-    // Estados: 'closed' (cerrado), 'opening' (abriendo solapa), 'open' (carta fuera)
-    const [status, setStatus] = useState('closed');
+    // ESTADOS DE LA SECUENCIA DE ANIMACIÓN:
+    // 0: Cerrado (Sello visible)
+    // 1: Abriendo Solapa (El sello desaparece, la solapa gira)
+    // 2: Sacando Carta (La carta se desliza hacia arriba)
+    // 3: Leyendo (Zoom final para ver el contenido)
+    const [animationStep, setAnimationStep] = useState(0);
 
-    const openEnvelope = () => {
-        setStatus('opening');
-        // Esperamos a que la solapa se abra (600ms) para sacar la carta
+    const startAnimation = () => {
+        // Paso 1: Abrir solapa
+        setAnimationStep(1);
+
+        // Paso 2: Esperar 800ms (tiempo que tarda la solapa) y sacar la carta
         setTimeout(() => {
-            setStatus('open');
-        }, 600);
+            setAnimationStep(2);
+        }, 800);
+
+        // Paso 3: Esperar 1 segundo más y hacer el zoom final
+        setTimeout(() => {
+            setAnimationStep(3);
+        }, 1800);
     };
 
     const handleConfirm = () => {
@@ -21,75 +32,91 @@ export default function InvitationEnvelope() {
         <>
             <Head>
                 <title>Invitación Manel & Carla</title>
-                {/* Fuentes elegantes */}
-                <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Pinyon+Script&family=Montserrat:wght@300;400&display=swap" rel="stylesheet" />
+                <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+                <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;600&family=Great+Vibes&family=Montserrat:wght@300;400;600&display=swap" rel="stylesheet" />
             </Head>
 
             <div style={styles.container}>
                 
-                {/* --- CONTENEDOR CENTRAL --- */}
+                {/* CONTENEDOR QUE HACE ZOOM AL FINAL */}
                 <div style={{
                     ...styles.wrapper,
-                    // Si está 'open', hacemos zoom para que la carta se lea bien
-                    transform: status === 'open' ? 'scale(1.1) translateY(50px)' : 'scale(1)',
-                    transition: 'transform 1s ease-in-out'
+                    transform: animationStep === 3 ? 'scale(1.15) translateY(60px)' : 'scale(1)',
+                    transition: 'transform 1.2s cubic-bezier(0.25, 1, 0.5, 1)' // Zoom suave y elegante
                 }}>
 
-                    {/* 1. LA CARTA (INVITACIÓN) */}
+                    {/* --- 1. LA CARTA (INVITACIÓN) --- */}
                     <div style={{
                         ...styles.card,
-                        // Animación: Si está 'open', sube mucho (sale del sobre). Si es 'opening', quieta.
-                        transform: status === 'open' ? 'translateY(-180px)' : 'translateY(0)',
-                        zIndex: status === 'open' ? 20 : 2, // Sube de nivel al final
-                        opacity: status === 'open' ? 1 : (status === 'opening' ? 1 : 0), // Truco para que no se vea por debajo
-                        transition: 'transform 1s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s linear 0.5s, opacity 0.2s'
+                        // LÓGICA DE MOVIMIENTO:
+                        // Si es paso 0 o 1: Quieta abajo.
+                        // Si es paso 2 o 3: Sube (TranslateY negativo).
+                        transform: animationStep >= 2 ? 'translateY(-200px)' : 'translateY(0)',
+                        // LÓGICA DE CAPAS (Z-INDEX):
+                        // Al principio está dentro (index 2). Cuando empieza a subir (paso 2), se pone encima de todo (index 20).
+                        zIndex: animationStep >= 2 ? 20 : 2,
+                        opacity: animationStep >= 2 ? 1 : (animationStep === 1 ? 1 : 0), // Oculta al inicio para evitar glitches visuales
+                        transition: 'transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)' // Efecto "rebote" suave al salir
                     }}>
-                        {/* Contenido de la Carta */}
-                        <div style={styles.cardContent}>
+                        <div style={styles.cardBorder}>
                             <p style={styles.subHeader}>NOS CASAMOS</p>
                             <h1 style={styles.names}>Manel & Carla</h1>
-                            <div style={styles.divider}></div>
-                            <p style={styles.date}>21 de Octubre, 2026</p>
-                            <p style={styles.place}>Masia Mas Llombart</p>
-                            <p style={styles.details}>Esperamos que puedas acompañarnos<br/>en este día tan especial.</p>
+                            <div style={styles.divider}>
+                                <span style={{fontSize:'20px'}}>❦</span>
+                            </div>
+                            <p style={styles.date}>21 · 10 · 2026</p>
+                            <p style={styles.place}>Masia Mas Llombart, BCN</p>
                             
-                            <button onClick={handleConfirm} style={styles.confirmButton}>
+                            <p style={styles.verse}>
+                                "El amor no hace girar al mundo.<br/>El amor es lo que hace que el viaje valga la pena."
+                            </p>
+
+                            {/* Botón interactivo solo al final */}
+                            <button 
+                                onClick={handleConfirm} 
+                                style={{
+                                    ...styles.confirmButton,
+                                    opacity: animationStep === 3 ? 1 : 0,
+                                    pointerEvents: animationStep === 3 ? 'auto' : 'none',
+                                    transition: 'opacity 1s ease 1s' // Aparece lento al final
+                                }}
+                            >
                                 Confirmar Asistencia
                             </button>
                         </div>
                     </div>
 
-                    {/* 2. EL SOBRE */}
+                    {/* --- 2. EL SOBRE --- */}
                     <div style={styles.envelope}>
                         
-                        {/* Interior del sobre (fondo oscuro) */}
+                        {/* Interior oscuro */}
                         <div style={styles.envelopeInner}></div>
 
-                        {/* Solapa Izquierda */}
+                        {/* Solapas Laterales */}
                         <div style={styles.flapLeft}></div>
-                        
-                        {/* Solapa Derecha */}
                         <div style={styles.flapRight}></div>
 
                         {/* Solapa Inferior (Bolsillo) */}
                         <div style={styles.flapBottom}></div>
 
-                        {/* Solapa Superior (Móvil) */}
+                        {/* Solapa Superior (Animada) */}
                         <div style={{
                             ...styles.flapTop,
-                            transform: status !== 'closed' ? 'rotateX(180deg)' : 'rotateX(0deg)',
-                            zIndex: status !== 'closed' ? 1 : 10, // Baja el z-index al abrirse
-                            transition: 'transform 0.8s ease-in-out, z-index 0.2s linear 0.4s'
+                            // Gira 180 grados si el paso es 1 o mayor
+                            transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
+                            // Baja el z-index para que la carta pase por encima al salir
+                            zIndex: animationStep >= 1 ? 1 : 10, 
+                            transition: 'transform 0.8s ease-in-out, z-index 0.1s linear 0.4s'
                         }}></div>
 
-                        {/* 3. EL SELLO DE CERA ROJA */}
+                        {/* --- 3. SELLO DE CERA ROJA --- */}
                         <div 
-                            onClick={status === 'closed' ? openEnvelope : undefined}
+                            onClick={animationStep === 0 ? startAnimation : undefined}
                             style={{
                                 ...styles.waxSeal,
-                                opacity: status === 'closed' ? 1 : 0,
-                                transform: status === 'closed' ? 'scale(1)' : 'scale(1.5)',
-                                pointerEvents: status === 'closed' ? 'auto' : 'none',
+                                opacity: animationStep === 0 ? 1 : 0,
+                                transform: animationStep === 0 ? 'scale(1)' : 'scale(1.2)',
+                                pointerEvents: animationStep === 0 ? 'auto' : 'none',
                             }}
                         >
                             <span style={styles.sealText}>M&C</span>
@@ -97,13 +124,22 @@ export default function InvitationEnvelope() {
 
                     </div>
                     
-                    {/* Texto de ayuda (solo si está cerrado) */}
-                    {status === 'closed' && (
+                    {/* Texto de ayuda pulsante */}
+                    {animationStep === 0 && (
                         <div style={styles.hintText}>Toca el sello para abrir</div>
                     )}
 
                 </div>
             </div>
+            
+            <style jsx global>{`
+                body { margin: 0; padding: 0; background-color: #f2f0eb; }
+                @keyframes pulse-shadow {
+                    0% { box-shadow: 0 0 0 0 rgba(180, 0, 0, 0.4); }
+                    70% { box-shadow: 0 0 0 10px rgba(180, 0, 0, 0); }
+                    100% { box-shadow: 0 0 0 0 rgba(180, 0, 0, 0); }
+                }
+            `}</style>
         </>
     );
 }
@@ -113,7 +149,7 @@ const styles = {
     container: {
         width: '100vw',
         height: '100vh',
-        backgroundColor: '#f2f0eb', // Fondo general de la web
+        backgroundColor: '#f2f0eb',
         display: 'flex',
         justifyContent: 'center',
         alignItems: 'center',
@@ -122,103 +158,108 @@ const styles = {
     },
     wrapper: {
         position: 'relative',
-        width: '320px', // Ancho base para móvil
-        height: '220px', // Altura del sobre (formato horizontal)
+        width: '340px', // Un poco más ancho para formato horizontal
+        height: '230px', 
         display: 'flex',
         justifyContent: 'center',
-        alignItems: 'flex-end', // Alineado abajo para que la carta salga hacia arriba
-        perspective: '1500px', // Profundidad 3D
+        alignItems: 'flex-end',
+        perspective: '1500px', // Perspectiva 3D esencial
     },
     
-    // --- CARTA ---
+    // --- ESTILOS DE LA CARTA ---
     card: {
         position: 'absolute',
-        bottom: '10px', // Empieza dentro del sobre
-        width: '290px', // Un poco más estrecha que el sobre
-        height: '420px', // Bastante alta para que quepa todo el texto
-        backgroundColor: '#fff',
-        backgroundImage: 'linear-gradient(to bottom, #fff 0%, #fafafa 100%)',
-        borderRadius: '6px',
-        boxShadow: '0 5px 25px rgba(0,0,0,0.15)',
+        bottom: '5px',
+        width: '310px', // Casi el ancho del sobre
+        height: '450px', // Muy alta para que quepa todo
+        backgroundColor: '#fffcf5',
+        backgroundImage: `url("https://www.transparenttextures.com/patterns/cream-paper.png")`, // Textura sutil si carga, si no color crema
+        borderRadius: '8px',
+        boxShadow: '0 10px 30px rgba(0,0,0,0.1)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        // La animación se controla en el render
+        // La animación se maneja en el inline style del componente
     },
-    cardContent: {
-        width: '100%',
-        height: '100%',
-        border: '1px solid #d4af37', // Marco dorado fino
-        margin: '15px',
+    cardBorder: {
+        width: '90%',
+        height: '92%',
+        border: '1px solid #cfaa5e', // Dorado mate
         display: 'flex',
         flexDirection: 'column',
         alignItems: 'center',
-        justifyContent: 'center',
+        justifyContent: 'flex-start', // Empezar desde arriba
         textAlign: 'center',
-        padding: '20px',
+        padding: '25px 15px',
         boxSizing: 'border-box',
     },
     subHeader: {
         fontFamily: '"Montserrat", sans-serif',
         fontSize: '10px',
-        letterSpacing: '3px',
-        color: '#888',
-        marginBottom: '10px',
+        letterSpacing: '4px',
+        color: '#8a8a8a',
+        marginBottom: '15px',
+        marginTop: '10px',
         textTransform: 'uppercase',
     },
     names: {
-        fontFamily: '"Pinyon Script", cursive', // Fuente tipo firma elegante
-        fontSize: '38px',
-        color: '#1a1a1a',
+        fontFamily: '"Great Vibes", cursive', // Fuente estilo caligrafía boda
+        fontSize: '42px',
+        color: '#2c2c2c',
         margin: '5px 0',
-        lineHeight: '1',
+        lineHeight: '1.2',
     },
     divider: {
-        width: '40px',
-        height: '1px',
-        backgroundColor: '#d4af37',
-        margin: '15px 0',
+        color: '#cfaa5e',
+        margin: '10px 0',
+        opacity: 0.8,
     },
     date: {
         fontFamily: '"Cinzel", serif',
-        fontSize: '14px',
+        fontSize: '16px',
         fontWeight: '600',
         color: '#1a1a1a',
+        letterSpacing: '1px',
         marginBottom: '5px',
     },
     place: {
         fontFamily: '"Montserrat", sans-serif',
         fontSize: '12px',
         color: '#666',
+        textTransform: 'uppercase',
+        letterSpacing: '1px',
         marginBottom: '20px',
     },
-    details: {
+    verse: {
         fontFamily: '"Montserrat", sans-serif',
         fontSize: '11px',
-        color: '#888',
-        lineHeight: '1.6',
-        marginBottom: '25px',
+        color: '#777',
         fontStyle: 'italic',
+        lineHeight: '1.6',
+        marginBottom: 'auto', // Empuja el botón al fondo
+        padding: '0 10px',
     },
     confirmButton: {
-        backgroundColor: '#1a1a1a', // Botón negro elegante
+        backgroundColor: '#8b0000', // Rojo oscuro elegante
         color: '#fff',
         border: 'none',
-        padding: '12px 30px',
-        fontSize: '11px',
+        padding: '14px 28px',
+        fontSize: '12px',
         fontFamily: '"Montserrat", sans-serif',
         textTransform: 'uppercase',
         letterSpacing: '2px',
+        fontWeight: '600',
         cursor: 'pointer',
-        transition: 'background 0.3s',
-        borderRadius: '2px',
+        borderRadius: '50px',
+        boxShadow: '0 4px 15px rgba(139, 0, 0, 0.3)',
+        marginBottom: '10px',
     },
 
-    // --- SOBRE (ENVELOPE) ---
+    // --- ESTILOS DEL SOBRE ---
     envelope: {
         position: 'relative',
-        width: '320px',
-        height: '220px',
+        width: '340px',
+        height: '230px',
         zIndex: 5,
     },
     envelopeInner: {
@@ -227,22 +268,21 @@ const styles = {
         left: 0,
         width: '100%',
         height: '100%',
-        backgroundColor: '#403d3d', // Interior oscuro para contraste
-        borderRadius: '4px',
+        backgroundColor: '#3e3a38', // Interior oscuro
+        borderRadius: '6px',
     },
-    // Estilos de las solapas usando bordes CSS
     flapLeft: {
         position: 'absolute',
         top: 0,
         left: 0,
         width: 0,
         height: 0,
-        borderTop: '110px solid transparent',
-        borderBottom: '110px solid transparent',
-        borderLeft: '170px solid #e3decb', // Color del papel del sobre
+        borderTop: '115px solid transparent',
+        borderBottom: '115px solid transparent',
+        borderLeft: '180px solid #ece6d8', // Color papel
         zIndex: 6,
-        borderTopLeftRadius: '4px',
-        borderBottomLeftRadius: '4px',
+        borderTopLeftRadius: '6px',
+        borderBottomLeftRadius: '6px',
     },
     flapRight: {
         position: 'absolute',
@@ -250,12 +290,12 @@ const styles = {
         right: 0,
         width: 0,
         height: 0,
-        borderTop: '110px solid transparent',
-        borderBottom: '110px solid transparent',
-        borderRight: '170px solid #e3decb', // Color del papel del sobre
+        borderTop: '115px solid transparent',
+        borderBottom: '115px solid transparent',
+        borderRight: '180px solid #ece6d8',
         zIndex: 6,
-        borderTopRightRadius: '4px',
-        borderBottomRightRadius: '4px',
+        borderTopRightRadius: '6px',
+        borderBottomRightRadius: '6px',
     },
     flapBottom: {
         position: 'absolute',
@@ -263,12 +303,12 @@ const styles = {
         left: 0,
         width: 0,
         height: 0,
-        borderLeft: '160px solid transparent',
-        borderRight: '160px solid transparent',
-        borderBottom: '120px solid #dcd6c0', // Un pelín más oscuro para sombra
+        borderLeft: '170px solid transparent',
+        borderRight: '170px solid transparent',
+        borderBottom: '130px solid #e3decb', // Un poco más oscuro
         zIndex: 7,
-        borderBottomLeftRadius: '4px',
-        borderBottomRightRadius: '4px',
+        borderBottomLeftRadius: '6px',
+        borderBottomRightRadius: '6px',
     },
     flapTop: {
         position: 'absolute',
@@ -276,54 +316,53 @@ const styles = {
         left: 0,
         width: 0,
         height: 0,
-        borderLeft: '160px solid transparent',
-        borderRight: '160px solid transparent',
-        borderTop: '130px solid #e3decb', // Solapa superior
-        zIndex: 10, // Empieza encima de todo
+        borderLeft: '170px solid transparent',
+        borderRight: '170px solid transparent',
+        borderTop: '140px solid #ece6d8', // Color papel
+        zIndex: 10,
         transformOrigin: 'top',
-        borderTopLeftRadius: '4px',
-        borderTopRightRadius: '4px',
-        // Sombra suave para dar realismo
-        filter: 'drop-shadow(0 2px 5px rgba(0,0,0,0.1))', 
+        borderTopLeftRadius: '6px',
+        borderTopRightRadius: '6px',
+        filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.15))',
     },
 
-    // --- SELLO DE CERA ROJA (WAX SEAL) ---
+    // --- SELLO DE CERA ROJA REALISTA ---
     waxSeal: {
         position: 'absolute',
-        top: '110px', // Centrado (mitad de 220px)
+        top: '120px', // Ajustado al pico de la solapa
         left: '50%',
-        marginLeft: '-35px', // Mitad del ancho
-        marginTop: '-35px', // Ajuste vertical
+        marginLeft: '-35px',
+        marginTop: '-35px',
         width: '70px',
         height: '70px',
-        // Gradiente rojo complejo para efecto cera
-        background: 'radial-gradient(circle at 30% 30%, #ff4d4d, #8b0000)',
+        // Gradiente rojo profundo
+        background: 'radial-gradient(circle at 30% 30%, #d32f2f, #8b0000)',
         borderRadius: '50%',
-        // Sombras: Una externa para levantar el sello, una interna para dar volumen
-        boxShadow: '0 4px 10px rgba(0,0,0,0.4), inset 2px 2px 5px rgba(255,255,255,0.4), inset -2px -2px 5px rgba(0,0,0,0.3)',
-        border: '3px solid #750000', // Borde irregular simulado
+        // Sombras complejas para efecto 3D
+        boxShadow: '0 5px 15px rgba(0,0,0,0.3), inset 2px 2px 5px rgba(255,255,255,0.3), inset -2px -2px 5px rgba(0,0,0,0.5)',
+        border: '4px solid #720e0e', // Borde irregular simulado
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         zIndex: 15,
         cursor: 'pointer',
-        transition: 'transform 0.3s ease, opacity 0.5s ease',
+        transition: 'all 0.4s ease',
+        animation: 'pulse-shadow 2s infinite', // Animación definida en el CSS global
     },
     sealText: {
-        color: '#600000', // Texto grabado oscuro
+        color: '#520808',
         fontFamily: '"Cinzel", serif',
-        fontSize: '20px',
+        fontSize: '22px',
         fontWeight: 'bold',
-        textShadow: '0 1px 1px rgba(255,255,255,0.3)', // Efecto relieve hundido
+        textShadow: '0 1px 1px rgba(255,255,255,0.2)',
     },
     hintText: {
         position: 'absolute',
         bottom: '-50px',
-        color: '#999',
+        color: '#8b8b8b',
         fontFamily: '"Montserrat", sans-serif',
-        fontSize: '12px',
-        letterSpacing: '1px',
+        fontSize: '11px',
+        letterSpacing: '2px',
         textTransform: 'uppercase',
-        animation: 'pulse 2s infinite',
     }
 };
