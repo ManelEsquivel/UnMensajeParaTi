@@ -4,20 +4,20 @@ import Head from 'next/head';
 export default function InvitationEnvelope() {
     // --- ESTADOS DEL VIDEO ---
     const playerRef = useRef(null);
-    const timerRef = useRef(null); 
+    const timerRef = useRef(null);
     const [isStarted, setIsStarted] = useState(false);
     const [showVideo, setShowVideo] = useState(true);
     const [isFadingOut, setIsFadingOut] = useState(false);
 
     // --- ESTADOS DE ANIMACIÓN DEL SOBRE ---
-    // 0: Cerrado (Sobre visible, carta oculta)
-    // 1: Abriendo (Solapa sube)
-    // 2: Carta saliendo
+    // 0: Cerrado (SOLO se ve el sobre)
+    // 1: Abriendo (Tapa sube, carta se hace visible dentro)
+    // 2: Sacando carta
     // 3: Zoom final para leer
     const [animationStep, setAnimationStep] = useState(0);
 
     // ---------------------------------------------------------
-    // 1. LÓGICA DE YOUTUBE (SILENCIO + CORTE 2s ANTES)
+    // 1. LÓGICA DE YOUTUBE
     // ---------------------------------------------------------
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -56,11 +56,12 @@ export default function InvitationEnvelope() {
             if (!playerRef.current || !playerRef.current.getCurrentTime) return;
             const currentTime = playerRef.current.getCurrentTime();
             const duration = playerRef.current.getDuration();
+            // Cortar 2 segundos antes
             if (duration > 0 && (duration - currentTime) <= 2) {
                 finishVideo();
                 clearInterval(timerRef.current);
             }
-        }, 500); 
+        }, 500);
     };
 
     const handleStart = () => {
@@ -79,6 +80,7 @@ export default function InvitationEnvelope() {
         if (playerRef.current && playerRef.current.pauseVideo) {
            try { playerRef.current.pauseVideo(); } catch(e){}
         }
+        // Transición de 1.5s para que desaparezca el negro
         setTimeout(() => setShowVideo(false), 1500);
     };
 
@@ -86,9 +88,12 @@ export default function InvitationEnvelope() {
     // 2. ANIMACIÓN DEL SOBRE
     // ---------------------------------------------------------
     const startEnvelopeAnimation = () => {
-        setAnimationStep(1); // 1. Abre tapa
-        setTimeout(() => setAnimationStep(2), 600);  // 2. La carta empieza a salir
-        setTimeout(() => setAnimationStep(3), 1600); // 3. Zoom final
+        // Paso 1: Levantar la tapa y hacer visible la carta (dentro)
+        setAnimationStep(1); 
+        // Paso 2: La carta empieza a deslizarse hacia arriba
+        setTimeout(() => setAnimationStep(2), 600);  
+        // Paso 3: Zoom para leer
+        setTimeout(() => setAnimationStep(3), 1600); 
     };
 
     const handleConfirm = () => {
@@ -103,8 +108,6 @@ export default function InvitationEnvelope() {
                 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@200;400&family=Great+Vibes&display=swap" rel="stylesheet" />
                 <style>{`
                     html, body { margin: 0; padding: 0; background-color: #1a1a1a; overflow: hidden; height: 100%; }
-                    
-                    /* Animación del botón inicial */
                     @keyframes pulse-btn {
                         0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
                         70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
@@ -113,7 +116,7 @@ export default function InvitationEnvelope() {
                 `}</style>
             </Head>
 
-            {/* --- PANTALLA INICIO --- */}
+            {/* --- PANTALLA INICIAL (BOTÓN) --- */}
             {!isStarted && (
                 <div onClick={handleStart} style={{ 
                     position: 'fixed', zIndex: 2000, top: 0, left: 0, width: '100%', height: '100%', 
@@ -148,25 +151,23 @@ export default function InvitationEnvelope() {
                 </div>
             )}
 
-            {/* --- ESCENARIO (SOBRE Y CARTA) --- */}
+            {/* --- ESCENARIO: SOBRE Y CARTA --- */}
             <div style={styles.container}>
                 <div style={{
                     ...styles.wrapper,
-                    // En el paso 3 (lectura), bajamos el sobre y hacemos zoom para ver bien la carta
+                    // Al final (paso 3), hacemos zoom y bajamos el sobre para centrar la carta en pantalla
                     transform: animationStep === 3 ? 'translateY(20vh) scale(1.3)' : 'translateY(0) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
                     {/* --- CARTA --- */}
-                    {/* Z-Index: 2. Está DETRÁS de las solapas (z=10) inicialmente. 
-                        IMPORTANTE: La carta mide 90% del sobre para caber dentro. */}
                     <div style={{
                         ...styles.card,
-                        // Paso 2: La carta sube. Paso 3: Sube un poco más para centrarse.
+                        // Paso 2: La carta sube saliendo del sobre
                         transform: animationStep >= 2 ? 'translateY(-85%)' : 'translateY(0)',
-                        // La opacidad ayuda a que no se vea ningún borde raro antes de tiempo
-                        opacity: 1, 
-                        transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1)'
+                        // SEGURIDAD: Opacidad 0 si está cerrado. Así garantizamos que NO se vea.
+                        opacity: animationStep >= 1 ? 1 : 0, 
+                        transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
                     }}>
                         <div style={styles.cardContent}>
                             <p style={styles.saveTheDate}>NOS CASAMOS</p>
@@ -174,10 +175,9 @@ export default function InvitationEnvelope() {
                             <div style={styles.divider}></div>
                             <p style={styles.date}>21 · OCTUBRE · 2026</p>
                             <p style={styles.location}>MASIA MAS LLOMBART</p>
-                            
+                            <p style={styles.quote}>"El amor es lo que hace que<br/>el viaje valga la pena."</p>
                             <button onClick={handleConfirm} style={{
                                 ...styles.button, 
-                                // El botón solo es interactuable al final
                                 opacity: animationStep === 3 ? 1 : 0, 
                                 pointerEvents: animationStep === 3 ? 'auto' : 'none', 
                                 transition: 'opacity 1s ease 1s'
@@ -187,32 +187,30 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- CUERPO DEL SOBRE --- */}
+                    {/* --- SOBRE --- */}
                     <div style={styles.envelopeBody}>
                         
-                        {/* Interior del bolsillo (Oscuro) */}
+                        {/* Interior Oscuro */}
                         <div style={styles.innerPocket}></div>
 
-                        {/* Solapa Inferior (Bolsillo) - Z=10 (Tapa la carta) */}
+                        {/* TAPA INFERIOR (Bolsillo) */}
                         <div style={styles.bottomFlap}></div>
 
-                        {/* Solapas Laterales - Z=11 */}
+                        {/* LATERALES */}
                         <div style={{...styles.sideFlap, left: 0, clipPath: 'polygon(0 0, 0% 100%, 100% 50%)', background: 'linear-gradient(90deg, #e6dac3 0%, #d6c5a8 100%)' }}></div>
                         <div style={{...styles.sideFlap, right: 0, clipPath: 'polygon(100% 0, 0% 50%, 100% 100%)', background: 'linear-gradient(-90deg, #e6dac3 0%, #d6c5a8 100%)' }}></div>
 
-                        {/* Solapa Superior (Tapa móvil) - Z=20 */}
+                        {/* TAPA SUPERIOR (La que se abre) */}
                         <div style={{
                             ...styles.topFlap,
-                            // Se abre rotando 180 grados
                             transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
-                            // Baja z-index al abrirse para quedar detrás de la carta si fuera necesario, pero visualmente queda arriba
-                            zIndex: animationStep >= 1 ? 1 : 20, 
-                            transition: 'transform 0.8s ease-in-out, z-index 0.1s linear 0.4s'
+                            zIndex: animationStep >= 1 ? 1 : 50, 
+                            transition: 'transform 0.9s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.1s linear 0.4s'
                         }}>
                              <div style={styles.topFlapInner}></div>
                         </div>
 
-                        {/* Sello - Z=50 */}
+                        {/* SELLO (Botón de Abrir) */}
                         <div onClick={animationStep === 0 ? startEnvelopeAnimation : undefined}
                              style={{
                                 ...styles.waxSeal,
@@ -232,7 +230,6 @@ export default function InvitationEnvelope() {
     );
 }
 
-// --- ESTILOS ---
 const styles = {
     container: {
         width: '100vw', height: '100vh', backgroundColor: '#1a1a1a',
@@ -241,19 +238,19 @@ const styles = {
     },
     wrapper: {
         position: 'relative',
-        width: '340px',  // Ancho típico de invitación apaisada
-        height: '230px', // Alto del sobre
+        width: '340px',  
+        height: '230px', 
         perspective: '1000px',
         filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.6))',
     },
-
-    // --- CARTA ---
-    // CLAVE: Width 95% y Height 90% aseguran que quepa DENTRO del sobre inicialmente.
+    
+    // CARTA
     card: {
         position: 'absolute',
-        top: '5%', left: '2.5%', // Centrado dentro del sobre
+        // Centrada y ligeramente más pequeña que el sobre para caber
+        top: '5%', left: '2.5%', 
         width: '95%', height: '90%', 
-        zIndex: 2, // IMPORTANTE: Menor que las solapas (10)
+        zIndex: 2, // Detrás de las tapas (z=10, 50)
         backgroundColor: '#fffcf5',
         backgroundImage: 'url("https://www.transparenttextures.com/patterns/cream-paper.png")',
         borderRadius: '4px',
@@ -262,8 +259,8 @@ const styles = {
     },
     cardContent: {
         width: '100%', height: '100%',
-        padding: '15px', boxSizing: 'border-box',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-between',
+        padding: '10px', boxSizing: 'border-box',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly',
         border: '1px solid #d4af37', margin: '5px',
         width: 'calc(100% - 10px)', height: 'calc(100% - 10px)',
     },
@@ -272,23 +269,27 @@ const styles = {
     divider: { width: '30px', height: '1px', backgroundColor: '#d4af37', margin: '5px 0' },
     date: { fontFamily: '"Cormorant Garamond", serif', fontSize: '1rem', fontWeight: '600', color: '#333', letterSpacing: '1px' },
     location: { fontFamily: '"Montserrat", sans-serif', fontSize: '8px', color: '#555', letterSpacing: '2px', textTransform: 'uppercase' },
+    quote: { fontFamily: '"Cormorant Garamond", serif', fontSize: '12px', fontStyle: 'italic', color: '#666', textAlign: 'center', maxWidth: '90%' },
     button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '8px 20px', fontSize: '9px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '1px', cursor: 'pointer', marginTop: '5px' },
 
-    // --- SOBRE ---
+    // SOBRE
     envelopeBody: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d' },
     innerPocket: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#2a2520', borderRadius: '4px' },
 
-    // SOLAPAS
+    // TAPA INFERIOR (SOLAPAMIENTO CORREGIDO: Sube hasta el 55% para tapar bien)
     bottomFlap: {
-        position: 'absolute', bottom: 0, left: 0, width: '100%', height: '100%', zIndex: 10, // Tapa la carta (z=2)
-        clipPath: 'polygon(0 100%, 50% 60%, 100% 100%)', // Forma de bolsillo
+        position: 'absolute', bottom: 0, left: 0, width: '100%', height: '100%', zIndex: 10,
+        clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)', // El pico llega al 45% desde arriba (55% de altura visual)
         background: 'linear-gradient(to top, #d1c0a5 0%, #e6dac3 100%)', borderRadius: '0 0 4px 4px',
     },
+    // LATERALES
     sideFlap: { position: 'absolute', top: 0, width: '50%', height: '100%', zIndex: 11 },
+    
+    // TAPA SUPERIOR (SOLAPAMIENTO CORREGIDO: Baja hasta el 55% para solapar con la inferior)
     topFlap: {
         position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-        transformOrigin: 'top', zIndex: 20, // Tapa todo
-        clipPath: 'polygon(0 0, 50% 50%, 100% 0)', // Triángulo superior
+        transformOrigin: 'top', zIndex: 50,
+        clipPath: 'polygon(0 0, 50% 55%, 100% 0)', // El pico baja hasta el 55%
         background: 'linear-gradient(to bottom, #f2eadd 0%, #e6dac3 100%)',
         filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))',
     },
@@ -296,7 +297,7 @@ const styles = {
 
     // SELLO
     waxSeal: {
-        position: 'absolute', top: '50%', left: '50%', width: '70px', height: '70px', zIndex: 50,
+        position: 'absolute', top: '50%', left: '50%', width: '70px', height: '70px', zIndex: 60,
         cursor: 'pointer', transition: 'all 0.5s ease', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.4))',
     },
     sealContent: {
