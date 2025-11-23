@@ -3,97 +3,69 @@ import Head from 'next/head';
 
 export default function InvitationEnvelope() {
     // --- ESTADOS ---
-    const playerRef = useRef(null); // Para guardar la instancia del player
+    const playerRef = useRef(null);
     const [showVideo, setShowVideo] = useState(true); 
     const [isFadingOut, setIsFadingOut] = useState(false);
 
     // 0: Cerrado, 1: Abriendo Solapa, 2: Sacando Carta, 3: Lectura
     const [animationStep, setAnimationStep] = useState(0);
 
-    // --- LÓGICA DE YOUTUBE (AUTOSUFICIENTE) ---
+    // --- LÓGICA DE YOUTUBE (MÉTODO IFRAME HÍBRIDO) ---
     useEffect(() => {
-        if (typeof window === 'undefined') return;
-
-        let intervalId = null;
-
-        const initPlayer = () => {
-            // Si ya existe el player, no lo recreamos
-            if (playerRef.current) return;
-
-            // Doble chequeo de seguridad: ¿Existe el div en el DOM?
-            const container = document.getElementById('youtube-player-confirm');
-            if (!container) return;
-
-            playerRef.current = new window.YT.Player('youtube-player-confirm', {
-                videoId: '7n-NFVzyGig', 
-                playerVars: { 
-                    autoplay: 1,    
-                    controls: 0, 
-                    showinfo: 0, 
-                    rel: 0, 
-                    playsinline: 1, // Importante para iOS
-                    modestbranding: 1, 
-                    loop: 0, 
-                    fs: 0,
-                    mute: 1,        // Señal de intención de silencio
-                    iv_load_policy: 3 // Ocultar anotaciones
-                },
-                events: { 
-                    'onReady': (event) => {
-                        // FUERZA BRUTA PARA AUTOPLAY:
-                        // 1. Silenciar explícitamente (obligatorio para navegadores modernos)
-                        event.target.mute();
-                        // 2. Reproducir
-                        event.target.playVideo();
-                    },
-                    'onStateChange': (event) => {
-                        // 0 = Video terminado
-                        if (event.data === 0) {
-                            finishVideoAndShowEnvelope();
-                        }
-                    }
-                }
-            });
-        };
-
-        // 1. Cargar Script si no existe
+        // 1. Cargar la API de YouTube si no existe
         if (!window.YT) {
             const tag = document.createElement('script');
             tag.src = "https://www.youtube.com/iframe_api";
             const firstScriptTag = document.getElementsByTagName('script')[0];
-            if (firstScriptTag) {
-                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            } else {
-                document.head.appendChild(tag);
-            }
+            firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
         }
 
-        // 2. Polling: Comprobar cada 100ms si la API está lista
-        // Esto es más robusto que onYouTubeIframeAPIReady cuando se navega directo
-        intervalId = setInterval(() => {
+        // 2. Función para conectar el JS al Iframe que ya existe
+        const connectToPlayer = () => {
+            // Si ya conectamos, salir
+            if (playerRef.current) return;
+
+            // Intentamos conectar con el iframe que tiene el ID 'youtube-iframe'
+            try {
+                playerRef.current = new window.YT.Player('youtube-iframe', {
+                    events: {
+                        'onReady': (event) => {
+                            // Por si acaso, forzamos mute y play de nuevo
+                            event.target.mute();
+                            event.target.playVideo();
+                        },
+                        'onStateChange': (event) => {
+                            // 0 = Video terminado
+                            if (event.data === 0) {
+                                finishVideoAndShowEnvelope();
+                            }
+                        }
+                    }
+                });
+            } catch (error) {
+                console.error("Error al conectar con YouTube:", error);
+            }
+        };
+
+        // 3. Polling agresivo para detectar cuando la API está lista
+        // Esto chequea cada 100ms si window.YT existe para conectarse enseguida
+        const checkInterval = setInterval(() => {
             if (window.YT && window.YT.Player) {
-                initPlayer();
-                clearInterval(intervalId);
+                connectToPlayer();
+                clearInterval(checkInterval);
             }
         }, 100);
 
-        // Cleanup al desmontar
-        return () => {
-            if (intervalId) clearInterval(intervalId);
-        };
+        // Limpieza
+        return () => clearInterval(checkInterval);
     }, []);
 
 
     const finishVideoAndShowEnvelope = () => {
-        if (isFadingOut) return; // Evitar doble ejecución
+        if (isFadingOut) return;
         setIsFadingOut(true);
         setTimeout(() => {
             setShowVideo(false);
-            // Destruir player para liberar memoria
-            if (playerRef.current && playerRef.current.destroy) {
-                playerRef.current.destroy();
-                playerRef.current = null;
-            }
         }, 1500); 
     };
 
@@ -128,16 +100,29 @@ export default function InvitationEnvelope() {
                     zIndex: 9999, 
                     display: 'flex', justifyContent: 'center', alignItems: 'center',
                     opacity: isFadingOut ? 0 : 1, 
-                    transition: 'opacity 1.5s ease-in-out' 
+                    transition: 'opacity 1.5s ease-in-out',
+                    pointerEvents: 'none' // Importante: Evita que el usuario interactúe con el video (pausa, etc)
                 }}>
-                    {/* PLAYER DE YOUTUBE */}
-                    <div style={{ 
-                        width: '100%', height: '100%', pointerEvents: 'none', 
-                        // Escalamos un poco para evitar bordes negros si el ratio es distinto
-                        transform: 'scale(1.4)', 
-                    }}>
-                        <div id="youtube-player-confirm" style={{ width: '100%', height: '100%' }}></div>
-                    </div>
+                    {/* AQUÍ ESTÁ LA CLAVE: 
+                       Renderizamos el Iframe DIRECTAMENTE con HTML.
+                       El navegador leerá "autoplay=1&mute=1" e iniciará el video sin esperar al JS.
+                    */}
+                    <iframe 
+                        id="youtube-iframe"
+                        width="100%" 
+                        height="100%" 
+                        src="https://www.youtube.com/embed/7n-NFVzyGig?autoplay=1&mute=1&controls=0&showinfo=0&rel=0&playsinline=1&enablejsapi=1&loop=0"
+                        title="Intro Video"
+                        frameBorder="0"
+                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                        allowFullScreen
+                        style={{ 
+                            width: '100%', 
+                            height: '100%', 
+                            transform: 'scale(1.5)', // Zoom para evitar bordes negros
+                            pointerEvents: 'none' 
+                        }}
+                    ></iframe>
                 </div>
             )}
 
