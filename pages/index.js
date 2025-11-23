@@ -17,7 +17,7 @@ export default function Home() {
 
       setTimeout(() => {
         // Redirección a la URL
-        window.location.href = "https://manelesquivel.github.io/UnMensajeParaTi/SavetheDate.html";
+        window.location.href = "https://bodamanelcarla.vercel.app/confirmacion";
       }, 2000);
     }, 7000); // Se mantiene el tiempo actual de 7 segundos
 
