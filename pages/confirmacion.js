@@ -5,15 +5,19 @@ export default function InvitationEnvelope() {
     // --- ESTADOS ---
     const playerRef = useRef(null);
     const timerRef = useRef(null);
-    const [isStarted, setIsStarted] = useState(false);
-    const [showVideo, setShowVideo] = useState(true);
-    const [isFadingOut, setIsFadingOut] = useState(false);
-    
-    // 0: Cerrado | 1: Abriendo | 2: Sacando Carta | 3: Zoom Lectura
+    const [isStarted, setIsStarted] = useState(false);     // Pantalla "Ver Invitación"
+    const [showVideo, setShowVideo] = useState(true);      // Contenedor Video
+    const [isFadingOut, setIsFadingOut] = useState(false); // Transición negro -> sobre
+
+    // --- ESTADOS DEL SOBRE ---
+    // 0: Cerrado
+    // 1: Abriendo Solapa
+    // 2: Sacando Carta
+    // 3: Zoom Final (Lógica del fichero adjunto)
     const [animationStep, setAnimationStep] = useState(0);
 
     // =========================================================
-    // 1. VIDEO INTRO (NUEVO VIDEO)
+    // 1. VIDEO INTRO (Audio Desbloqueado por Clic)
     // =========================================================
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -25,7 +29,7 @@ export default function InvitationEnvelope() {
             }
             window.onYouTubeIframeAPIReady = () => {
                 playerRef.current = new window.YT.Player('youtube-player-confirm', {
-                    videoId: 'liDatwofpxI', // <--- NUEVO VIDEO ACTUALIZADO
+                    videoId: 'liDatwofpxI', 
                     playerVars: { autoplay: 0, controls: 0, showinfo: 0, rel: 0, playsinline: 1, modestbranding: 1, loop: 0, fs: 0, mute: 1 },
                     events: { 'onStateChange': onPlayerStateChange }
                 });
@@ -53,8 +57,13 @@ export default function InvitationEnvelope() {
 
     const handleStart = () => {
         if (playerRef.current && playerRef.current.playVideo) {
-            setIsStarted(true); playerRef.current.unMute(); playerRef.current.playVideo();
-        } else { finishVideo(); }
+            setIsStarted(true); 
+            playerRef.current.unMute(); // Activamos sonido
+            playerRef.current.setVolume(100);
+            playerRef.current.playVideo();
+        } else {
+            finishVideo();
+        }
     };
 
     const finishVideo = () => {
@@ -65,12 +74,14 @@ export default function InvitationEnvelope() {
     };
 
     // =========================================================
-    // 2. ANIMACIÓN
+    // 2. ANIMACIÓN (LÓGICA DEL FICHERO ADJUNTO)
     // =========================================================
     const startEnvelopeAnimation = (e) => {
-        if(e) e.stopPropagation();
-        setAnimationStep(1); 
-        setTimeout(() => setAnimationStep(2), 800);  
+        if(e) e.stopPropagation(); // Evitar doble clic
+        
+        setAnimationStep(1); // 1. Abre tapa
+        setTimeout(() => setAnimationStep(2), 800);  // 2. Saca carta
+        // 3. ZOOM FINAL: Este es el tiempo clave para que todo baje y se centre
         setTimeout(() => setAnimationStep(3), 1800); 
     };
 
@@ -99,9 +110,13 @@ export default function InvitationEnvelope() {
                 `}</style>
             </Head>
 
-            {/* --- PANTALLA INICIO --- */}
+            {/* --- PANTALLA INICIO (Para activar audio) --- */}
             {!isStarted && (
-                <div onClick={handleStart} style={{ position: 'fixed', zIndex: 3000, top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'black', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' }}>
+                <div onClick={handleStart} style={{ 
+                    position: 'fixed', zIndex: 3000, top: 0, left: 0, width: '100%', height: '100%', 
+                    backgroundColor: 'black', display: 'flex', flexDirection: 'column', 
+                    justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' 
+                }}>
                     <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid white', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px', animation: 'pulse-btn 2s infinite' }}>
                         <span style={{ fontSize: '30px' }}>📩</span>
                     </div>
@@ -110,9 +125,14 @@ export default function InvitationEnvelope() {
                 </div>
             )}
 
-            {/* --- VIDEO --- */}
+            {/* --- VIDEO PLAYER --- */}
             {showVideo && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'black', zIndex: 2000, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: isFadingOut ? 0 : 1, transition: 'opacity 1.5s ease-in-out', pointerEvents: 'none' }}>
+                <div style={{ 
+                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
+                    backgroundColor: 'black', zIndex: 2000, 
+                    display: 'flex', justifyContent: 'center', alignItems: 'center',
+                    opacity: isFadingOut ? 0 : 1, transition: 'opacity 1.5s ease-in-out', pointerEvents: 'none' 
+                }}>
                     <div style={{ width: '100%', height: '100%', transform: 'scale(1.4)' }}>
                         <div id="youtube-player-confirm" style={{ width: '100%', height: '100%' }}></div>
                     </div>
@@ -123,23 +143,29 @@ export default function InvitationEnvelope() {
             <div style={styles.container}>
                 <div style={{
                     ...styles.wrapper,
-                    // Zoom final para leer la carta
-                    transform: animationStep === 3 ? 'translateY(35vh) scale(1.3)' : 'translateY(0) scale(1)',
+                    // MAGIA DEL FICHERO ADJUNTO:
+                    // Al paso 3, bajamos todo (translateY) y hacemos un pequeño zoom (scale)
+                    // Esto centra la carta (que ha salido hacia arriba) en la pantalla.
+                    transform: animationStep === 3 ? 'translateY(15vh) scale(1.05)' : 'translateY(5vh) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
-                    {/* --- CARTA (DISEÑO VERTICAL NUEVO) --- */}
+                    {/* --- CARTA (Vertical y Elegante) --- */}
                     <div style={{
                         ...styles.card,
-                        transform: animationStep >= 2 ? 'translateY(-75%)' : 'translateY(0)',
+                        // Sale hacia arriba casi totalmente
+                        transform: animationStep >= 2 ? 'translateY(-88%)' : 'translateY(0)',
                         opacity: animationStep >= 1 ? 1 : 0, 
                         zIndex: animationStep >= 2 ? 20 : 1, 
                         transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
                     }}>
                         <div style={styles.cardContent}>
-                            <p style={styles.topText}>¡Nos Casamos!</p>
+                            
+                            <p style={styles.topText}>¡NOS CASAMOS!</p>
                             
                             <h1 style={styles.names}>Manel & Carla</h1>
+                            
+                            <div style={styles.divider}></div>
                             
                             <div style={styles.bodyTextContainer}>
                                 <p style={styles.bodyText}>
@@ -148,12 +174,11 @@ export default function InvitationEnvelope() {
                                 <p style={styles.bodyText}>
                                     Queremos celebrar nuestro amor contigo y que seas parte de este momento único.
                                 </p>
-                                <p style={{...styles.bodyText, fontWeight: 'bold', marginTop: '10px'}}>
-                                    ¡Te esperamos!
-                                </p>
                             </div>
 
-                            {/* BOTÓN INTEGRADO EN EL DISEÑO */}
+                            <p style={styles.footerText}>¡Te esperamos!</p>
+
+                            {/* BOTÓN INTEGRADO */}
                             <button onClick={handleConfirm} style={{
                                 ...styles.button, 
                                 opacity: animationStep === 3 ? 1 : 0, 
@@ -165,12 +190,18 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- SOBRE --- */}
+                    {/* --- SOBRE (Diseño Vertical) --- */}
                     <div style={styles.envelope}>
                         <div style={{...styles.layer, ...styles.backFace}}></div>
+                        
+                        {/* Solapas Laterales */}
                         <div style={{...styles.layer, ...styles.flapLeft}}></div>
                         <div style={{...styles.layer, ...styles.flapRight}}></div>
+                        
+                        {/* Solapa Inferior (Bolsillo) */}
                         <div style={{...styles.layer, ...styles.flapBottom}}></div>
+                        
+                        {/* Solapa Superior (Tapa móvil) */}
                         <div style={{
                             ...styles.layer, ...styles.flapTop,
                             transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
@@ -205,23 +236,25 @@ export default function InvitationEnvelope() {
 // --- ESTILOS ---
 const styles = {
     container: {
-        width: '100vw', height: '100vh', backgroundColor: '#111',
+        width: '100vw', height: '100vh', 
+        backgroundColor: '#111',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         overflow: 'hidden', position: 'relative',
         background: 'radial-gradient(circle at center, #2c2c2c 0%, #000000 100%)'
     },
     wrapper: {
         position: 'relative',
+        // FORMATO VERTICAL (Más alto que ancho para que quepa todo el texto)
         width: '320px',  
-        height: '220px', 
+        height: '480px', 
         perspective: '1200px', 
         filter: 'drop-shadow(0 30px 40px rgba(0,0,0,0.6))',
     },
 
-    // --- CARTA (Vertical) ---
+    // --- CARTA (Diseño papel crema con borde dorado) ---
     card: {
         position: 'absolute',
-        top: '5px', left: '10px', right: '10px', height: '95%',
+        top: '5px', left: '10px', right: '10px', bottom: '10px', // Márgenes internos
         backgroundColor: '#fffcf5',
         borderRadius: '4px',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
@@ -230,86 +263,95 @@ const styles = {
         pointerEvents: 'auto'
     },
     cardContent: {
-        width: '100%', height: '100%',
-        padding: '20px 15px', boxSizing: 'border-box',
+        width: 'calc(100% - 20px)', height: 'calc(100% - 20px)',
+        padding: '20px 10px', boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        border: '1px solid #d4af37', margin: '5px',
-        width: 'calc(100% - 10px)', height: 'calc(100% - 10px)',
+        border: '1px solid #d4af37', // Borde Dorado elegante
         textAlign: 'center'
     },
     
-    // Textos de la carta
+    // Tipografía
     topText: { 
-        fontFamily: '"Montserrat", sans-serif', fontSize: '10px', letterSpacing: '2px', 
+        fontFamily: '"Montserrat", sans-serif', fontSize: '11px', letterSpacing: '3px', 
         color: '#888', textTransform: 'uppercase', marginBottom: '10px' 
     },
     names: { 
-        fontFamily: '"Great Vibes", cursive', fontSize: '2.4rem', color: '#222', 
-        margin: '5px 0 15px 0', lineHeight: 1 
+        fontFamily: '"Great Vibes", cursive', fontSize: '3rem', color: '#222', 
+        margin: '5px 0', lineHeight: 1 
     },
-    bodyTextContainer: {
-        marginBottom: '20px',
-        width: '90%'
-    },
-    bodyText: {
-        fontFamily: '"Cormorant Garamond", serif', fontSize: '13px', 
-        color: '#444', lineHeight: '1.4', margin: '5px 0'
-    },
+    divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '15px 0' },
     
-    // Botón Integrado
-    button: { 
-        backgroundColor: 'transparent', 
-        color: '#333', 
-        border: '1px solid #333', 
-        padding: '8px 20px', 
-        fontSize: '10px', 
-        fontFamily: '"Montserrat", sans-serif', 
-        textTransform: 'uppercase', 
-        letterSpacing: '1px', 
-        cursor: 'pointer', 
-        marginTop: '10px',
-        transition: 'all 0.3s ease'
+    bodyTextContainer: { width: '90%', marginBottom: '10px' },
+    bodyText: {
+        fontFamily: '"Cormorant Garamond", serif', fontSize: '15px', 
+        color: '#444', lineHeight: '1.4', margin: '8px 0'
+    },
+    footerText: {
+        fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontWeight: 'bold',
+        color: '#333', margin: '10px 0'
     },
 
-    // --- ENVELOPE ---
+    // Botón Integrado
+    button: { 
+        backgroundColor: '#222', 
+        color: '#fff', 
+        border: 'none', 
+        padding: '12px 30px', 
+        fontSize: '11px', 
+        fontFamily: '"Montserrat", sans-serif', 
+        textTransform: 'uppercase', 
+        letterSpacing: '2px', 
+        cursor: 'pointer', 
+        marginTop: '15px',
+        boxShadow: '0 4px 10px rgba(0,0,0,0.1)',
+        transition: 'background 0.3s'
+    },
+
+    // --- SOBRE (Vertical) ---
     envelope: { 
         width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d',
         pointerEvents: 'none' 
     },
     layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
 
-    backFace: { backgroundColor: '#2a2520', borderRadius: '4px' },
+    backFace: { backgroundColor: '#2a2520', borderRadius: '4px' }, // Interior oscuro
+
+    // Solapas laterales (Beige con degradado)
     flapLeft: {
-        clipPath: 'polygon(0 0, 0% 100%, 55% 50%)',
+        clipPath: 'polygon(0 0, 0% 100%, 55% 55%)',
         background: 'linear-gradient(90deg, #dccab1 0%, #ede3d3 100%)', zIndex: 10,
     },
     flapRight: {
-        clipPath: 'polygon(100% 0, 100% 100%, 45% 50%)',
+        clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)',
         background: 'linear-gradient(-90deg, #dccab1 0%, #ede3d3 100%)', zIndex: 10,
     },
+    
+    // Solapa inferior (Bolsillo alto)
     flapBottom: {
         zIndex: 11,
-        clipPath: 'polygon(0 100%, 50% 55%, 100% 100%)',
+        clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)', // Sube hasta el 45% (bolsillo profundo)
         background: 'linear-gradient(to top, #cbb596 0%, #f0e7d8 100%)',
         filter: 'drop-shadow(0 -2px 3px rgba(0,0,0,0.1))',
     },
+    
+    // Solapa superior (Tapa)
     flapTop: {
         zIndex: 50, transformOrigin: 'top',
-        clipPath: 'polygon(0 0, 50% 55%, 100% 0)',
+        clipPath: 'polygon(0 0, 50% 50%, 100% 0)', // Baja hasta el 50%
         background: 'linear-gradient(to bottom, #f7f1e6 0%, #e6dac3 100%)',
         filter: 'drop-shadow(0 4px 5px rgba(0,0,0,0.15))',
     },
     flapTopInner: { width: '100%', height: '100%', backgroundColor: '#fdfbf7' },
 
-    // --- SELLO ---
+    // --- SELLO (Botón táctil) ---
     waxSeal: {
-        position: 'absolute', top: '55%', left: '50%', transform: 'translate(-50%, -50%)',
+        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
         width: '90px', height: '90px', 
         zIndex: 9999, 
         cursor: 'pointer', 
         transition: 'all 0.5s ease',
         filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.3))',
-        pointerEvents: 'auto', 
+        pointerEvents: 'auto', // Habilita clic
         display: 'block', 
     },
     sealContent: {
