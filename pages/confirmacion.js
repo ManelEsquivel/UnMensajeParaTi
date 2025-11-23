@@ -13,7 +13,7 @@ export default function InvitationEnvelope() {
     const [animationStep, setAnimationStep] = useState(0);
 
     // =========================================================
-    // 1. VIDEO INTRO (Lógica robusta igual que antes)
+    // 1. VIDEO INTRO
     // =========================================================
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -43,6 +43,7 @@ export default function InvitationEnvelope() {
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
             if (!playerRef.current || !playerRef.current.getCurrentTime) return;
+            // Cortar 2 segundos antes del final
             if (playerRef.current.getDuration() > 0 && (playerRef.current.getDuration() - playerRef.current.getCurrentTime()) <= 2) {
                 finishVideo();
                 clearInterval(timerRef.current);
@@ -64,12 +65,13 @@ export default function InvitationEnvelope() {
     };
 
     // =========================================================
-    // 2. ANIMACIÓN "PREMIUM"
+    // 2. ANIMACIÓN
     // =========================================================
     const startEnvelopeAnimation = () => {
-        setAnimationStep(1); // Abre solapa
-        setTimeout(() => setAnimationStep(2), 800);  // Carta sale
-        setTimeout(() => setAnimationStep(3), 1800); // Zoom final
+        // Al hacer clic, iniciamos la secuencia
+        setAnimationStep(1); 
+        setTimeout(() => setAnimationStep(2), 800);  
+        setTimeout(() => setAnimationStep(3), 1800); 
     };
 
     const handleConfirm = () => {
@@ -84,16 +86,16 @@ export default function InvitationEnvelope() {
                 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@200;400&family=Great+Vibes&display=swap" rel="stylesheet" />
                 <style>{`
                     html, body { margin: 0; padding: 0; background-color: #1a1a1a; overflow: hidden; height: 100%; }
-                    
-                    /* Textura de papel para dar realismo */
-                    .paper-texture {
-                        background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
-                    }
-                    
                     @keyframes pulse-btn {
                         0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
                         70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
                         100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+                    }
+                    /* Animación para indicar que el sello es clicable */
+                    @keyframes pulse-seal {
+                        0% { transform: translate(-50%, -50%) scale(1); }
+                        50% { transform: translate(-50%, -50%) scale(1.05); }
+                        100% { transform: translate(-50%, -50%) scale(1); }
                     }
                 `}</style>
             </Head>
@@ -122,17 +124,17 @@ export default function InvitationEnvelope() {
             <div style={styles.container}>
                 <div style={{
                     ...styles.wrapper,
-                    // Paso 3: Zoom In y bajar el sobre para que la carta llene la pantalla
+                    // Zoom final
                     transform: animationStep === 3 ? 'translateY(35vh) scale(1.3)' : 'translateY(0) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
-                    {/* --- CARTA (Elegante y Limpia) --- */}
+                    {/* --- CARTA --- */}
                     <div style={{
                         ...styles.card,
                         transform: animationStep >= 2 ? 'translateY(-75%)' : 'translateY(0)',
-                        opacity: animationStep >= 1 ? 1 : 0, // Oculta hasta abrir
-                        zIndex: animationStep >= 2 ? 20 : 1, // Sube de nivel al salir
+                        opacity: animationStep >= 1 ? 1 : 0, 
+                        zIndex: animationStep >= 2 ? 20 : 1, 
                         transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
                     }}>
                         <div style={styles.cardContent}>
@@ -153,37 +155,37 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- SOBRE PREMIUM (Con Sombras y Profundidad) --- */}
+                    {/* --- SOBRE (Pointer events controlled) --- */}
                     <div style={styles.envelope}>
                         
-                        {/* 1. Fondo del Sobre (Respaldo) */}
+                        {/* 1. Fondo */}
                         <div style={{...styles.layer, ...styles.backFace}}></div>
 
-                        {/* 2. Solapas Laterales (Con gradientes para simular curvatura) */}
+                        {/* 2. Solapas Laterales */}
                         <div style={{...styles.layer, ...styles.flapLeft}}></div>
                         <div style={{...styles.layer, ...styles.flapRight}}></div>
 
-                        {/* 3. Solapa Inferior (Bolsillo principal con sombra superior) */}
+                        {/* 3. Solapa Inferior */}
                         <div style={{...styles.layer, ...styles.flapBottom}}></div>
 
-                        {/* 4. Solapa Superior (Tapa con sombra realista) */}
+                        {/* 4. Solapa Superior (Tapa) */}
                         <div style={{
                             ...styles.layer, ...styles.flapTop,
                             transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
                             zIndex: animationStep >= 1 ? 1 : 50, 
                             transition: 'transform 0.9s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s linear 0.4s'
                         }}>
-                            {/* Interior de la tapa (se ve al abrir) */}
                             <div style={styles.flapTopInner}></div>
                         </div>
 
-                        {/* 5. Sello Centrado (Con relieve) */}
+                        {/* 5. SELLO (EL ÚNICO QUE TIENE POINTER-EVENTS: AUTO) */}
                         <div onClick={animationStep === 0 ? startEnvelopeAnimation : undefined}
                              style={{
                                 ...styles.waxSeal,
                                 opacity: animationStep === 0 ? 1 : 0,
-                                transform: animationStep === 0 ? 'translate(-50%, -50%) scale(1)' : 'translate(-50%, -50%) scale(1.5)',
+                                // Si animationStep es 0, el puntero es 'auto'. Si no, 'none' para no molestar.
                                 pointerEvents: animationStep === 0 ? 'auto' : 'none',
+                                animation: animationStep === 0 ? 'pulse-seal 2s infinite' : 'none'
                             }}>
                             <div style={styles.sealContent}>
                                 <span style={styles.sealText}>Abrir</span>
@@ -197,33 +199,34 @@ export default function InvitationEnvelope() {
     );
 }
 
-// --- ESTILOS MEJORADOS ---
+// --- ESTILOS ---
 const styles = {
     container: {
         width: '100vw', height: '100vh', backgroundColor: '#111',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         overflow: 'hidden', position: 'relative',
-        background: 'radial-gradient(circle at center, #2c2c2c 0%, #000000 100%)' // Vignette sutil
+        background: 'radial-gradient(circle at center, #2c2c2c 0%, #000000 100%)'
     },
     wrapper: {
         position: 'relative',
-        width: '320px',  // Ancho realista
-        height: '220px', // Alto realista
-        perspective: '1200px', // Profundidad 3D mejorada
-        filter: 'drop-shadow(0 30px 40px rgba(0,0,0,0.6))', // Sombra flotante del sobre entero
+        width: '320px',  
+        height: '220px', 
+        perspective: '1200px', 
+        filter: 'drop-shadow(0 30px 40px rgba(0,0,0,0.6))',
+        // Aseguramos que el wrapper no bloquee, pero sus hijos sí puedan ser interactivos
+        pointerEvents: 'none'
     },
 
     // --- CARTA ---
     card: {
         position: 'absolute',
-        top: '5px', left: '10px', right: '10px',
-        height: '95%', // Casi todo el alto para salir bien
+        top: '5px', left: '10px', right: '10px', height: '95%',
         backgroundColor: '#fffcf5',
         borderRadius: '4px',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
-        // Textura papel
         backgroundImage: `url("https://www.transparenttextures.com/patterns/cream-paper.png")`,
+        pointerEvents: 'auto' // La carta sí debe ser interactiva (para el botón final)
     },
     cardContent: {
         width: '100%', height: '100%',
@@ -232,7 +235,6 @@ const styles = {
         border: '1px solid #d4af37', margin: '5px',
         width: 'calc(100% - 10px)', height: 'calc(100% - 10px)',
     },
-    // Tipografías
     saveTheDate: { fontFamily: '"Montserrat", sans-serif', fontSize: '9px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', margin: 0 },
     names: { fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#222', margin: '0', lineHeight: 1 },
     divider: { width: '30px', height: '1px', backgroundColor: '#d4af37', margin: '5px 0' },
@@ -241,65 +243,61 @@ const styles = {
     quote: { fontFamily: '"Cormorant Garamond", serif', fontSize: '12px', fontStyle: 'italic', color: '#666', textAlign: 'center' },
     button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '8px 20px', fontSize: '9px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '1px', cursor: 'pointer', marginTop: '5px' },
 
-    // --- ESTRUCTURA DEL SOBRE ---
-    envelope: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d' },
+    // --- ENVELOPE ---
+    envelope: { 
+        width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d',
+        pointerEvents: 'none' // IMPORTANTE: El sobre en sí no captura clics, deja pasar
+    },
     
-    // Clase base para las capas
-    layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
+    // Capas del sobre: pointer-events none para que no bloqueen al sello
+    layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
 
-    // 1. RESPALDO
-    backFace: { backgroundColor: '#2a2520', borderRadius: '4px' }, // Interior oscuro elegante
+    backFace: { backgroundColor: '#2a2520', borderRadius: '4px' },
 
-    // 2. LATERALES (Con gradiente para dar volumen curvo)
     flapLeft: {
-        clipPath: 'polygon(0 0, 0% 100%, 55% 50%)', // Triángulo lateral
-        background: 'linear-gradient(90deg, #dccab1 0%, #ede3d3 100%)', // Sombra al borde
+        clipPath: 'polygon(0 0, 0% 100%, 55% 50%)',
+        background: 'linear-gradient(90deg, #dccab1 0%, #ede3d3 100%)',
         zIndex: 10,
     },
     flapRight: {
         clipPath: 'polygon(100% 0, 100% 100%, 45% 50%)',
-        background: 'linear-gradient(-90deg, #dccab1 0%, #ede3d3 100%)', // Sombra al borde
+        background: 'linear-gradient(-90deg, #dccab1 0%, #ede3d3 100%)',
         zIndex: 10,
     },
-
-    // 3. ABAJO (Bolsillo principal)
     flapBottom: {
         zIndex: 11,
-        clipPath: 'polygon(0 100%, 50% 55%, 100% 100%)', // Triángulo sube hasta el 55%
-        // Gradiente vertical: Más oscuro abajo (sombra) -> Claro arriba
+        clipPath: 'polygon(0 100%, 50% 55%, 100% 100%)',
         background: 'linear-gradient(to top, #cbb596 0%, #f0e7d8 100%)',
-        // Sombra ficticia arriba para separar del fondo
         filter: 'drop-shadow(0 -2px 3px rgba(0,0,0,0.1))',
     },
-
-    // 4. ARRIBA (TAPA)
     flapTop: {
-        zIndex: 20, transformOrigin: 'top',
-        clipPath: 'polygon(0 0, 50% 55%, 100% 0)', // El pico baja hasta el 55% para solapar perfecto
-        background: 'linear-gradient(to bottom, #f7f1e6 0%, #e6dac3 100%)', // Papel más claro arriba
-        filter: 'drop-shadow(0 4px 5px rgba(0,0,0,0.15))', // Sombra realista sobre el resto
+        zIndex: 50, transformOrigin: 'top',
+        clipPath: 'polygon(0 0, 50% 55%, 100% 0)',
+        background: 'linear-gradient(to bottom, #f7f1e6 0%, #e6dac3 100%)',
+        filter: 'drop-shadow(0 4px 5px rgba(0,0,0,0.15))',
     },
-    flapTopInner: { width: '100%', height: '100%', backgroundColor: '#fdfbf7' }, // Reverso de la tapa (papel limpio)
+    flapTopInner: { width: '100%', height: '100%', backgroundColor: '#fdfbf7' },
 
     // --- SELLO ---
     waxSeal: {
-        position: 'absolute', top: '55%', left: '50%', // Justo en el pico (55%)
-        width: '70px', height: '70px', zIndex: 60,
-        cursor: 'pointer', transition: 'all 0.5s ease',
-        filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.3))', // Sombra del sello
+        position: 'absolute', top: '55%', left: '50%', transform: 'translate(-50%, -50%)',
+        width: '80px', height: '80px', 
+        zIndex: 100, // Z-index muy alto
+        cursor: 'pointer', 
+        transition: 'all 0.5s ease',
+        filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.3))',
+        // ESTO ES CLAVE: pointer-events auto aquí sobreescribe el none del padre
+        pointerEvents: 'auto' 
     },
     sealContent: {
         width: '100%', height: '100%', borderRadius: '50%',
-        // Gradiente complejo para simular cera brillante
         background: 'radial-gradient(circle at 35% 35%, #e53935, #b71c1c, #7f0000)',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        // Borde irregular simulado
         boxShadow: 'inset 0 0 0 4px rgba(0,0,0,0.1), 0 0 0 2px #8e0000', 
         border: '1px solid rgba(255,255,255,0.2)'
     },
     sealText: {
         fontFamily: '"Great Vibes", cursive', color: '#520b0b', fontSize: '22px', fontWeight: 'bold',
-        textShadow: '0 1px 0 rgba(255,255,255,0.3)', // Efecto grabado
-        transform: 'rotate(-10deg)',
+        textShadow: '0 1px 0 rgba(255,255,255,0.3)', transform: 'rotate(-10deg)',
     }
 };
