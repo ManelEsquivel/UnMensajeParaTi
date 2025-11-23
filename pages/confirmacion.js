@@ -64,18 +64,13 @@ export default function InvitationEnvelope() {
     };
 
     // =========================================================
-    // 2. ANIMACIÓN CON TIEMPOS AJUSTADOS
+    // 2. ANIMACIÓN
     // =========================================================
     const startEnvelopeAnimation = (e) => {
         if(e) e.stopPropagation();
         
-        // 1. Abrir tapa
         setAnimationStep(1); 
-        
-        // 2. Esperar a que la tapa esté ARRIBA del todo (1s) para que la carta salga
         setTimeout(() => setAnimationStep(2), 1000);  
-        
-        // 3. Zoom y Bajar todo
         setTimeout(() => setAnimationStep(3), 2200); 
     };
 
@@ -92,19 +87,15 @@ export default function InvitationEnvelope() {
                 <style>{`
                     html, body { margin: 0; padding: 0; background-color: #1a1a1a; overflow: hidden; height: 100%; }
                     
-                    /* TEXTURA DE PAPEL ANTIGUO */
+                    /* TEXTURA VINTAGE */
                     .vintage-paper {
                         background-color: #d8c8b0;
                         background-image: 
                             url("https://www.transparenttextures.com/patterns/aged-paper.png"),
                             radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.2) 100%);
-                        box-shadow: inset 0 0 30px rgba(78, 59, 40, 0.6); /* Borde quemado */
+                        box-shadow: inset 0 0 30px rgba(78, 59, 40, 0.6); 
                     }
-
-                    /* FILTRO SVG PARA BORDES ROTOS */
-                    .torn-edge {
-                        filter: url(#wavy); 
-                    }
+                    .torn-edge { filter: url(#wavy); }
 
                     @keyframes pulse-btn {
                         0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
@@ -119,9 +110,7 @@ export default function InvitationEnvelope() {
                 `}</style>
             </Head>
 
-            {/* --- SVG FILTER DEFINITION (INVISIBLE) --- 
-                Este filtro crea el efecto de borde irregular en el papel
-            */}
+            {/* --- SVG FILTER DEFINITION (INVISIBLE) --- */}
             <svg style={{ visibility: 'hidden', position: 'absolute' }} width="0" height="0">
                 <defs>
                     <filter id="wavy">
@@ -169,7 +158,10 @@ export default function InvitationEnvelope() {
                     }}>
                         <div style={styles.cardContent}>
                             <p style={styles.topText}>¡NOS CASAMOS!</p>
+                            
+                            {/* AQUÍ ESTÁ EL CAMBIO IMPORTANTE: */}
                             <h1 style={styles.names}>Manel & Carla</h1>
+                            
                             <div style={styles.divider}></div>
                             <div style={styles.bodyTextContainer}>
                                 <p style={styles.bodyText}>Nos haría mucha ilusión que nos acompañaras en este día tan especial para nosotros.</p>
@@ -187,23 +179,18 @@ export default function InvitationEnvelope() {
 
                     {/* --- SOBRE VINTAGE --- */}
                     <div style={styles.envelope}>
-                        
-                        {/* 1. Interior Oscuro */}
                         <div style={{...styles.layer, backgroundColor: '#2a221b'}}></div>
                         
-                        {/* 2. Solapas Laterales (Vintage + Filtro Borde) */}
                         <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapLeft}}></div>
                         <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapRight}}></div>
                         
-                        {/* 3. Solapa Inferior (Con Nombres) */}
                         <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapBottom}}>
-                            {/* Texto en la solapa inferior como en la foto */}
-                            <div style={styles.flapTextContainer}>
+                             {/* Texto en la solapa inferior */}
+                             <div style={styles.flapTextContainer}>
                                 <span style={styles.flapNames}>Manel & Carla</span>
                             </div>
                         </div>
                         
-                        {/* 4. Solapa Superior (Tapa) */}
                         <div className="vintage-paper torn-edge" style={{
                             ...styles.layer, ...styles.flapTop,
                             transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
@@ -235,7 +222,7 @@ export default function InvitationEnvelope() {
     );
 }
 
-// --- ESTILOS VINTAGE ---
+// --- ESTILOS ---
 const styles = {
     container: {
         width: '100vw', height: '100vh', 
@@ -246,10 +233,9 @@ const styles = {
     },
     wrapper: {
         position: 'relative',
-        width: '320px',  
+        width: '340px',  // Ensanchado ligeramente para dar más espacio horizontal
         height: '460px', 
         perspective: '1200px', 
-        // Sombra suave en el suelo
         filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.8))',
     },
 
@@ -266,85 +252,73 @@ const styles = {
     },
     cardContent: {
         width: 'calc(100% - 20px)', height: 'calc(100% - 20px)',
-        padding: '20px 10px', boxSizing: 'border-box',
+        padding: '20px 5px', // Menos padding lateral para dar espacio al texto
+        boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         border: '1px solid #d4af37', textAlign: 'center'
     },
     topText: { fontFamily: '"Montserrat", sans-serif', fontSize: '11px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', marginBottom: '5px' },
-    names: { fontFamily: '"Great Vibes", cursive', fontSize: '3rem', color: '#222', margin: '10px 0', lineHeight: 1 },
+    
+    // NOMBRES CORREGIDOS PARA QUE QUEPAN EN UNA LÍNEA
+    names: { 
+        fontFamily: '"Great Vibes", cursive', 
+        fontSize: '2.2rem', // Reducido para que quepa
+        color: '#222', 
+        margin: '10px 0', 
+        lineHeight: 1,
+        whiteSpace: 'nowrap' // Fuerza una sola línea
+    },
+    
     divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '15px 0' },
     bodyTextContainer: { width: '90%', marginBottom: '15px' },
     bodyText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '15px', color: '#444', lineHeight: '1.4', margin: '8px 0' },
     footerText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontWeight: 'bold', color: '#333', margin: '10px 0' },
     button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '12px 30px', fontSize: '11px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', marginTop: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' },
 
-    // --- ENVELOPE ESTILO ANTIGUO ---
-    envelope: { 
-        width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d',
-        pointerEvents: 'none' 
-    },
+    // --- ENVELOPE ---
+    envelope: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', pointerEvents: 'none' },
     layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
 
-    // LATERALES (Papel Desgastado)
     flapLeft: {
-        clipPath: 'polygon(0 0, 0% 100%, 55% 55%)',
-        zIndex: 10,
-        filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.3))' // Sombra para profundidad
+        clipPath: 'polygon(0 0, 0% 100%, 55% 55%)', zIndex: 10,
+        filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.3))'
     },
     flapRight: {
-        clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)',
-        zIndex: 10,
+        clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)', zIndex: 10,
         filter: 'drop-shadow(-2px 0 5px rgba(0,0,0,0.3))'
     },
-    
-    // ABAJO (Bolsillo con Texto)
     flapBottom: {
         zIndex: 11,
-        clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)', // Sube hasta el centro
-        filter: 'drop-shadow(0 -5px 10px rgba(0,0,0,0.4))', // Sombra fuerte arriba
+        clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)',
+        filter: 'drop-shadow(0 -5px 10px rgba(0,0,0,0.4))',
     },
+    // Texto en la solapa del sobre
     flapTextContainer: {
-        position: 'absolute',
-        bottom: '15%', 
-        width: '100%',
-        textAlign: 'center',
-        transform: 'rotate(0deg)', // Asegura texto recto
-        zIndex: 20
+        position: 'absolute', bottom: '15%', width: '100%', textAlign: 'center', zIndex: 20
     },
     flapNames: {
-        fontFamily: '"Great Vibes", cursive',
-        fontSize: '2.5rem',
-        color: '#4e3b28', // Color tinta marrón oscuro
-        textShadow: '0 1px 1px rgba(255,255,255,0.3)', // Efecto grabado
-        opacity: 0.9
+        fontFamily: '"Great Vibes", cursive', fontSize: '2.5rem', color: '#4e3b28', 
+        textShadow: '0 1px 1px rgba(255,255,255,0.3)', opacity: 0.9
     },
     
-    // TAPA (Papel Desgastado)
     flapTop: {
         zIndex: 50, transformOrigin: 'top',
-        clipPath: 'polygon(0 0, 50% 50%, 100% 0)', // Baja hasta la mitad
-        filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.3))', // Sombra realista
+        clipPath: 'polygon(0 0, 50% 50%, 100% 0)',
+        filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.3))',
     },
 
     // --- SELLO ---
     waxSeal: {
         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: '90px', height: '90px', 
-        zIndex: 9999, 
-        cursor: 'pointer', 
-        transition: 'all 0.5s ease',
-        filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
-        pointerEvents: 'auto', 
-        display: 'block', 
+        width: '90px', height: '90px', zIndex: 9999, cursor: 'pointer', 
+        transition: 'all 0.5s ease', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
+        pointerEvents: 'auto', display: 'block', 
     },
     sealContent: {
         width: '80px', height: '80px', borderRadius: '50%', margin: '5px', 
-        // Cera Roja Oscura y Realista
         background: 'radial-gradient(circle at 35% 35%, #c62828, #8e0000, #4a0000)',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        // Borde irregular
-        boxShadow: 'inset 0 0 0 5px rgba(0,0,0,0.2), 0 0 0 2px #5e0000', 
-        border: '1px solid rgba(255,255,255,0.1)'
+        boxShadow: 'inset 0 0 0 5px rgba(0,0,0,0.2), 0 0 0 2px #5e0000', border: '1px solid rgba(255,255,255,0.1)'
     },
     sealText: {
         fontFamily: '"Great Vibes", cursive', color: '#3b0000', fontSize: '22px', fontWeight: 'bold',
