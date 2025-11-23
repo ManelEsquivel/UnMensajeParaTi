@@ -40,6 +40,8 @@ Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puede
 
   // --- ⚡️ OPTIMIZACIÓN DE VELOCIDAD: RESPUESTA RÁPIDA DE ALOJAMIENTO ---
 
+// --- ⚡️ OPTIMIZACIÓN DE VELOCIDAD: RESPUESTA RÁPIDA ---
+
   // Keywords para MÁXIMA PRIORIDAD (Recomendación/Precio)
   const maxPriorityAccommodationKeywords = [
     "precios", "recomendacion", "recomiendas", "recomiendes", "mejor", 
@@ -51,17 +53,30 @@ Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puede
     "hoteles", "dormir", "quedarse"
   ];
 
+  // NUEVO: Keywords para APERITIVO
+  const aperitivoKeywords = [
+    "aperitivo", "pica pica", "picapica", "entrantes", "coctel"
+  ];
+
   let hardcodedReplyRaw = null;
 
-  // 1. Check para MÁXIMA PRIORIDAD (Recomendación/Precio)
+  // 1. Check para MÁXIMA PRIORIDAD (Recomendación/Precio Alojamiento)
   const isMaxPriorityAccommodationQuery = maxPriorityAccommodationKeywords.some(keyword => 
     normalizedMessage.includes(keyword)
   );
 
+  // 2. Check para APERITIVO (Nueva lógica para forzar lista completa)
+  // Excluimos si preguntan por "bebida" para no interferir, pero si dicen "comida aperitivo" entra aquí.
+  const isAperitivoQuery = aperitivoKeywords.some(keyword => normalizedMessage.includes(keyword)) 
+                           && !normalizedMessage.includes("bebida");
+
   if (isMaxPriorityAccommodationQuery) {
     hardcodedReplyRaw = recommendationPriceResponse;
+  } else if (isAperitivoQuery) {
+    // 🎯 FORZAMOS LA RESPUESTA EXACTA DEL APERITIVO AQUÍ
+    hardcodedReplyRaw = aperitivoCompletoResponse;
   } else {
-    // 2. Check para Alojamiento GENERAL
+    // 3. Check para Alojamiento GENERAL
     const isGeneralAccommodationQuery = generalAccommodationKeywords.some(keyword => 
         normalizedMessage.includes(keyword)
     ) || (normalizedMessage.includes("alojamiento") && !isMaxPriorityAccommodationQuery); 
@@ -73,11 +88,9 @@ Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puede
 
   if (hardcodedReplyRaw) {
     // Si se encuentra una respuesta fija, se devuelve inmediatamente (¡sin llamar a OpenAI!)
-    // Configuramos el marcado para que los enlaces se abran en nueva pestaña.
     marked.use({
       renderer: {
         link(href, title, text) {
-          // Devolvemos el enlace con target="_blank" para abrir en una nueva pestaña.
           return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
         }
       }
@@ -294,7 +307,7 @@ Kike Masgrau,Masgrau,PENDIENTE
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
   const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
-  // Lista del Aperitivo para inyección
+// Lista del Aperitivo
   const aperitivoCompletoResponse = `¡Claro! Para el aperitivo, habrá una gran variedad de platos deliciosos. 🍽️
 * Roll de salmón ahumado, con crema de anchoas y brotes de albahaca crujiente
 * Crostini de escalivada asada con ventresca de atún
