@@ -144,7 +144,8 @@ export default function InvitationEnvelope() {
                     {/* CARTA */}
                     <div style={{
                         ...styles.card,
-                        transform: animationStep >= 2 ? 'translateY(-60%)' : 'translateY(0)',
+                        // La carta sube desde atrás de la imagen del sobre
+                        transform: animationStep >= 2 ? 'translateY(-60%)' : 'translateY(20%)',
                         opacity: animationStep >= 2 ? 1 : 0,
                         zIndex: animationStep >= 2 ? 20 : 1,
                         transition: 'transform 1.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
@@ -167,39 +168,25 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* SOBRE */}
-                    <div style={styles.envelope}>
-                        <div style={styles.envelopeInner}></div>
-                        <div style={styles.flapLeft}></div>
-                        <div style={styles.flapRight}></div>
-                        <div style={styles.flapBottom}></div>
-                        <div style={{
-                            ...styles.flapTop,
-                            transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
-                            zIndex: animationStep >= 1 ? 1 : 50, 
-                            transition: 'transform 0.9s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s linear 0.4s'
-                        }}></div>
-
-                        {/* Sello */}
-                        <div onClick={animationStep === 0 ? startAnimation : undefined}
-                             style={{
-                                ...styles.waxSeal,
-                                opacity: animationStep === 0 ? 1 : 0,
-                                transform: animationStep === 0 ? 'scale(1)' : 'scale(1.5)',
-                                pointerEvents: animationStep === 0 ? 'auto' : 'none',
-                            }}>
-                            <div style={styles.sealInner}>
-                                <span style={styles.sealText}>Abrir</span>
-                            </div>
-                        </div>
-                    </div>
+                    {/* IMAGEN DEL SOBRE (SUSTITUYE AL SOBRE CSS) */}
+                    <img 
+                        src="image_0.png" 
+                        alt="Sobre de Invitación"
+                        onClick={animationStep === 0 ? startAnimation : undefined}
+                        style={{
+                            ...styles.envelopeImage,
+                            opacity: animationStep >= 1 ? 0 : 1, // Desaparece al abrir
+                            pointerEvents: animationStep === 0 ? 'auto' : 'none',
+                            transform: animationStep >= 1 ? 'scale(1.1)' : 'scale(1)', // Pequeño efecto al desaparecer
+                        }}
+                    />
                 </div>
             </div>
         </>
     );
 }
 
-// --- ESTILOS SIN CAMBIOS ---
+// --- ESTILOS ---
 const styles = {
     container: {
         width: '100vw', height: '100vh', backgroundColor: '#2c2c2c',
@@ -231,13 +218,16 @@ const styles = {
     location: { fontFamily: '"Montserrat", sans-serif', fontSize: '10px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '10px' },
     quote: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontStyle: 'italic', color: '#666', lineHeight: '1.4', marginBottom: '5px', maxWidth: '80%' },
     button: { backgroundColor: '#333', color: '#fff', border: 'none', padding: '15px 30px', fontSize: '12px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', marginTop: '20px' },
-    envelope: { position: 'relative', width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' },
-    envelopeInner: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#d1d1d1' },
-    flapLeft: { position: 'absolute', top: 0, left: 0, width: 0, height: 0, borderTop: '50vh solid transparent', borderBottom: '50vh solid transparent', borderLeft: '55vw solid #f4f4f4', zIndex: 11 },
-    flapRight: { position: 'absolute', top: 0, right: 0, width: 0, height: 0, borderTop: '50vh solid transparent', borderBottom: '50vh solid transparent', borderRight: '55vw solid #f4f4f4', zIndex: 11 },
-    flapBottom: { position: 'absolute', bottom: 0, left: 0, width: 0, height: 0, borderLeft: '50vw solid transparent', borderRight: '50vw solid transparent', borderBottom: '55vh solid #ededed', zIndex: 12 },
-    flapTop: { position: 'absolute', top: 0, left: 0, width: 0, height: 0, borderLeft: '50vw solid transparent', borderRight: '50vw solid transparent', borderTop: '55vh solid #ffffff', transformOrigin: 'top', zIndex: 50, filter: 'drop-shadow(0 5px 15px rgba(0,0,0,0.15))' },
-    waxSeal: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', marginTop: '25px', marginLeft: '-40px', width: '80px', height: '80px', borderRadius: '50%', background: 'radial-gradient(ellipse at 30% 30%, #ffd700, #d4af37, #8b6914)', boxShadow: '0 4px 20px rgba(0,0,0,0.4)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 60, cursor: 'pointer', transition: 'transform 0.3s ease, opacity 0.3s ease', pointerEvents: 'auto' },
-    sealInner: { width: '60px', height: '60px', borderRadius: '50%', border: '2px solid rgba(138, 110, 40, 0.5)', display: 'flex', justifyContent: 'center', alignItems: 'center', boxShadow: 'inset 0 0 10px rgba(0,0,0,0.2)' },
-    sealText: { fontFamily: '"Great Vibes", cursive', fontSize: '24px', color: '#5c4008', fontWeight: '600', transform: 'rotate(-5deg)' }
+    // ESTILO PARA LA NUEVA IMAGEN DEL SOBRE
+    envelopeImage: {
+        position: 'relative',
+        width: '100%',
+        height: 'auto',
+        maxWidth: '600px',
+        zIndex: 10,
+        cursor: 'pointer',
+        transition: 'opacity 0.8s ease-in-out, transform 0.8s ease-in-out',
+        display: 'block', // Asegura que se comporte como bloque
+        marginBottom: '-5px' // Ajuste fino para que se asiente en el fondo
+    },
 };
