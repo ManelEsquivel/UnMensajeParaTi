@@ -2,23 +2,23 @@ import React, { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 
 export default function InvitationEnvelope() {
-    // --- ESTADOS DEL VIDEO ---
+    // --- 1. ESTADOS DEL VIDEO (INTRO) ---
     const playerRef = useRef(null);
     const timerRef = useRef(null);
-    const [isStarted, setIsStarted] = useState(false);
-    const [showVideo, setShowVideo] = useState(true);
-    const [isFadingOut, setIsFadingOut] = useState(false);
+    const [isStarted, setIsStarted] = useState(false);     // Pantalla "Ver Invitación"
+    const [showVideo, setShowVideo] = useState(true);      // Contenedor Video
+    const [isFadingOut, setIsFadingOut] = useState(false); // Transición negro -> sobre
 
-    // --- ESTADOS DE ANIMACIÓN DEL SOBRE ---
-    // 0: Cerrado (SOLO se ve el sobre)
-    // 1: Abriendo (Tapa sube, carta se hace visible dentro)
-    // 2: Sacando carta
-    // 3: Zoom final para leer
+    // --- 2. ESTADOS DEL SOBRE (CONFIRMACIÓN) ---
+    // 0: Cerrado
+    // 1: Abriendo Solapa
+    // 2: Sacando Carta
+    // 3: Lectura (Zoom/Desplazamiento final)
     const [animationStep, setAnimationStep] = useState(0);
 
-    // ---------------------------------------------------------
-    // 1. LÓGICA DE YOUTUBE
-    // ---------------------------------------------------------
+    // =========================================================
+    // LÓGICA DE VIDEO (IGUAL QUE INTRO.JS + CORTE 2 SEGUNDOS)
+    // =========================================================
     useEffect(() => {
         if (typeof window !== 'undefined') {
             if (!window.YT) {
@@ -50,13 +50,13 @@ export default function InvitationEnvelope() {
         if (event.data === 0 && !isFadingOut) finishVideo();
     };
 
+    // Monitor para cortar 2 segundos antes
     const startEndTimer = () => {
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
             if (!playerRef.current || !playerRef.current.getCurrentTime) return;
             const currentTime = playerRef.current.getCurrentTime();
             const duration = playerRef.current.getDuration();
-            // Cortar 2 segundos antes
             if (duration > 0 && (duration - currentTime) <= 2) {
                 finishVideo();
                 clearInterval(timerRef.current);
@@ -67,7 +67,8 @@ export default function InvitationEnvelope() {
     const handleStart = () => {
         if (playerRef.current && playerRef.current.playVideo) {
             setIsStarted(true);
-            playerRef.current.mute(); 
+            playerRef.current.unMute(); // Activamos sonido
+            playerRef.current.setVolume(100);
             playerRef.current.playVideo();
         } else {
             finishVideo();
@@ -80,20 +81,17 @@ export default function InvitationEnvelope() {
         if (playerRef.current && playerRef.current.pauseVideo) {
            try { playerRef.current.pauseVideo(); } catch(e){}
         }
-        // Transición de 1.5s para que desaparezca el negro
+        // 1.5s de transición suave a negro transparente
         setTimeout(() => setShowVideo(false), 1500);
     };
 
-    // ---------------------------------------------------------
-    // 2. ANIMACIÓN DEL SOBRE
-    // ---------------------------------------------------------
-    const startEnvelopeAnimation = () => {
-        // Paso 1: Levantar la tapa y hacer visible la carta (dentro)
-        setAnimationStep(1); 
-        // Paso 2: La carta empieza a deslizarse hacia arriba
-        setTimeout(() => setAnimationStep(2), 600);  
-        // Paso 3: Zoom para leer
-        setTimeout(() => setAnimationStep(3), 1600); 
+    // =========================================================
+    // LÓGICA DE ANIMACIÓN (DEL FICHERO ADJUNTO)
+    // =========================================================
+    const startAnimation = () => {
+        setAnimationStep(1); // Abre tapa
+        setTimeout(() => setAnimationStep(2), 800);  // Saca carta
+        setTimeout(() => setAnimationStep(3), 1800); // Movimiento final (Zoom/Desplazamiento)
     };
 
     const handleConfirm = () => {
@@ -116,10 +114,10 @@ export default function InvitationEnvelope() {
                 `}</style>
             </Head>
 
-            {/* --- PANTALLA INICIAL (BOTÓN) --- */}
+            {/* --- 1. BOTÓN DE INICIO (PANTALLA NEGRA) --- */}
             {!isStarted && (
                 <div onClick={handleStart} style={{ 
-                    position: 'fixed', zIndex: 2000, top: 0, left: 0, width: '100%', height: '100%', 
+                    position: 'fixed', zIndex: 3000, top: 0, left: 0, width: '100%', height: '100%', 
                     backgroundColor: 'black', display: 'flex', flexDirection: 'column', 
                     justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' 
                 }}>
@@ -135,11 +133,11 @@ export default function InvitationEnvelope() {
                 </div>
             )}
 
-            {/* --- VIDEO --- */}
+            {/* --- 2. VIDEO --- */}
             {showVideo && (
                 <div style={{ 
                     position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
-                    backgroundColor: 'black', zIndex: 1000, 
+                    backgroundColor: 'black', zIndex: 2000, 
                     display: 'flex', justifyContent: 'center', alignItems: 'center',
                     opacity: isFadingOut ? 0 : 1, 
                     transition: 'opacity 1.5s ease-in-out',
@@ -151,23 +149,26 @@ export default function InvitationEnvelope() {
                 </div>
             )}
 
-            {/* --- ESCENARIO: SOBRE Y CARTA --- */}
+            {/* --- 3. SOBRE Y CARTA (LÓGICA DEL ADJUNTO + ESTILO BEIGE) --- */}
             <div style={styles.container}>
+                
                 <div style={{
                     ...styles.wrapper,
-                    // Al final (paso 3), hacemos zoom y bajamos el sobre para centrar la carta en pantalla
-                    transform: animationStep === 3 ? 'translateY(20vh) scale(1.3)' : 'translateY(0) scale(1)',
+                    // LA MAGIA DEL ADJUNTO: Movemos el contenedor 40vh abajo al final.
+                    // Como la carta subió, esto hace que la carta quede centrada en pantalla.
+                    transform: animationStep === 3 ? 'translateY(40vh)' : 'translateY(0)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
                     {/* --- CARTA --- */}
                     <div style={{
                         ...styles.card,
-                        // Paso 2: La carta sube saliendo del sobre
-                        transform: animationStep >= 2 ? 'translateY(-85%)' : 'translateY(0)',
-                        // SEGURIDAD: Opacidad 0 si está cerrado. Así garantizamos que NO se vea.
-                        opacity: animationStep >= 1 ? 1 : 0, 
-                        transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
+                        // La carta sale hacia arriba (-60%)
+                        transform: animationStep >= 2 ? 'translateY(-60%)' : 'translateY(0)',
+                        // Opacidad 0 si está cerrado para evitar que se vea por rendijas
+                        opacity: animationStep >= 1 ? 1 : 0,
+                        zIndex: animationStep >= 2 ? 20 : 1,
+                        transition: 'transform 1.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
                     }}>
                         <div style={styles.cardContent}>
                             <p style={styles.saveTheDate}>NOS CASAMOS</p>
@@ -187,31 +188,29 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- SOBRE --- */}
-                    <div style={styles.envelopeBody}>
+                    {/* --- SOBRE (ESTILO FULL SCREEN DEL ADJUNTO) --- */}
+                    <div style={styles.envelope}>
                         
-                        {/* Interior Oscuro */}
-                        <div style={styles.innerPocket}></div>
+                        {/* Interior */}
+                        <div style={styles.envelopeInner}></div>
+                        
+                        {/* Laterales (Beige) */}
+                        <div style={styles.flapLeft}></div>
+                        <div style={styles.flapRight}></div>
+                        
+                        {/* Abajo (Beige Oscuro) */}
+                        <div style={styles.flapBottom}></div>
 
-                        {/* TAPA INFERIOR (Bolsillo) */}
-                        <div style={styles.bottomFlap}></div>
-
-                        {/* LATERALES */}
-                        <div style={{...styles.sideFlap, left: 0, clipPath: 'polygon(0 0, 0% 100%, 100% 50%)', background: 'linear-gradient(90deg, #e6dac3 0%, #d6c5a8 100%)' }}></div>
-                        <div style={{...styles.sideFlap, right: 0, clipPath: 'polygon(100% 0, 0% 50%, 100% 100%)', background: 'linear-gradient(-90deg, #e6dac3 0%, #d6c5a8 100%)' }}></div>
-
-                        {/* TAPA SUPERIOR (La que se abre) */}
+                        {/* Tapa Superior (Beige Claro) - Se abre rotando */}
                         <div style={{
-                            ...styles.topFlap,
+                            ...styles.flapTop,
                             transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
                             zIndex: animationStep >= 1 ? 1 : 50, 
-                            transition: 'transform 0.9s cubic-bezier(0.4, 0, 0.2, 1), z-index 0.1s linear 0.4s'
-                        }}>
-                             <div style={styles.topFlapInner}></div>
-                        </div>
+                            transition: 'transform 0.9s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s linear 0.4s'
+                        }}></div>
 
-                        {/* SELLO (Botón de Abrir) */}
-                        <div onClick={animationStep === 0 ? startEnvelopeAnimation : undefined}
+                        {/* Sello */}
+                        <div onClick={animationStep === 0 ? startAnimation : undefined}
                              style={{
                                 ...styles.waxSeal,
                                 opacity: animationStep === 0 ? 1 : 0,
@@ -232,73 +231,76 @@ export default function InvitationEnvelope() {
 
 const styles = {
     container: {
-        width: '100vw', height: '100vh', backgroundColor: '#1a1a1a',
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
+        width: '100vw', height: '100vh',
+        backgroundColor: '#1a1a1a', // Fondo oscuro general
+        display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
         overflow: 'hidden', position: 'relative',
     },
     wrapper: {
-        position: 'relative',
-        width: '340px',  
-        height: '230px', 
-        perspective: '1000px',
-        filter: 'drop-shadow(0 20px 40px rgba(0,0,0,0.6))',
+        position: 'relative', width: '100%', height: '100%',
+        maxWidth: '600px', margin: '0 auto',
+        display: 'flex', justifyContent: 'center', alignItems: 'flex-end', 
+        perspective: '1500px',
     },
     
-    // CARTA
+    // --- CARTA (Vertical y Elegante) ---
     card: {
-        position: 'absolute',
-        // Centrada y ligeramente más pequeña que el sobre para caber
-        top: '5%', left: '2.5%', 
-        width: '95%', height: '90%', 
-        zIndex: 2, // Detrás de las tapas (z=10, 50)
-        backgroundColor: '#fffcf5',
-        backgroundImage: 'url("https://www.transparenttextures.com/patterns/cream-paper.png")',
-        borderRadius: '4px',
-        display: 'flex', flexDirection: 'column', alignItems: 'center',
-        boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+        position: 'absolute', bottom: '0', width: '90%', height: '85%',
+        backgroundColor: '#fffcf5', // Crema suave
+        backgroundImage: `url("https://www.transparenttextures.com/patterns/cream-paper.png")`,
+        boxShadow: '0 -5px 25px rgba(0,0,0,0.2)',
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
+        padding: '20px', boxSizing: 'border-box', borderRadius: '4px 4px 0 0',
     },
     cardContent: {
         width: '100%', height: '100%',
-        padding: '10px', boxSizing: 'border-box',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly',
-        border: '1px solid #d4af37', margin: '5px',
-        width: 'calc(100% - 10px)', height: 'calc(100% - 10px)',
+        border: '1px solid #d4af37', // Borde Dorado
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around',
+        textAlign: 'center', padding: '20px 10px',
     },
-    saveTheDate: { fontFamily: '"Montserrat", sans-serif', fontSize: '9px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', margin: 0 },
-    names: { fontFamily: '"Great Vibes", cursive', fontSize: '2rem', color: '#222', margin: '0', lineHeight: 1 },
-    divider: { width: '30px', height: '1px', backgroundColor: '#d4af37', margin: '5px 0' },
-    date: { fontFamily: '"Cormorant Garamond", serif', fontSize: '1rem', fontWeight: '600', color: '#333', letterSpacing: '1px' },
-    location: { fontFamily: '"Montserrat", sans-serif', fontSize: '8px', color: '#555', letterSpacing: '2px', textTransform: 'uppercase' },
-    quote: { fontFamily: '"Cormorant Garamond", serif', fontSize: '12px', fontStyle: 'italic', color: '#666', textAlign: 'center', maxWidth: '90%' },
-    button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '8px 20px', fontSize: '9px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '1px', cursor: 'pointer', marginTop: '5px' },
+    saveTheDate: { fontFamily: '"Montserrat", sans-serif', fontSize: '12px', letterSpacing: '4px', color: '#888', textTransform: 'uppercase', margin: 0 },
+    names: { fontFamily: '"Great Vibes", cursive', fontSize: 'clamp(40px, 5vh, 60px)', color: '#222', margin: '10px 0', lineHeight: 1.1 },
+    divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '10px 0' },
+    date: { fontFamily: '"Cormorant Garamond", serif', fontSize: '18px', fontWeight: '600', color: '#333', letterSpacing: '1px', marginTop: '5px' },
+    location: { fontFamily: '"Montserrat", sans-serif', fontSize: '10px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '10px' },
+    quote: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontStyle: 'italic', color: '#666', lineHeight: '1.4', marginBottom: '5px', maxWidth: '80%' },
+    button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '15px 30px', fontSize: '12px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', marginTop: '20px' },
 
-    // SOBRE
-    envelopeBody: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d' },
-    innerPocket: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#2a2520', borderRadius: '4px' },
-
-    // TAPA INFERIOR (SOLAPAMIENTO CORREGIDO: Sube hasta el 55% para tapar bien)
-    bottomFlap: {
-        position: 'absolute', bottom: 0, left: 0, width: '100%', height: '100%', zIndex: 10,
-        clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)', // El pico llega al 45% desde arriba (55% de altura visual)
-        background: 'linear-gradient(to top, #d1c0a5 0%, #e6dac3 100%)', borderRadius: '0 0 4px 4px',
-    },
-    // LATERALES
-    sideFlap: { position: 'absolute', top: 0, width: '50%', height: '100%', zIndex: 11 },
+    // --- SOBRE (GEOMETRÍA DEL ADJUNTO + COLORES BEIGE) ---
+    envelope: { position: 'relative', width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' },
+    envelopeInner: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#2a2520' }, // Interior oscuro
     
-    // TAPA SUPERIOR (SOLAPAMIENTO CORREGIDO: Baja hasta el 55% para solapar con la inferior)
-    topFlap: {
-        position: 'absolute', top: 0, left: 0, width: '100%', height: '100%',
-        transformOrigin: 'top', zIndex: 50,
-        clipPath: 'polygon(0 0, 50% 55%, 100% 0)', // El pico baja hasta el 55%
-        background: 'linear-gradient(to bottom, #f2eadd 0%, #e6dac3 100%)',
-        filter: 'drop-shadow(0 2px 3px rgba(0,0,0,0.2))',
+    // Usamos CLIP-PATH para permitir degradados en la geometría Full Screen
+    flapLeft: {
+        position: 'absolute', top: 0, left: 0, width: '55%', height: '100%', // Ancho > 50% para solapar
+        clipPath: 'polygon(0 0, 100% 50%, 0 100%)', // Triángulo izquierdo
+        background: 'linear-gradient(90deg, #e6dac3 0%, #d6c5a8 100%)', zIndex: 11,
     },
-    topFlapInner: { width: '100%', height: '100%', backgroundColor: '#f5f0e6' },
+    flapRight: {
+        position: 'absolute', top: 0, right: 0, width: '55%', height: '100%',
+        clipPath: 'polygon(100% 0, 0 50%, 100% 100%)', // Triángulo derecho
+        background: 'linear-gradient(-90deg, #e6dac3 0%, #d6c5a8 100%)', zIndex: 11,
+    },
+    flapBottom: {
+        position: 'absolute', bottom: 0, left: 0, width: '100%', height: '55%', // Alto > 50%
+        clipPath: 'polygon(0 100%, 50% 0, 100% 100%)', // Triángulo inferior
+        background: 'linear-gradient(to top, #d1c0a5 0%, #e6dac3 100%)', zIndex: 12,
+    },
+    flapTop: {
+        position: 'absolute', top: 0, left: 0, width: '100%', height: '55%',
+        clipPath: 'polygon(0 0, 50% 100%, 100% 0)', // Triángulo superior apuntando abajo
+        background: 'linear-gradient(to bottom, #f2eadd 0%, #e6dac3 100%)', // Beige más claro
+        transformOrigin: 'top', zIndex: 50,
+        filter: 'drop-shadow(0 5px 15px rgba(0,0,0,0.15))'
+    },
 
-    // SELLO
+    // --- SELLO ROJO/GRANATE ---
     waxSeal: {
-        position: 'absolute', top: '50%', left: '50%', width: '70px', height: '70px', zIndex: 60,
-        cursor: 'pointer', transition: 'all 0.5s ease', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.4))',
+        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
+        marginTop: '25px', marginLeft: '-40px', 
+        width: '80px', height: '80px', zIndex: 60,
+        cursor: 'pointer', transition: 'all 0.5s ease',
+        filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.4))',
     },
     sealContent: {
         width: '100%', height: '100%', borderRadius: '50%',
@@ -307,7 +309,7 @@ const styles = {
         boxShadow: 'inset 0 0 0 3px rgba(100, 0, 0, 0.2), 0 0 0 2px #8a1c1c',
     },
     sealText: {
-        fontFamily: '"Great Vibes", cursive', color: '#4a0505', fontSize: '22px', fontWeight: 'bold',
+        fontFamily: '"Great Vibes", cursive', color: '#4a0505', fontSize: '24px', fontWeight: 'bold',
         textShadow: '0 1px 1px rgba(255,255,255,0.2)', transform: 'rotate(-10deg)',
     }
 };
