@@ -10,10 +10,7 @@ export default function InvitationEnvelope() {
     // --- METADATOS PARA WHATSAPP (ICONO) ---
     const pageTitle = "Invitación de Boda - Manel & Carla";
     const pageDescription = "Estás invitado a nuestra boda. Toca para abrir el sobre.";
-    
-    // IMPORTANTE: Asegúrate de que el archivo 'invitacion.jpg' esté en la carpeta /public
-    // La URL debe ser absoluta (con https://...) para que WhatsApp la detecte.
-    const pageImage = "https://bodamanelcarla.vercel.app/invitacion.jpg"; 
+    const pageImage = "https://bodamanelcarla.vercel.app/confirmacion.jpg"; 
 
     // =========================================================
     // ANIMACIÓN DEL SOBRE
@@ -49,7 +46,8 @@ export default function InvitationEnvelope() {
                 {/* FUENTES Y ESTILOS */}
                 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@200;400&family=Great+Vibes&display=swap" rel="stylesheet" />
                 <style>{`
-                    html, body { margin: 0; padding: 0; background-color: #1a1a1a; overflow: hidden; height: 100%; }
+                    /* FONDO NEUTRO IGUAL QUE SAVE THE DATE */
+                    html, body { margin: 0; padding: 0; background-color: #f7f3ed; overflow: hidden; height: 100%; }
                     
                     .vintage-paper {
                         background-color: #d8c8b0;
@@ -82,7 +80,7 @@ export default function InvitationEnvelope() {
             <div style={styles.container}>
                 <div style={{
                     ...styles.wrapper,
-                    transform: animationStep === 3 ? 'translateY(30vh) scale(1.1)' : 'translateY(5vh) scale(1)',
+                    transform: animationStep === 3 ? 'translateY(40vh) scale(1.1)' : 'translateY(5vh) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
@@ -160,17 +158,17 @@ export default function InvitationEnvelope() {
 const styles = {
     container: {
         width: '100vw', height: '100dvh', 
-        backgroundColor: '#111',
+        // FONDO CAMBIADO AL COLOR NEUTRO DE SAVE THE DATE
+        backgroundColor: '#f7f3ed', 
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         overflow: 'hidden', position: 'relative',
-        background: 'radial-gradient(circle at center, #2c2c2c 0%, #050505 100%)'
     },
     wrapper: {
         position: 'relative',
         width: '340px',  
         height: '460px', 
         perspective: '1200px', 
-        filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.8))',
+        filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.3))', // Sombra suavizada para fondo claro
     },
 
     // --- CARTA ---
@@ -192,12 +190,10 @@ const styles = {
         border: '1px solid #d4af37', textAlign: 'center'
     },
     topText: { fontFamily: '"Montserrat", sans-serif', fontSize: '11px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', marginBottom: '5px' },
-    
     names: { 
         fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#222', 
         margin: '10px 0', lineHeight: 1, whiteSpace: 'nowrap' 
     },
-    
     divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '15px 0' },
     bodyTextContainer: { width: '90%', marginBottom: '15px' },
     bodyText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '15px', color: '#444', lineHeight: '1.4', margin: '8px 0' },
@@ -208,13 +204,13 @@ const styles = {
     envelope: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', pointerEvents: 'none' },
     layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
 
-    flapLeft: { clipPath: 'polygon(0 0, 0% 100%, 55% 55%)', zIndex: 10, filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.3))' },
-    flapRight: { clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)', zIndex: 10, filter: 'drop-shadow(-2px 0 5px rgba(0,0,0,0.3))' },
+    flapLeft: { clipPath: 'polygon(0 0, 0% 100%, 55% 55%)', zIndex: 10, filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.2))' },
+    flapRight: { clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)', zIndex: 10, filter: 'drop-shadow(-2px 0 5px rgba(0,0,0,0.2))' },
     
     flapBottom: {
         zIndex: 11,
         clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)',
-        filter: 'drop-shadow(0 -5px 10px rgba(0,0,0,0.4))',
+        filter: 'drop-shadow(0 -5px 10px rgba(0,0,0,0.3))',
     },
     
     flapTextContainer: { position: 'absolute', bottom: '15%', width: '100%', textAlign: 'center', zIndex: 12 },
@@ -226,13 +222,13 @@ const styles = {
     flapTop: {
         zIndex: 50, transformOrigin: 'top',
         clipPath: 'polygon(0 0, 50% 50%, 100% 0)',
-        filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.3))',
+        filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.2))',
     },
 
     waxSeal: {
         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
         width: '90px', height: '90px', zIndex: 9999, cursor: 'pointer', 
-        transition: 'all 0.5s ease', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
+        transition: 'all 0.5s ease', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.4))',
         pointerEvents: 'auto', display: 'block', 
     },
     sealContent: {
