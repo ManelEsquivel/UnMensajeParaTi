@@ -31,39 +31,69 @@ export default async function handler(req, res) {
 
 Si quieres ver más opciones de alojamiento en la zona, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
 
-  // 🎯 RESPUESTA ESPECÍFICA DE PRECIO/RECOMENDACIÓN (Ahora incluye la URL de Booking)
-  // Aseguramos que la respuesta de precio también incluya el enlace para que la acción del usuario sea completada.
+  // 🎯 RESPUESTA ESPECÍFICA DE PRECIO/RECOMENDACIÓN
   const recommendationPriceResponse = `En cuanto a alojamiento, te recomendamos **Villas Coliving** por su proximidad y buen precio, que es de unos **70€ por noche**.
 
 Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puedes consultar este enlace directo a Booking.com: [Ver Hoteles Cerca de la Boda](${accommodationBookingUrl})`;
 
+  // 🎯 RESPUESTA COMPLETA DEL APERITIVO (Movido aquí arriba para que funcione la respuesta rápida)
+  const aperitivoCompletoResponse = `¡Claro! Para el aperitivo, habrá una gran variedad de platos deliciosos. 🍽️
+* Roll de salmón ahumado, con crema de anchoas y brotes de albahaca crujiente
+* Crostini de escalivada asada con ventresca de atún
+* Mini tacos de vegetales a la parrilla
+* Trufa de foie con crocante de almendra tostada
+* Cazuela gourmet de pasta con relleno de ragú boloñesa con queso fundido y albahaca
+* Rol de requesón y nueces envuelto en calabacín asado
+* Mini ensalada de algas con perlas de yuzu y semillas de amapora
+* Chupito de mazamorra cordobesa con tropicales y mousse de ventresca
+* Croquetas de pulpo gallego y pimpenton de la vera
+* Crocanti de pollo caramelizado y sésamo negro 
+* Simulacro de calamar con patata paja
+* Patatas bravas con alioli y su toque de valentina
+* Trilogía de hamburguesas de pollo, ternera y quinoa
+* Tiras de calamar crujiente en tempura
+* Bocado de jamón de guijuelo en croqueta cremosa
+* Vasito de romesco
+* Bicolor de Hummus clásico y de remolacha con AOVE
+* Cremosos de risotto de setas ceps y parmesano regianno
+* Bocado de gamba crujiente envuelta en jamón ibérico
+* Perla de bacalao con all i oli de arbequina
 
-  // --- ⚡️ OPTIMIZACIÓN DE VELOCIDAD: RESPUESTA RÁPIDA DE ALOJAMIENTO ---
+Además, tendremos Showcooking y Corte:
+* Jamón al corte
+* Showcooking de carnes a la brasa
+* Zamburiñas, almejas y navajas
 
-// --- ⚡️ OPTIMIZACIÓN DE VELOCIDAD: RESPUESTA RÁPIDA ---
+¡Una variedad exquisita para disfrutar!`;
 
-// Keywords
+
+  // --- ⚡️ OPTIMIZACIÓN DE VELOCIDAD: RESPUESTA RÁPIDA ---
+
+  // Keywords para MÁXIMA PRIORIDAD (Recomendación/Precio Alojamiento)
   const maxPriorityAccommodationKeywords = [
     "precios", "recomendacion", "recomiendas", "recomiendes", "mejor", 
     "cuanto cuesta", "hotel", "alojamiento"
   ];
 
+  // Keywords para Alojamiento GENERAL
   const generalAccommodationKeywords = [
     "hoteles", "dormir", "quedarse"
   ];
 
+  // NUEVO: Keywords para APERITIVO
   const aperitivoKeywords = [
     "aperitivo", "pica pica", "picapica", "entrantes", "coctel"
   ];
 
   let hardcodedReplyRaw = null;
 
-  // Check 1: Alojamiento Prioridad
+  // 1. Check para MÁXIMA PRIORIDAD (Recomendación/Precio Alojamiento)
   const isMaxPriorityAccommodationQuery = maxPriorityAccommodationKeywords.some(keyword => 
     normalizedMessage.includes(keyword)
   );
 
-  // Check 2: Aperitivo (¡Ahora sí funcionará porque la variable ya existe!)
+  // 2. Check para APERITIVO (Nueva lógica para forzar lista completa)
+  // Excluimos si preguntan por "bebida" para no interferir, pero si dicen "comida aperitivo" entra aquí.
   const isAperitivoQuery = aperitivoKeywords.some(keyword => normalizedMessage.includes(keyword)) 
                            && !normalizedMessage.includes("bebida");
 
@@ -71,9 +101,10 @@ Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puede
     hardcodedReplyRaw = recommendationPriceResponse;
   } else if (isAperitivoQuery) {
     // 🎯 FORZAMOS LA RESPUESTA EXACTA DEL APERITIVO AQUÍ
+    // (Ahora sí funciona porque la variable 'aperitivoCompletoResponse' ya está definida arriba)
     hardcodedReplyRaw = aperitivoCompletoResponse;
   } else {
-    // Check 3: Alojamiento General
+    // 3. Check para Alojamiento GENERAL
     const isGeneralAccommodationQuery = generalAccommodationKeywords.some(keyword => 
         normalizedMessage.includes(keyword)
     ) || (normalizedMessage.includes("alojamiento") && !isMaxPriorityAccommodationQuery); 
@@ -83,8 +114,8 @@ Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puede
     }
   }
 
-  // SI ENCONTRAMOS RESPUESTA FIJA, RESPONDEMOS Y TERMINAMOS
   if (hardcodedReplyRaw) {
+    // Si se encuentra una respuesta fija, se devuelve inmediatamente (¡sin llamar a OpenAI!)
     marked.use({
       renderer: {
         link(href, title, text) {
@@ -176,7 +207,7 @@ Mujer,Didac,PENDIENTE
 Kike Masgrau,Masgrau,PENDIENTE
 `;
 
-  // --- CÁLCULO DE CONFIRMADOS (Actualizar si la lista cambia) ---
+  // --- CÁLCULO DE CONFIRMADOS ---
   const confirmedGuestsCount = 2; // Manel y Carla (por defecto)
 
   // --- INFO GENERAL BODA ---
@@ -194,11 +225,10 @@ Kike Masgrau,Masgrau,PENDIENTE
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
   
-  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT (LOGICA INTELIGENTE) ---
-  // 1. Procesamos la lista CSV
+  // --- PROCESAMIENTO DE NOMBRES EN JAVASCRIPT ---
   const guestsRows = guestList.split('\n')
     .slice(1) // Quitamos la cabecera
-    .filter(line => line.trim() !== ''); // Quitamos líneas vacías
+    .filter(line => line.trim() !== '');
 
   const validGuests = guestsRows.map(row => {
     const parts = row.split(',');
@@ -210,8 +240,6 @@ Kike Masgrau,Masgrau,PENDIENTE
     const normNombre = normalize(nombreRaw);
     const normApellido = normalize(apellidoRaw);
 
-    // LÓGICA DE CONCATENACIÓN INTELIGENTE:
-    // Si el apellido existe Y NO está ya contenido dentro del nombre, lo sumamos.
     let normFull = "";
     if (normApellido && !normNombre.includes(normApellido)) {
         normFull = `${normNombre} ${normApellido}`;
@@ -220,72 +248,56 @@ Kike Masgrau,Masgrau,PENDIENTE
     }
 
     return {
-      original: `${nombreRaw} ${apellidoRaw}`.trim(), // Para mostrar bonito
+      original: `${nombreRaw} ${apellidoRaw}`.trim(), 
       normFull: normFull.trim(),
       normName: normNombre
     };
   }).filter(Boolean);
 
-  // 2. Buscamos coincidencias en el mensaje del usuario
-  // Prioridad 1: Coincidencia exacta del nombre completo calculado
   const foundExact = validGuests.find(g => normalizedMessage.includes(g.normFull));
-  
-  // Prioridad 2: Coincidencia solo de Nombre (para pedir apellido si falta)
   const foundNameOnly = !foundExact ? validGuests.find(g => normalizedMessage.includes(g.normName)) : null;
 
   let aiForcedInstruction = "";
 
   if (foundExact) {
-    // CASO: USUARIO ENCONTRADO EXACTAMENTE
     aiForcedInstruction = `
       ## 🎯 RESULTADO DE VERIFICACIÓN DE SEGURIDAD (JAVASCRIPT)
       El sistema ha verificado por código que el usuario es: **${foundExact.original}**.
       ESTA PERSONA ESTÁ EN LA LISTA DE INVITADOS OFICIAL.
-      
       INSTRUCCIÓN OBLIGATORIA:
       1. Informa al usuario que **SÍ** está en la lista.
       2. Proporciona INMEDIATAMENTE este enlace para confirmar: [Confirmar Asistencia](${weddingInfo.urlConfirmacion})
     `;
   } else if (foundNameOnly) {
-    // CASO: SOLO NOMBRE (AMBIGUO)
     aiForcedInstruction = `
       ## 🎯 RESULTADO DE VERIFICACIÓN DE SEGURIDAD (JAVASCRIPT)
       El sistema detecta el nombre **"${foundNameOnly.original.split(' ')[0]}"** pero no el apellido completo.
       INSTRUCCIÓN: Pregunta amablemente por el APELLIDO para poder confirmar si es la persona correcta.
     `;
   } else {
-    // CASO: NO ESTÁ EN LA LISTA o NO SE DETECTÓ NOMBRE
-    
-    // 1. REGLA: DETECTAR INTENCIÓN DE CONFIRMAR SIN NOMBRE
     const isConfirmationIntent = normalizedMessage.includes("confirmar") || 
                                  normalizedMessage.includes("asistencia") || 
                                  normalizedMessage.includes("invitado") ||
                                  normalizedMessage.includes("invitacion");
 
-    // 2. Detectar si se está presentando explícitamente (Soy X)
     const isPresentation = normalizedMessage.includes("soy") || 
                            normalizedMessage.includes("me llamo") || 
                            normalizedMessage.includes("mi nombre es");
 
     if (isConfirmationIntent && !isPresentation) {
-         // El usuario quiere confirmar pero NO ha dicho "Soy [Nombre]" y no hemos encontrado el nombre.
          aiForcedInstruction = `
          ## 🎯 INSTRUCCIÓN DE PRIORIDAD: SOLICITAR IDENTIFICACIÓN
          El usuario ha expresado deseo de confirmar asistencia o consultar invitación, pero **el sistema NO ha detectado un nombre válido en la frase**.
-         
-         INSTRUCCIÓN OBLIGATORIA (IGNORA CUALQUIER OTRA):
+         INSTRUCCIÓN OBLIGATORIA:
          1. **NO** proporciones el enlace de confirmación todavía.
          2. Responde: "¡Claro! Para poder gestionar tu confirmación, primero necesito verificar la lista. ¿Podrías decirme tu **Nombre y Apellido** completo, por favor?"
          `;
     } else {
-        // Lógica de RECHAZO: Si dijo "Soy [X]" o el mensaje es muy corto (parece un nombre) y no se encontró.
         const isLikelyNameAttempt = (normalizedMessage.split(' ').length <= 5) || isPresentation;
-
         if (isLikelyNameAttempt) {
             aiForcedInstruction = `
             ## 🎯 RESULTADO DE VERIFICACIÓN (NO ENCONTRADO)
             El código JavaScript ha buscado el nombre en la lista y **NO ha encontrado ninguna coincidencia**.
-            
             INSTRUCCIÓN OBLIGATORIA DE RECHAZO:
             1. Dile amablemente que **NO** encuentras ese nombre en la lista.
             2. **NO** le des el enlace de confirmación.
@@ -294,47 +306,18 @@ Kike Masgrau,Masgrau,PENDIENTE
         }
     }
   }
-  // --- FIN DE PROCESAMIENTO DE NOMBRES ---
 
 
   // --- CONFIGURACIÓN DE RESPUESTAS FIJAS (COMIDA) ---
   const confirmedGuestsCountInPrompt = confirmedGuestsCount;
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
-  const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl; // Usamos el mismo para simplificar
+  const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl; 
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
   const urlRegalosInPrompt = weddingInfo.urlRegalos;
   
-// Lista del Aperitivo
-  const aperitivoCompletoResponse = `¡Claro! Para el aperitivo, habrá una gran variedad de platos deliciosos. 🍽️
-* Roll de salmón ahumado, con crema de anchoas y brotes de albahaca crujiente
-* Crostini de escalivada asada con ventresca de atún
-* Mini tacos de vegetales a la parrilla
-* Trufa de foie con crocante de almendra tostada
-* Cazuela gourmet de pasta con relleno de ragú boloñesa con queso fundido y albahaca
-* Rol de requesón y nueces envuelto en calabacín asado
-* Mini ensalada de algas con perlas de yuzu y semillas de amapora
-* Chupito de mazamorra cordobesa con tropicales y mousse de ventresca
-* Croquetas de pulpo gallego y pimpenton de la vera
-* Crocanti de pollo caramelizado y sésamo negro 
-* Simulacro de calamar con patata paja
-* Patatas bravas con alioli y su toque de valentina
-* Trilogía de hamburguesas de pollo, ternera y quinoa
-* Tiras de calamar crujiente en tempura
-* Bocado de jamón de guijuelo en croqueta cremosa
-* Vasito de romesco
-* Bicolor de Hummus clásico y de remolacha con AOVE
-* Cremosos de risotto de setas ceps y parmesano regianno
-* Bocado de gamba crujiente envuelta en jamón ibérico
-* Perla de bacalao con all i oli de arbequina
+  // (Nota: 'aperitivoCompletoResponse' ya está definido arriba y se usará aquí)
 
-Además, tendremos Showcooking y Corte:
-* Jamón al corte
-* Showcooking de carnes a la brasa
-* Zamburiñas, almejas y navajas
-
-¡Una variedad exquisita para disfrutar!`;
-
-  // Respuesta Vegetariana para inyección
+  // Respuesta Vegetariana
   const aperitivoVegetarianoResponse = `
   ¡Por supuesto! Para los invitados vegetarianos, los platos principales disponibles en el aperitivo (excluyendo carne, pescado y marisco) son:
   
@@ -349,7 +332,7 @@ Además, tendremos Showcooking y Corte:
   Si tienes alguna intolerancia alimentaria o alergia específica (gluten, lactosa, etc.), por favor, ponte en contacto con Manel o Carla directamente antes del día de la boda para que puedan asegurar un menú adaptado y seguro para ti. ¡Gracias!
   `;
   
-  // Respuesta Menú Principal para inyección
+  // Respuesta Menú Principal
   const menuPrincipalResponse = `El banquete comenzará tras el aperitivo (cuya lista puedes consultar por separado preguntandome por el aperitivo). Respecto a los **platos principales**, los novios están pendientes de realizar la prueba de menú entre las siguientes opciones. ¡Estarán deliciosas!
   
 **PRIMEROS PLATOS (a elegir por los novios):**
@@ -369,7 +352,7 @@ Además, tendremos Showcooking y Corte:
 
 **IMPORTANTE:** Los platos definitivos (primero, segundo y postre) **aún están pendientes de la decisión final de los novios** tras la prueba de menú.`;
 
-  // Respuesta Menú Completo para inyección (Incluye Candy Bar)
+  // Respuesta Menú Completo (Incluye Candy Bar y usa la variable de aperitivo de arriba)
   const menuCompletoResponse = `¡Claro! Aquí tienes la información completa sobre la comida de la boda:
   
 ${aperitivoCompletoResponse}
@@ -432,9 +415,6 @@ ${guestList}
 - **INSTRUCCIONES CLAVE (FINAL - Lógica secuencial con 11 Reglas Especiales de Prioridad):**
 
 // *** REGLAS DE VERIFICACIÓN GESTIONADAS POR LA IA (Prioridad Máxima en Conversación) ***
-
-// 1. REGLA DE INICIO (Pedir Nombre - ANULADA)
-// Hemos eliminado la Regla 1 original. Su lógica se ha movido a 4.B.
 
 // *** REGLA CERO: QUIZ Y JUEGO (PRIORIDAD MÁXIMA UNIVERSAL) ***
 
@@ -635,22 +615,15 @@ ${fullAccommodationResponse}
     marked.use({
       renderer: {
         link(href, title, text) {
-          // Devolvemos el enlace con target="_blank" para abrir en una nueva pestaña.
           return `<a href="${href}" target="_blank" rel="noopener noreferrer">${text}</a>`;
         }
       }
     });
 
-    // Convertir Markdown a HTML limpio y saneado para el frontend
     const aiReplyHTML = marked.parse(aiReplyRaw);
-
-    // Devolvemos el HTML completo.
     res.status(200).json({ reply: aiReplyHTML });
   } catch (error) {
     console.error(error); 
     res.status(500).json({ reply: "Error interno del servidor. Intenta más tarde." });
   }
 }
-
-
-  
