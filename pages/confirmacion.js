@@ -67,7 +67,10 @@ export default function InvitationEnvelope() {
     // =========================================================
     // 2. ANIMACIÓN
     // =========================================================
-    const startEnvelopeAnimation = () => {
+    const startEnvelopeAnimation = (e) => {
+        // Stop propagation para asegurar que el evento se captura aquí
+        if(e) e.stopPropagation();
+        
         setAnimationStep(1); 
         setTimeout(() => setAnimationStep(2), 800);  
         setTimeout(() => setAnimationStep(3), 1800); 
@@ -153,21 +156,12 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- SOBRE --- */}
-                    {/* Quitamos pointerEvents none del contenedor para no bloquear al hijo button */}
+                    {/* --- SOBRE VISUAL --- */}
                     <div style={styles.envelope}>
-                        
-                        {/* 1. Fondo */}
                         <div style={{...styles.layer, ...styles.backFace}}></div>
-
-                        {/* 2. Solapas Laterales */}
                         <div style={{...styles.layer, ...styles.flapLeft}}></div>
                         <div style={{...styles.layer, ...styles.flapRight}}></div>
-
-                        {/* 3. Solapa Inferior */}
                         <div style={{...styles.layer, ...styles.flapBottom}}></div>
-
-                        {/* 4. Solapa Superior */}
                         <div style={{
                             ...styles.layer, ...styles.flapTop,
                             transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
@@ -176,25 +170,25 @@ export default function InvitationEnvelope() {
                         }}>
                             <div style={styles.flapTopInner}></div>
                         </div>
-
-                        {/* 5. SELLO (USAMOS UN BOTÓN REAL PARA MEJORAR EL TACTIL) */}
-                        <button
-                             onClick={animationStep === 0 ? startEnvelopeAnimation : undefined}
-                             style={{
-                                ...styles.waxSeal,
-                                opacity: animationStep === 0 ? 1 : 0,
-                                // Si ya se abrió, deshabilitamos la interacción
-                                pointerEvents: animationStep === 0 ? 'auto' : 'none',
-                                animation: animationStep === 0 ? 'pulse-seal 2s infinite' : 'none'
-                            }}
-                            aria-label="Abrir invitación"
-                        >
-                            <div style={styles.sealContent}>
-                                <span style={styles.sealText}>Abrir</span>
-                            </div>
-                        </button>
-
                     </div>
+
+                    {/* --- BOTÓN SELLO (SACADO FUERA DEL ENVELOPE PARA ASEGURAR CLIC) --- */}
+                    {/* Al estar fuera de la estructura 3D del sobre, el navegador detecta el clic perfectamente */}
+                    <div 
+                        onClick={startEnvelopeAnimation}
+                        style={{
+                            ...styles.waxSeal,
+                            opacity: animationStep === 0 ? 1 : 0,
+                            // Si animationStep > 0 lo escondemos con display none para que no moleste nunca mas
+                            display: animationStep > 0 ? 'none' : 'block',
+                            animation: 'pulse-seal 2s infinite'
+                        }}
+                    >
+                        <div style={styles.sealContent}>
+                            <span style={styles.sealText}>Abrir</span>
+                        </div>
+                    </div>
+
                 </div>
             </div>
         </>
@@ -215,7 +209,6 @@ const styles = {
         height: '220px', 
         perspective: '1200px', 
         filter: 'drop-shadow(0 30px 40px rgba(0,0,0,0.6))',
-        // ELIMINADO: pointerEvents: 'none' que causaba problemas en móvil
     },
 
     // --- CARTA ---
@@ -244,26 +237,21 @@ const styles = {
     quote: { fontFamily: '"Cormorant Garamond", serif', fontSize: '12px', fontStyle: 'italic', color: '#666', textAlign: 'center' },
     button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '8px 20px', fontSize: '9px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '1px', cursor: 'pointer', marginTop: '5px' },
 
-    // --- ENVELOPE ---
+    // --- ENVELOPE VISUAL (Solo adorno, no interactivo) ---
     envelope: { 
         width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d',
-        pointerEvents: 'none' // El sobre visual no captura clics
+        pointerEvents: 'none' 
     },
-    
-    // Capas del sobre: pointer-events none
     layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
 
     backFace: { backgroundColor: '#2a2520', borderRadius: '4px' },
-
     flapLeft: {
         clipPath: 'polygon(0 0, 0% 100%, 55% 50%)',
-        background: 'linear-gradient(90deg, #dccab1 0%, #ede3d3 100%)',
-        zIndex: 10,
+        background: 'linear-gradient(90deg, #dccab1 0%, #ede3d3 100%)', zIndex: 10,
     },
     flapRight: {
         clipPath: 'polygon(100% 0, 100% 100%, 45% 50%)',
-        background: 'linear-gradient(-90deg, #dccab1 0%, #ede3d3 100%)',
-        zIndex: 10,
+        background: 'linear-gradient(-90deg, #dccab1 0%, #ede3d3 100%)', zIndex: 10,
     },
     flapBottom: {
         zIndex: 11,
@@ -279,26 +267,20 @@ const styles = {
     },
     flapTopInner: { width: '100%', height: '100%', backgroundColor: '#fdfbf7' },
 
-    // --- SELLO (BOTÓN) ---
+    // --- SELLO (INTERACTIVO - POSICIONADO ABSOLUTAMENTE ENCIMA DE TODO) ---
     waxSeal: {
-        // Reseteo de estilos de botón
-        border: 'none', background: 'transparent', padding: 0, margin: 0,
-        
         position: 'absolute', top: '55%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: '80px', height: '80px', 
-        zIndex: 1000, // Z-index muy alto
+        width: '90px', height: '90px', // Hit area un poco más grande
+        zIndex: 9999, // Z-Index máximo
         cursor: 'pointer', 
         transition: 'all 0.5s ease',
         filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.3))',
-        
-        // ESTO ES CLAVE: pointer-events auto y botón nativo
-        pointerEvents: 'auto',
-        
-        // Fix para móviles: quitar highlight azul al tocar
-        WebkitTapHighlightColor: 'transparent',
+        pointerEvents: 'auto', // Habilita clic explícitamente
+        // Asegura que no tenga estilos de botón predeterminados si fuera el caso
+        display: 'block', 
     },
     sealContent: {
-        width: '100%', height: '100%', borderRadius: '50%',
+        width: '80px', height: '80px', borderRadius: '50%', margin: '5px', // Centrado dentro del hit area
         background: 'radial-gradient(circle at 35% 35%, #e53935, #b71c1c, #7f0000)',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         boxShadow: 'inset 0 0 0 4px rgba(0,0,0,0.1), 0 0 0 2px #8e0000', 
