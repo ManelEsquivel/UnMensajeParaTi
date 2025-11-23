@@ -1,319 +1,422 @@
-import React, { useState, useRef, useEffect } from 'react';
-import Head from 'next/head';
-
-export default function InvitationEnvelope() {
-    // --- ESTADOS ---
-    const playerRef = useRef(null);
-    const timerRef = useRef(null);
-    const [isStarted, setIsStarted] = useState(false);
-    const [showVideo, setShowVideo] = useState(true);
-    const [isFadingOut, setIsFadingOut] = useState(false);
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Save The Date - Manel & Carla</title>
+    <script src="https://cdn.tailwindcss.com"></script>
     
-    // 0: Cerrado | 1: Abriendo Solapa | 2: Sacando Carta | 3: Zoom Lectura
-    const [animationStep, setAnimationStep] = useState(0);
-
-    // --- METADATOS PARA WHATSAPP (OPEN GRAPH) ---
-    // Asegúrate de que 'confirmacion.jpg' esté en la carpeta /public de tu proyecto.
-    // La URL debe ser absoluta para que WhatsApp la detecte bien.
-    // Cambia 'tudominio.com' por tu dominio real de Vercel.
-    const pageTitle = "Invitación de Boda - Manel & Carla";
-    const pageDescription = "Estás invitado a nuestra boda. Toca para abrir la invitación.";
-    const pageImage = "https://bodamanelcarla.vercel.app/confirmacion.jpg"; // <--- URL ABSOLUTA DE TU IMAGEN
-
-    // =========================================================
-    // 1. VIDEO INTRO
-    // =========================================================
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            if (!window.YT) {
-                const tag = document.createElement('script');
-                tag.src = "https://www.youtube.com/iframe_api";
-                const firstScriptTag = document.getElementsByTagName('script')[0];
-                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            }
-            window.onYouTubeIframeAPIReady = () => {
-                playerRef.current = new window.YT.Player('youtube-player-confirm', {
-                    videoId: 'liDatwofpxI', 
-                    playerVars: { autoplay: 0, controls: 0, showinfo: 0, rel: 0, playsinline: 1, modestbranding: 1, loop: 0, fs: 0, mute: 1 },
-                    events: { 'onStateChange': onPlayerStateChange }
-                });
-            };
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600;700&family=Noto+Sans:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Cormorant Garamond', serif;
+            position: relative;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background-color: #f7f3ed; 
         }
-        return () => { if (timerRef.current) clearInterval(timerRef.current); window.onYouTubeIframeAPIReady = null; };
-    }, []);
 
-    const onPlayerStateChange = (event) => {
-        if (event.data === 1) startEndTimer();
-        if (event.data === 0 && !isFadingOut) finishVideo();
-    };
+        /* ESTILOS TARJETA INVITACIÓN */
+        .invitation-frame {
+            position: relative;
+            z-index: 10; 
+            width: 100%;
+            max-width: 400px;
+            padding: 3rem 1.5rem; 
+            text-align: center;
+            
+            /* IMAGEN DE FONDO */
+            background-image: url('https://raw.githubusercontent.com/ManelEsquivel/SaveTheDate/main/anillos_2.png');
+            background-size: cover;
+            background-position: center 50%; 
+            background-repeat: no-repeat;
+            
+            background-color: rgba(245, 245, 245, 0.7); 
+            background-blend-mode: overlay; 
 
-    const startEndTimer = () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-        timerRef.current = setInterval(() => {
-            if (!playerRef.current || !playerRef.current.getCurrentTime) return;
-            if (playerRef.current.getDuration() > 0 && (playerRef.current.getDuration() - playerRef.current.getCurrentTime()) <= 2) {
-                finishVideo();
-                clearInterval(timerRef.current);
-            }
-        }, 500);
-    };
-
-    const handleStart = () => {
-        if (playerRef.current && playerRef.current.playVideo) {
-            setIsStarted(true); playerRef.current.unMute(); playerRef.current.playVideo();
-        } else { finishVideo(); }
-    };
-
-    const finishVideo = () => {
-        if (isFadingOut) return;
-        setIsFadingOut(true);
-        if (playerRef.current && playerRef.current.pauseVideo) try { playerRef.current.pauseVideo(); } catch(e){}
-        setTimeout(() => setShowVideo(false), 1500);
-    };
-
-    // =========================================================
-    // 2. ANIMACIÓN
-    // =========================================================
-    const startEnvelopeAnimation = (e) => {
-        if(e) e.stopPropagation();
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.15); 
+            border: 1px solid #e0d8c7; 
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            border-radius: 12px;
+        }
         
-        setAnimationStep(1); 
-        setTimeout(() => setAnimationStep(2), 1000);  
-        setTimeout(() => setAnimationStep(3), 2200); 
-    };
+        /* HOJAS DECORATIVAS */
+        .leaf-detail {
+            position: absolute;
+            width: 70px;
+            height: 70px;
+            z-index: 15;
+            color: #d4af94; 
+            opacity: 0;
+            animation: fadeIn 0.8s forwards; 
+            animation-delay: 0.2s; 
+        }
+        .top-left-leaf { top: 5px; left: 5px; transform: rotate(0deg); }
+        .top-right-leaf { top: 5px; right: 5px; transform: rotate(90deg); }
+        .bottom-right-leaf { bottom: 5px; right: 5px; transform: rotate(180deg); }
+        .bottom-left-leaf { bottom: 5px; left: 5px; transform: rotate(-90deg); }
 
-    const handleConfirm = () => {
-        window.open('https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3', '_blank');
-    };
+        @keyframes fadeIn { to { opacity: 1; } }
 
-    return (
-        <>
-            <Head>
-                <title>{pageTitle}</title>
-                <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
-                
-                {/* --- METADATOS OPEN GRAPH (WHATSAPP) --- */}
-                <meta property="og:type" content="website" />
-                <meta property="og:title" content={pageTitle} />
-                <meta property="og:description" content={pageDescription} />
-                <meta property="og:image" content={pageImage} />
-                <meta property="og:image:secure_url" content={pageImage} />
-                <meta property="og:image:type" content="image/jpeg" />
-                <meta property="og:image:width" content="1200" />
-                <meta property="og:image:height" content="630" />
-                
-                {/* FUENTES */}
-                <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@200;400&family=Great+Vibes&display=swap" rel="stylesheet" />
-                
-                <style>{`
-                    html, body { margin: 0; padding: 0; background-color: #1a1a1a; overflow: hidden; height: 100%; }
-                    
-                    .vintage-paper {
-                        background-color: #d8c8b0;
-                        background-image: 
-                            url("https://www.transparenttextures.com/patterns/aged-paper.png"),
-                            radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.2) 100%);
-                        box-shadow: inset 0 0 30px rgba(78, 59, 40, 0.6); 
-                    }
-                    .torn-edge { filter: url(#wavy); }
+        .accent-color { color: #b18579; }
 
-                    @keyframes pulse-btn {
-                        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
-                        70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
-                        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-                    }
-                    @keyframes pulse-seal {
-                        0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3)); }
-                        50% { transform: translate(-50%, -50%) scale(1.05); filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4)); }
-                        100% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3)); }
-                    }
-                `}</style>
-            </Head>
+        /* ANIMACIONES DE TEXTO */
+        .animated-item {
+            opacity: 0;
+            transform: translateY(15px);
+            animation-fill-mode: forwards;
+            animation-name: fadeInSlide;
+            font-family: 'Cormorant Garamond', serif; 
+            animation-duration: 0.8s;
+        }
 
-            <svg style={{ visibility: 'hidden', position: 'absolute' }} width="0" height="0">
-                <defs>
-                    <filter id="wavy">
-                        <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="5" result="noise" />
-                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" />
-                    </filter>
-                </defs>
+        @keyframes fadeInSlide {
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .step-1 { animation-delay: 0.2s; }
+        .step-2 { animation-delay: 1.0s; }
+        .step-2-5 { animation-delay: 1.6s; }
+        .step-3 { animation-delay: 2.2s; }
+        .step-4 { animation-delay: 3.2s; }
+        .step-5 { animation-delay: 4.0s; }
+        .step-6 { animation-delay: 4.8s; }
+        .step-7 { animation-delay: 5.6s; }
+
+        /* BOTÓN PRINCIPAL */
+        .btn-main {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: #b18579;
+            color: white;
+            padding: 0.75rem 1.75rem;
+            border-radius: 6px;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 4px 10px rgba(177, 133, 121, 0.4);
+            cursor: pointer;
+            border: none;
+            font-size: 1rem;
+            letter-spacing: 0.5px;
+        }
+
+        .btn-main:hover {
+            background-color: #9c7569;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 15px rgba(177, 133, 121, 0.5);
+        }
+
+        /* --- ESTILOS DE LA MODAL --- */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(4px);
+            z-index: 100;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            opacity: 0;
+            visibility: hidden;
+            transition: opacity 0.4s ease, visibility 0.4s;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .modal-content {
+            background-color: #fff;
+            padding: 2.5rem 2rem;
+            border-radius: 12px;
+            max-width: 90%;
+            width: 400px;
+            text-align: center;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.2);
+            transform: scale(0.8) translateY(20px);
+            transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+            border: 1px solid #e0d8c7;
+            position: relative;
+        }
+
+        .modal-overlay.active .modal-content {
+            transform: scale(1) translateY(0);
+        }
+
+        .modal-title {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 2rem;
+            color: #b18579;
+            margin-bottom: 1rem;
+            font-weight: 600;
+            line-height: 1.1;
+        }
+
+        .modal-text {
+            font-family: 'Noto Sans', sans-serif;
+            color: #555;
+            font-size: 1rem;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+
+        .modal-buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .btn-calendar {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: white;
+            color: #b18579;
+            border: 1px solid #b18579;
+            padding: 0.7rem;
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            transition: all 0.2s;
+            font-size: 0.95rem;
+        }
+
+        .btn-calendar:hover {
+            background-color: #fcf8f7;
+            transform: translateY(-1px);
+        }
+
+        .btn-confirm {
+            font-family: 'Noto Sans', sans-serif;
+            background-color: #b18579;
+            color: white;
+            border: none;
+            padding: 0.8rem;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            transition: all 0.2s;
+            box-shadow: 0 4px 12px rgba(177, 133, 121, 0.3);
+            font-size: 1rem;
+        }
+
+        .btn-confirm:hover {
+            background-color: #9c7569;
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(177, 133, 121, 0.4);
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.5rem;
+            color: #aaa;
+            cursor: pointer;
+            transition: color 0.2s;
+        }
+        .close-modal:hover { color: #555; }
+
+    </style>
+</head>
+<body>
+    
+    <div class="invitation-frame"> 
+
+        <div class="leaf-detail top-left-leaf">
+            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 5 95 C 30 75, 75 30, 95 5" /><path d="M 25 75 Q 35 85 45 75 M 45 75 Q 35 65 25 75" stroke-width="1.2"/><path d="M 50 50 Q 60 60 70 50 M 70 50 Q 60 40 50 50" stroke-width="1.2"/><circle cx="5" cy="95" r="3" fill="currentColor" stroke="none" />
             </svg>
+        </div>
+        <div class="leaf-detail top-right-leaf">
+            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 5 95 C 30 75, 75 30, 95 5" /><path d="M 25 75 Q 35 85 45 75 M 45 75 Q 35 65 25 75" stroke-width="1.2"/><path d="M 50 50 Q 60 60 70 50 M 70 50 Q 60 40 50 50" stroke-width="1.2"/><circle cx="5" cy="95" r="3" fill="currentColor" stroke="none" />
+            </svg>
+        </div>
+        <div class="leaf-detail bottom-right-leaf">
+            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 5 95 C 30 75, 75 30, 95 5" /><path d="M 25 75 Q 35 85 45 75 M 45 75 Q 35 65 25 75" stroke-width="1.2"/><path d="M 50 50 Q 60 60 70 50 M 70 50 Q 60 40 50 50" stroke-width="1.2"/><circle cx="5" cy="95" r="3" fill="currentColor" stroke="none" />
+            </svg>
+        </div>
+        <div class="leaf-detail bottom-left-leaf">
+            <svg viewBox="0 0 100 100" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M 5 95 C 30 75, 75 30, 95 5" /><path d="M 25 75 Q 35 85 45 75 M 45 75 Q 35 65 25 75" stroke-width="1.2"/><path d="M 50 50 Q 60 60 70 50 M 70 50 Q 60 40 50 50" stroke-width="1.2"/><circle cx="5" cy="95" r="3" fill="currentColor" stroke="none" />
+            </svg>
+        </div>
+        
+        <p class="animated-item step-1 text-xl tracking-widest uppercase mb-6 text-gray-800">
+            Save The Date
+        </p>
 
-            {/* --- PANTALLA INICIO --- */}
-            {!isStarted && (
-                <div onClick={handleStart} style={{ position: 'fixed', zIndex: 3000, top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'black', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' }}>
-                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid white', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px', animation: 'pulse-btn 2s infinite' }}>
-                        <span style={{ fontSize: '30px' }}>📩</span>
-                    </div>
-                    <h1 style={{ fontFamily: '"Great Vibes", cursive', fontSize: '2.5rem', marginBottom: '10px' }}>Manel & Carla</h1>
-                    <p style={{ fontFamily: '"Montserrat", sans-serif', letterSpacing: '2px', fontSize: '0.8rem', textTransform: 'uppercase', opacity: 0.8 }}>Ver Invitación</p>
-                </div>
-            )}
+        <h1 class="animated-item step-2 text-6xl font-normal text-gray-800 mb-0 leading-tight">Manel</h1>
+        <p class="animated-item step-2-5 text-4xl font-extrabold my-2 accent-color leading-tight">&</p> 
+        <h1 class="animated-item step-3 text-6xl font-normal text-gray-800 mt-0 mb-4 leading-tight">Carla</h1>
 
-            {/* --- VIDEO --- */}
-            {showVideo && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'black', zIndex: 2000, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: isFadingOut ? 0 : 1, transition: 'opacity 1.5s ease-in-out', pointerEvents: 'none' }}>
-                    <div style={{ width: '100%', height: '100%', transform: 'scale(1.4)' }}>
-                        <div id="youtube-player-confirm" style={{ width: '100%', height: '100%' }}></div>
-                    </div>
-                </div>
-            )}
+        <p class="animated-item step-4 text-3xl font-bold mb-8 accent-color">
+            31 · 10 · 2026
+        </p>
+         
+        <p class="animated-item step-5 text-xl mt-16 mb-6 text-gray-700">
+            Masia Mas Llombart<br>Sant Fost de Campsentelles, Barcelona
+        </p>
 
-            {/* --- ESCENARIO --- */}
-            <div style={styles.container}>
-                <div style={{
-                    ...styles.wrapper,
-                    transform: animationStep === 3 ? 'translateY(40vh) scale(1.1)' : 'translateY(5vh) scale(1)',
-                    transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
-                }}>
+        <p class="animated-item step-6 text-base italic text-gray-500 mb-8">
+            ¡Nos encantaría que nos acompañaras en nuestro gran día!
+        </p>
 
-                    {/* --- CARTA --- */}
-                    <div style={{
-                        ...styles.card,
-                        transform: animationStep >= 2 ? 'translateY(-75%)' : 'translateY(0)',
-                        opacity: animationStep >= 2 ? 1 : 0, 
-                        zIndex: animationStep >= 2 ? 20 : 1, 
-                        transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease 0.2s'
-                    }}>
-                        <div style={styles.cardContent}>
-                            <p style={styles.topText}>¡NOS CASAMOS!</p>
-                            <h1 style={styles.names}>Manel & Carla</h1>
-                            <div style={styles.divider}></div>
-                            <div style={styles.bodyTextContainer}>
-                                <p style={styles.bodyText}>Nos haría mucha ilusión que nos acompañaras en este día tan especial para nosotros.</p>
-                                <p style={styles.bodyText}>Queremos celebrar nuestro amor contigo y que seas parte de este momento único.</p>
-                            </div>
-                            <p style={styles.footerText}>¡Te esperamos!</p>
-                            <button onClick={handleConfirm} style={{
-                                ...styles.button, 
-                                opacity: animationStep === 3 ? 1 : 0, 
-                                pointerEvents: animationStep === 3 ? 'auto' : 'none', 
-                                transition: 'opacity 1s ease 1s'
-                            }}>Confirmar Asistencia</button>
-                        </div>
-                    </div>
+        <div class="animated-item step-7">
+            <button id="openModalBtn" class="btn-main">
+                Confirmar Asistencia
+            </button>
+        </div>
+        
+    </div>
 
-                    {/* --- SOBRE VINTAGE --- */}
-                    <div style={styles.envelope}>
-                        <div style={{...styles.layer, backgroundColor: '#2a221b'}}></div>
-                        
-                        <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapLeft}}></div>
-                        <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapRight}}></div>
-                        
-                        <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapBottom}}></div>
-                        
-                        <div className="vintage-paper torn-edge" style={{
-                            ...styles.layer, ...styles.flapTop,
-                            transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
-                            zIndex: animationStep >= 1 ? 1 : 50, 
-                            transition: 'transform 1s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s linear 0.5s'
-                        }}>
-                             <div style={{width:'100%', height:'100%', backgroundColor: 'rgba(0,0,0,0.05)'}}></div>
-                        </div>
-                    </div>
-
-                    {/* --- SELLO --- */}
-                    <div 
-                        onClick={startEnvelopeAnimation}
-                        style={{
-                            ...styles.waxSeal,
-                            opacity: animationStep === 0 ? 1 : 0,
-                            display: animationStep > 0 ? 'none' : 'block',
-                            animation: 'pulse-seal 2s infinite'
-                        }}
-                    >
-                        <div style={styles.sealContent}>
-                            <span style={styles.sealText}>Abrir</span>
-                        </div>
-                    </div>
-
-                </div>
+    <div id="confirmationModal" class="modal-overlay">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModalX">&times;</span>
+            
+            <h2 class="modal-title">¡Qué ilusión!</h2>
+            <p class="modal-text">
+                Gracias por querer venir a nuestra boda. Antes de ir a confirmar, ¿quieres guardarte la fecha en el calendario?
+            </p>
+            
+            <div class="modal-buttons">
+                <button id="modalSaveCal" class="btn-calendar">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect width="18" height="18" x="3" y="4" rx="2" ry="2"/><line x1="16" x2="16" y1="2" y2="6"/><line x1="8" x2="8" y1="2" y2="6"/><line x1="3" x2="21" y1="10" y2="10"/></svg>
+                    Guardar fecha (31/10/2026)
+                </button>
+                
+                <button id="modalConfirm" class="btn-confirm">
+                    Continuar para Confirmar ➔
+                </button>
             </div>
-        </>
-    );
-}
+        </div>
+    </div>
 
-// --- ESTILOS ---
-const styles = {
-    container: {
-        width: '100vw', height: '100dvh', 
-        backgroundColor: '#111',
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        overflow: 'hidden', position: 'relative',
-        background: 'radial-gradient(circle at center, #2c2c2c 0%, #050505 100%)'
-    },
-    wrapper: {
-        position: 'relative',
-        width: '340px',  
-        height: '460px', 
-        perspective: '1200px', 
-        filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.8))',
-    },
+    <script>
+        // --- Datos del Evento ---
+        const eventData = {
+            title: "Boda Manel & Carla",
+            location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
+            description: "¡Nos encantaría que nos acompañaras en nuestro gran día! Web: https://www.bodas.net/web/manel-y-carla/bienvenidos-1",
+            // Fecha: 31 Oct 2026 12:00.
+            date: "20261031T120000",
+            durationHours: 10 // Termina a las 22:00
+        };
 
-    // --- CARTA ---
-    card: {
-        position: 'absolute',
-        top: '10px', left: '15px', right: '15px', bottom: '10px',
-        backgroundColor: '#fffcf5',
-        borderRadius: '2px',
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        boxShadow: '0 -2px 10px rgba(0,0,0,0.2)',
-        backgroundImage: `url("https://www.transparenttextures.com/patterns/cream-paper.png")`,
-        pointerEvents: 'auto'
-    },
-    cardContent: {
-        width: 'calc(100% - 20px)', height: 'calc(100% - 20px)',
-        padding: '20px 5px', 
-        boxSizing: 'border-box',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
-        border: '1px solid #d4af37', textAlign: 'center'
-    },
-    topText: { fontFamily: '"Montserrat", sans-serif', fontSize: '11px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', marginBottom: '5px' },
-    
-    names: { 
-        fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#222', 
-        margin: '10px 0', lineHeight: 1, whiteSpace: 'nowrap' 
-    },
-    
-    divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '15px 0' },
-    bodyTextContainer: { width: '90%', marginBottom: '15px' },
-    bodyText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '15px', color: '#444', lineHeight: '1.4', margin: '8px 0' },
-    footerText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontWeight: 'bold', color: '#333', margin: '10px 0' },
-    button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '12px 30px', fontSize: '11px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', marginTop: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' },
+        const confirmUrl = "https://www.bodas.net/web/manel-y-carla/bienvenidos-1";
 
-    // --- ENVELOPE ---
-    envelope: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', pointerEvents: 'none' },
-    layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
+        // --- Referencias al DOM ---
+        const openModalBtn = document.getElementById('openModalBtn');
+        const modal = document.getElementById('confirmationModal');
+        const closeModalX = document.getElementById('closeModalX');
+        const btnSaveCal = document.getElementById('modalSaveCal');
+        const btnConfirm = document.getElementById('modalConfirm');
 
-    flapLeft: { clipPath: 'polygon(0 0, 0% 100%, 55% 55%)', zIndex: 10, filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.3))' },
-    flapRight: { clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)', zIndex: 10, filter: 'drop-shadow(-2px 0 5px rgba(0,0,0,0.3))' },
-    
-    flapBottom: {
-        zIndex: 11,
-        clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)',
-        filter: 'drop-shadow(0 -5px 10px rgba(0,0,0,0.4))',
-    },
-    
-    flapTop: {
-        zIndex: 50, transformOrigin: 'top',
-        clipPath: 'polygon(0 0, 50% 50%, 100% 0)',
-        filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.3))',
-    },
+        // --- Lógica de la Modal ---
+        openModalBtn.addEventListener('click', (e) => {
+            e.preventDefault();
+            modal.classList.add('active');
+        });
 
-    waxSeal: {
-        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: '90px', height: '90px', zIndex: 9999, cursor: 'pointer', 
-        transition: 'all 0.5s ease', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
-        pointerEvents: 'auto', display: 'block', 
-    },
-    sealContent: {
-        width: '80px', height: '80px', borderRadius: '50%', margin: '5px', 
-        background: 'radial-gradient(circle at 35% 35%, #c62828, #8e0000, #4a0000)',
-        display: 'flex', justifyContent: 'center', alignItems: 'center',
-        boxShadow: 'inset 0 0 0 5px rgba(0,0,0,0.2), 0 0 0 2px #5e0000', border: '1px solid rgba(255,255,255,0.1)'
-    },
-    sealText: {
-        fontFamily: '"Great Vibes", cursive', color: '#3b0000', fontSize: '22px', fontWeight: 'bold',
-        textShadow: '0 1px 0 rgba(255,255,255,0.2)', transform: 'rotate(-10deg)',
-    }
-};
+        function closeModal() {
+            modal.classList.remove('active');
+        }
+
+        closeModalX.addEventListener('click', closeModal);
+
+        // Cerrar si se hace clic fuera del contenido de la modal
+        modal.addEventListener('click', (e) => {
+            if (e.target === modal) {
+                closeModal();
+            }
+        });
+
+        // --- Acción: Guardar en Calendario ---
+        btnSaveCal.addEventListener('click', () => {
+            downloadICalFile(eventData);
+        });
+
+        // --- Acción: Continuar (Abrir enlace) ---
+        btnConfirm.addEventListener('click', () => {
+            window.open(confirmUrl, '_blank');
+            closeModal(); // Opcional: cerrar modal tras clic
+        });
+
+        // --- Función formateo ICS ---
+        function formatICSDate(dateString, isEnd = false) {
+            const year = parseInt(dateString.substring(0, 4));
+            const month = parseInt(dateString.substring(4, 6)) - 1;
+            const day = parseInt(dateString.substring(6, 8));
+            const hour = parseInt(dateString.substring(9, 11));
+            const minute = parseInt(dateString.substring(11, 13));
+            const second = parseInt(dateString.substring(13, 15));
+
+            let date = new Date(year, month, day, hour, minute, second);
+
+            if (isEnd) {
+                date.setHours(date.getHours() + eventData.durationHours);
+            }
+
+            const pad = (num) => num.toString().padStart(2, '0');
+            return `${date.getFullYear()}${pad(date.getMonth() + 1)}${pad(date.getDate())}T${pad(date.getHours())}${pad(date.getMinutes())}${pad(date.getSeconds())}`;
+        }
+        
+        // --- Generar archivo ICS ---
+        function downloadICalFile(event) {
+            const startDate = event.date;
+            const endDate = formatICSDate(startDate, true);
+            const stamp = formatICSDate(new Date().toISOString().replace(/[-:.]/g, '').substring(0, 15));
+            const uid = Date.now().toString() + "@manel-carla-boda.com";
+
+            const icsContent = [
+                'BEGIN:VCALENDAR',
+                'VERSION:2.0',
+                'PRODID:-//Manel & Carla//SaveTheDate//ES',
+                'CALSCALE:GREGORIAN',
+                'METHOD:PUBLISH',
+                'BEGIN:VEVENT',
+                `UID:${uid}`,
+                `DTSTAMP:${stamp}`,
+                `DTSTART:${formatICSDate(startDate)}`,
+                `DTEND:${endDate}`,
+                `SUMMARY:${event.title}`,
+                `DESCRIPTION:${event.description}`,
+                `LOCATION:${event.location}`,
+                'END:VEVENT',
+                'END:VCALENDAR'
+            ].join('\n');
+
+            const blob = new Blob([icsContent], { type: 'text/calendar;charset=utf-8' });
+            const url = URL.createObjectURL(blob);
+
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'Boda_Manel_Carla.ics';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+        }
+        
+        // --- Scroll inicial suave ---
+        window.onload = function() {
+            window.scrollTo(0, 50); 
+        };
+    </script>
+
+</body>
+</html>
