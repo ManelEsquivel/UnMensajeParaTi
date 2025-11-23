@@ -1,83 +1,26 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState } from 'react';
 import Head from 'next/head';
 
 export default function InvitationEnvelope() {
-    // --- ESTADOS ---
-    const playerRef = useRef(null);
-    const timerRef = useRef(null);
-    const [isStarted, setIsStarted] = useState(false);
-    const [showVideo, setShowVideo] = useState(true);
-    const [isFadingOut, setIsFadingOut] = useState(false);
     
+    // --- ESTADOS ---
     // 0: Cerrado | 1: Abriendo Solapa | 2: Sacando Carta | 3: Zoom Lectura
     const [animationStep, setAnimationStep] = useState(0);
 
     // --- METADATOS PARA WHATSAPP (ICONO) ---
     const pageTitle = "Invitación de Boda - Manel & Carla";
     const pageDescription = "Estás invitado a nuestra boda. Toca para abrir el sobre.";
-    // Asegúrate de que 'confirmacion.jpg' está en la carpeta /public
     const pageImage = "https://bodamanelcarla.vercel.app/confirmacion.jpg"; 
 
     // =========================================================
-    // 1. VIDEO INTRO
-    // =========================================================
-    useEffect(() => {
-        if (typeof window !== 'undefined') {
-            if (!window.YT) {
-                const tag = document.createElement('script');
-                tag.src = "https://www.youtube.com/iframe_api";
-                const firstScriptTag = document.getElementsByTagName('script')[0];
-                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            }
-            window.onYouTubeIframeAPIReady = () => {
-                playerRef.current = new window.YT.Player('youtube-player-confirm', {
-                    videoId: 'liDatwofpxI', 
-                    playerVars: { autoplay: 0, controls: 0, showinfo: 0, rel: 0, playsinline: 1, modestbranding: 1, loop: 0, fs: 0, mute: 1 },
-                    events: { 'onStateChange': onPlayerStateChange }
-                });
-            };
-        }
-        return () => { if (timerRef.current) clearInterval(timerRef.current); window.onYouTubeIframeAPIReady = null; };
-    }, []);
-
-    const onPlayerStateChange = (event) => {
-        if (event.data === 1) startEndTimer();
-        if (event.data === 0 && !isFadingOut) finishVideo();
-    };
-
-    const startEndTimer = () => {
-        if (timerRef.current) clearInterval(timerRef.current);
-        timerRef.current = setInterval(() => {
-            if (!playerRef.current || !playerRef.current.getCurrentTime) return;
-            if (playerRef.current.getDuration() > 0 && (playerRef.current.getDuration() - playerRef.current.getCurrentTime()) <= 2) {
-                finishVideo();
-                clearInterval(timerRef.current);
-            }
-        }, 500);
-    };
-
-    const handleStart = () => {
-        if (playerRef.current && playerRef.current.playVideo) {
-            setIsStarted(true); playerRef.current.unMute(); playerRef.current.playVideo();
-        } else { finishVideo(); }
-    };
-
-    const finishVideo = () => {
-        if (isFadingOut) return;
-        setIsFadingOut(true);
-        if (playerRef.current && playerRef.current.pauseVideo) try { playerRef.current.pauseVideo(); } catch(e){}
-        setTimeout(() => setShowVideo(false), 1500);
-    };
-
-    // =========================================================
-    // 2. ANIMACIÓN
+    // ANIMACIÓN DEL SOBRE
     // =========================================================
     const startEnvelopeAnimation = (e) => {
         if(e) e.stopPropagation();
         
-        setAnimationStep(1); 
-        setTimeout(() => setAnimationStep(2), 1000);  
-        setTimeout(() => setAnimationStep(3), 2200); 
+        setAnimationStep(1); // 1. Abre tapa
+        setTimeout(() => setAnimationStep(2), 1000);  // 2. Saca carta (espera 1s)
+        setTimeout(() => setAnimationStep(3), 2200); // 3. Zoom final
     };
 
     const handleConfirm = () => {
@@ -114,11 +57,6 @@ export default function InvitationEnvelope() {
                     }
                     .torn-edge { filter: url(#wavy); }
 
-                    @keyframes pulse-btn {
-                        0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
-                        70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
-                        100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
-                    }
                     @keyframes pulse-seal {
                         0% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3)); }
                         50% { transform: translate(-50%, -50%) scale(1.05); filter: drop-shadow(0 6px 8px rgba(0,0,0,0.4)); }
@@ -127,6 +65,7 @@ export default function InvitationEnvelope() {
                 `}</style>
             </Head>
 
+            {/* --- FILTRO SVG PARA BORDES IRREGULARES --- */}
             <svg style={{ visibility: 'hidden', position: 'absolute' }} width="0" height="0">
                 <defs>
                     <filter id="wavy">
@@ -136,31 +75,11 @@ export default function InvitationEnvelope() {
                 </defs>
             </svg>
 
-            {/* --- PANTALLA INICIO --- */}
-            {!isStarted && (
-                <div onClick={handleStart} style={{ position: 'fixed', zIndex: 3000, top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'black', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' }}>
-                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid white', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px', animation: 'pulse-btn 2s infinite' }}>
-                        <span style={{ fontSize: '30px' }}>📩</span>
-                    </div>
-                    <h1 style={{ fontFamily: '"Great Vibes", cursive', fontSize: '2.5rem', marginBottom: '10px' }}>Manel & Carla</h1>
-                    <p style={{ fontFamily: '"Montserrat", sans-serif', letterSpacing: '2px', fontSize: '0.8rem', textTransform: 'uppercase', opacity: 0.8 }}>Ver Invitación</p>
-                </div>
-            )}
-
-            {/* --- VIDEO --- */}
-            {showVideo && (
-                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'black', zIndex: 2000, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: isFadingOut ? 0 : 1, transition: 'opacity 1.5s ease-in-out', pointerEvents: 'none' }}>
-                    <div style={{ width: '100%', height: '100%', transform: 'scale(1.4)' }}>
-                        <div id="youtube-player-confirm" style={{ width: '100%', height: '100%' }}></div>
-                    </div>
-                </div>
-            )}
-
             {/* --- ESCENARIO --- */}
             <div style={styles.container}>
                 <div style={{
                     ...styles.wrapper,
-                    transform: animationStep === 3 ? 'translateY(40vh) scale(1.1)' : 'translateY(5vh) scale(1)',
+                    transform: animationStep === 3 ? 'translateY(30vh) scale(1.1)' : 'translateY(5vh) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
