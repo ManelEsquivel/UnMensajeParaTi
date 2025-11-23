@@ -10,7 +10,10 @@ export default function InvitationEnvelope() {
     // --- METADATOS PARA WHATSAPP (ICONO) ---
     const pageTitle = "Invitación de Boda - Manel & Carla";
     const pageDescription = "Estás invitado a nuestra boda. Toca para abrir el sobre.";
-    const pageImage = "https://bodamanelcarla.vercel.app/confirmacion.jpg"; 
+    
+    // IMPORTANTE: Asegúrate de que el archivo 'invitacion.jpg' esté en la carpeta /public
+    // La URL debe ser absoluta (con https://...) para que WhatsApp la detecte.
+    const pageImage = "https://bodamanelcarla.vercel.app/invitacion.jpg"; 
 
     // =========================================================
     // ANIMACIÓN DEL SOBRE
@@ -189,10 +192,12 @@ const styles = {
         border: '1px solid #d4af37', textAlign: 'center'
     },
     topText: { fontFamily: '"Montserrat", sans-serif', fontSize: '11px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', marginBottom: '5px' },
+    
     names: { 
         fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#222', 
         margin: '10px 0', lineHeight: 1, whiteSpace: 'nowrap' 
     },
+    
     divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '15px 0' },
     bodyTextContainer: { width: '90%', marginBottom: '15px' },
     bodyText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '15px', color: '#444', lineHeight: '1.4', margin: '8px 0' },
