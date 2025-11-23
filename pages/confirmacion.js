@@ -7,12 +7,12 @@ export default function InvitationEnvelope() {
     const [showVideo, setShowVideo] = useState(true); 
     const [isFadingOut, setIsFadingOut] = useState(false);
 
-    // 0: Cerrado, 1: Abriendo Solapa, 2: Sacando Carta, 3: Lectura
+    // Estados del sobre: 0: Cerrado, 1: Abriendo, 2: Sacando carta, 3: Leyendo
     const [animationStep, setAnimationStep] = useState(0);
 
     // --- LÓGICA DE YOUTUBE ---
     useEffect(() => {
-        // 1. Cargar API si no existe
+        // 1. Cargar API de YouTube si no existe
         if (typeof window !== 'undefined' && !window.YT) {
             const tag = document.createElement('script');
             tag.src = "https://www.youtube.com/iframe_api";
@@ -24,41 +24,41 @@ export default function InvitationEnvelope() {
             }
         }
 
-        // 2. Inicializar Player
+        // 2. Función para inicializar el reproductor
         const initPlayer = () => {
-            if (playerRef.current) return;
+            if (playerRef.current) return; // Ya existe
 
             playerRef.current = new window.YT.Player('youtube-player-confirm', {
                 videoId: '7n-NFVzyGig', 
                 playerVars: { 
-                    autoplay: 1,      // Intentar auto-inicio
-                    controls: 0,      // Sin barra de control (pero permite click en pantalla)
+                    autoplay: 1,      // Intentar autoinicio
+                    controls: 0,      // Sin controles
                     showinfo: 0, 
                     rel: 0, 
-                    playsinline: 1,   // CRUCIAL para móviles
+                    playsinline: 1,   // Móvil: no fullscreen automático
                     modestbranding: 1, 
                     loop: 0, 
                     fs: 0,
-                    mute: 1,          // CRUCIAL: Sin sonido para permitir autoplay
+                    mute: 1,          // Muteado para facilitar autoplay
                     iv_load_policy: 3
                 },
                 events: { 
                     'onReady': (event) => {
-                        // Fuerza bruta al cargar
+                        // Intentar forzar reproducción
                         event.target.mute();
                         event.target.playVideo();
                     },
                     'onStateChange': (event) => {
-                        // 0 = Video terminado
+                        // ESTADO 0 = Video Terminado
                         if (event.data === 0) {
-                            finishVideoAndShowEnvelope();
+                            handleVideoEnd();
                         }
                     }
                 }
             });
         };
 
-        // 3. Polling para asegurar carga
+        // 3. Polling: Comprobar cada 100ms si la API está lista
         const intervalId = setInterval(() => {
             if (window.YT && window.YT.Player) {
                 initPlayer();
@@ -69,13 +69,17 @@ export default function InvitationEnvelope() {
         return () => clearInterval(intervalId);
     }, []);
 
-
-    const finishVideoAndShowEnvelope = () => {
+    // --- FUNCIÓN DE TRANSICIÓN (IGUAL A INTRO.JS) ---
+    const handleVideoEnd = () => {
         if (isFadingOut) return;
+        
+        // 1. Activamos la bandera de desvanecimiento (CSS opacity -> 0)
         setIsFadingOut(true);
+        
+        // 2. Esperamos 1.5s (tiempo de la transición CSS) para quitar el video del HTML
         setTimeout(() => {
             setShowVideo(false);
-            // Destruir player limpiamente
+            // Limpieza de memoria
             if (playerRef.current && playerRef.current.destroy) {
                 playerRef.current.destroy();
                 playerRef.current = null;
@@ -101,35 +105,35 @@ export default function InvitationEnvelope() {
                 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
                 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@200;400&family=Great+Vibes&display=swap" rel="stylesheet" />
                 <style>{`
-                    body { margin: 0; padding: 0; background-color: #222; overflow: hidden; }
+                    body { margin: 0; padding: 0; background-color: #2c2c2c; overflow: hidden; }
                 `}</style>
             </Head>
 
-            {/* --- CAPA DE VIDEO --- */}
+            {/* --- CAPA DE VIDEO (TRANSICIÓN SUAVE) --- */}
             {showVideo && (
                 <div style={{ 
                     position: 'fixed', 
                     top: 0, left: 0, width: '100vw', height: '100vh', 
-                    backgroundColor: 'black', 
+                    backgroundColor: 'black', // Fondo negro para fundido
                     zIndex: 9999, 
                     display: 'flex', justifyContent: 'center', alignItems: 'center',
+                    // AQUÍ ESTÁ LA MAGIA DE LA TRANSICIÓN:
                     opacity: isFadingOut ? 0 : 1, 
                     transition: 'opacity 1.5s ease-in-out',
-                    // IMPORTANTE: 'auto' permite que si falla el autoplay, puedas darle al play tú mismo
-                    pointerEvents: 'auto' 
+                    // Si está desvaneciéndose, quitamos interacción para poder tocar el sobre inmediatamente si se quiere
+                    pointerEvents: isFadingOut ? 'none' : 'auto' 
                 }}>
                     <div style={{ 
                         width: '100%', height: '100%', 
-                        // Quitamos pointerEvents del contenedor hijo también
-                        pointerEvents: 'auto',
-                        transform: 'scale(1.4)', 
+                        pointerEvents: 'none', // El usuario toca el contenedor, no el iframe directamente
+                        transform: 'scale(1.4)', // Zoom para evitar bordes
                     }}>
                         <div id="youtube-player-confirm" style={{ width: '100%', height: '100%' }}></div>
                     </div>
                 </div>
             )}
 
-            {/* --- CONTENIDO DEL SOBRE --- */}
+            {/* --- CONTENIDO DEL SOBRE (SIEMPRE RENDERIZADO DEBAJO) --- */}
             <div style={styles.container}>
                 <div style={{
                     ...styles.wrapper,
@@ -195,6 +199,7 @@ export default function InvitationEnvelope() {
     );
 }
 
+// --- ESTILOS SIN CAMBIOS ---
 const styles = {
     container: {
         width: '100vw', height: '100vh', backgroundColor: '#2c2c2c',
