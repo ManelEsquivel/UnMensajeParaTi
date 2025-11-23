@@ -2,22 +2,18 @@ import React, { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
 
 export default function InvitationEnvelope() {
-    // --- 1. ESTADOS DEL VIDEO (INTRO) ---
+    // --- ESTADOS ---
     const playerRef = useRef(null);
     const timerRef = useRef(null);
-    const [isStarted, setIsStarted] = useState(false);     // Pantalla "Ver Invitación"
-    const [showVideo, setShowVideo] = useState(true);      // Contenedor Video
-    const [isFadingOut, setIsFadingOut] = useState(false); // Transición negro -> sobre
-
-    // --- 2. ESTADOS DEL SOBRE (CONFIRMACIÓN) ---
-    // 0: Cerrado
-    // 1: Abriendo Solapa
-    // 2: Sacando Carta
-    // 3: Lectura (Zoom/Desplazamiento final)
+    const [isStarted, setIsStarted] = useState(false);
+    const [showVideo, setShowVideo] = useState(true);
+    const [isFadingOut, setIsFadingOut] = useState(false);
+    
+    // 0: Cerrado | 1: Abriendo | 2: Sacando Carta | 3: Zoom Lectura
     const [animationStep, setAnimationStep] = useState(0);
 
     // =========================================================
-    // LÓGICA DE VIDEO (IGUAL QUE INTRO.JS + CORTE 2 SEGUNDOS)
+    // 1. VIDEO INTRO (Lógica robusta igual que antes)
     // =========================================================
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -27,22 +23,15 @@ export default function InvitationEnvelope() {
                 const firstScriptTag = document.getElementsByTagName('script')[0];
                 firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
             }
-
             window.onYouTubeIframeAPIReady = () => {
                 playerRef.current = new window.YT.Player('youtube-player-confirm', {
                     videoId: '7n-NFVzyGig', 
-                    playerVars: { 
-                        autoplay: 0, controls: 0, showinfo: 0, rel: 0, 
-                        playsinline: 1, modestbranding: 1, loop: 0, fs: 0, mute: 1 
-                    },
+                    playerVars: { autoplay: 0, controls: 0, showinfo: 0, rel: 0, playsinline: 1, modestbranding: 1, loop: 0, fs: 0, mute: 1 },
                     events: { 'onStateChange': onPlayerStateChange }
                 });
             };
         }
-        return () => {
-            if (timerRef.current) clearInterval(timerRef.current);
-            window.onYouTubeIframeAPIReady = null; 
-        };
+        return () => { if (timerRef.current) clearInterval(timerRef.current); window.onYouTubeIframeAPIReady = null; };
     }, []);
 
     const onPlayerStateChange = (event) => {
@@ -50,14 +39,11 @@ export default function InvitationEnvelope() {
         if (event.data === 0 && !isFadingOut) finishVideo();
     };
 
-    // Monitor para cortar 2 segundos antes
     const startEndTimer = () => {
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
             if (!playerRef.current || !playerRef.current.getCurrentTime) return;
-            const currentTime = playerRef.current.getCurrentTime();
-            const duration = playerRef.current.getDuration();
-            if (duration > 0 && (duration - currentTime) <= 2) {
+            if (playerRef.current.getDuration() > 0 && (playerRef.current.getDuration() - playerRef.current.getCurrentTime()) <= 2) {
                 finishVideo();
                 clearInterval(timerRef.current);
             }
@@ -66,32 +52,24 @@ export default function InvitationEnvelope() {
 
     const handleStart = () => {
         if (playerRef.current && playerRef.current.playVideo) {
-            setIsStarted(true);
-            playerRef.current.unMute(); // Activamos sonido
-            playerRef.current.setVolume(100);
-            playerRef.current.playVideo();
-        } else {
-            finishVideo();
-        }
+            setIsStarted(true); playerRef.current.unMute(); playerRef.current.playVideo();
+        } else { finishVideo(); }
     };
 
     const finishVideo = () => {
         if (isFadingOut) return;
         setIsFadingOut(true);
-        if (playerRef.current && playerRef.current.pauseVideo) {
-           try { playerRef.current.pauseVideo(); } catch(e){}
-        }
-        // 1.5s de transición suave a negro transparente
+        if (playerRef.current && playerRef.current.pauseVideo) try { playerRef.current.pauseVideo(); } catch(e){}
         setTimeout(() => setShowVideo(false), 1500);
     };
 
     // =========================================================
-    // LÓGICA DE ANIMACIÓN (DEL FICHERO ADJUNTO)
+    // 2. ANIMACIÓN "PREMIUM"
     // =========================================================
-    const startAnimation = () => {
-        setAnimationStep(1); // Abre tapa
-        setTimeout(() => setAnimationStep(2), 800);  // Saca carta
-        setTimeout(() => setAnimationStep(3), 1800); // Movimiento final (Zoom/Desplazamiento)
+    const startEnvelopeAnimation = () => {
+        setAnimationStep(1); // Abre solapa
+        setTimeout(() => setAnimationStep(2), 800);  // Carta sale
+        setTimeout(() => setAnimationStep(3), 1800); // Zoom final
     };
 
     const handleConfirm = () => {
@@ -106,6 +84,12 @@ export default function InvitationEnvelope() {
                 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@200;400&family=Great+Vibes&display=swap" rel="stylesheet" />
                 <style>{`
                     html, body { margin: 0; padding: 0; background-color: #1a1a1a; overflow: hidden; height: 100%; }
+                    
+                    /* Textura de papel para dar realismo */
+                    .paper-texture {
+                        background-image: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100' height='100' filter='url(%23noise)' opacity='0.08'/%3E%3C/svg%3E");
+                    }
+                    
                     @keyframes pulse-btn {
                         0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0.4); }
                         70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
@@ -114,18 +98,10 @@ export default function InvitationEnvelope() {
                 `}</style>
             </Head>
 
-            {/* --- 1. BOTÓN DE INICIO (PANTALLA NEGRA) --- */}
+            {/* --- PANTALLA INICIO --- */}
             {!isStarted && (
-                <div onClick={handleStart} style={{ 
-                    position: 'fixed', zIndex: 3000, top: 0, left: 0, width: '100%', height: '100%', 
-                    backgroundColor: 'black', display: 'flex', flexDirection: 'column', 
-                    justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' 
-                }}>
-                    <div style={{ 
-                        width: '80px', height: '80px', borderRadius: '50%', border: '1px solid white',
-                        display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px',
-                        animation: 'pulse-btn 2s infinite'
-                    }}>
+                <div onClick={handleStart} style={{ position: 'fixed', zIndex: 3000, top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'black', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' }}>
+                    <div style={{ width: '80px', height: '80px', borderRadius: '50%', border: '1px solid white', display: 'flex', justifyContent: 'center', alignItems: 'center', marginBottom: '20px', animation: 'pulse-btn 2s infinite' }}>
                         <span style={{ fontSize: '30px' }}>📩</span>
                     </div>
                     <h1 style={{ fontFamily: '"Great Vibes", cursive', fontSize: '2.5rem', marginBottom: '10px' }}>Manel & Carla</h1>
@@ -133,42 +109,31 @@ export default function InvitationEnvelope() {
                 </div>
             )}
 
-            {/* --- 2. VIDEO --- */}
+            {/* --- VIDEO --- */}
             {showVideo && (
-                <div style={{ 
-                    position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', 
-                    backgroundColor: 'black', zIndex: 2000, 
-                    display: 'flex', justifyContent: 'center', alignItems: 'center',
-                    opacity: isFadingOut ? 0 : 1, 
-                    transition: 'opacity 1.5s ease-in-out',
-                    pointerEvents: 'none' 
-                }}>
+                <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'black', zIndex: 2000, display: 'flex', justifyContent: 'center', alignItems: 'center', opacity: isFadingOut ? 0 : 1, transition: 'opacity 1.5s ease-in-out', pointerEvents: 'none' }}>
                     <div style={{ width: '100%', height: '100%', transform: 'scale(1.4)' }}>
                         <div id="youtube-player-confirm" style={{ width: '100%', height: '100%' }}></div>
                     </div>
                 </div>
             )}
 
-            {/* --- 3. SOBRE Y CARTA (LÓGICA DEL ADJUNTO + ESTILO BEIGE) --- */}
+            {/* --- ESCENARIO --- */}
             <div style={styles.container}>
-                
                 <div style={{
                     ...styles.wrapper,
-                    // LA MAGIA DEL ADJUNTO: Movemos el contenedor 40vh abajo al final.
-                    // Como la carta subió, esto hace que la carta quede centrada en pantalla.
-                    transform: animationStep === 3 ? 'translateY(40vh)' : 'translateY(0)',
+                    // Paso 3: Zoom In y bajar el sobre para que la carta llene la pantalla
+                    transform: animationStep === 3 ? 'translateY(35vh) scale(1.3)' : 'translateY(0) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
-                    {/* --- CARTA --- */}
+                    {/* --- CARTA (Elegante y Limpia) --- */}
                     <div style={{
                         ...styles.card,
-                        // La carta sale hacia arriba (-60%)
-                        transform: animationStep >= 2 ? 'translateY(-60%)' : 'translateY(0)',
-                        // Opacidad 0 si está cerrado para evitar que se vea por rendijas
-                        opacity: animationStep >= 1 ? 1 : 0,
-                        zIndex: animationStep >= 2 ? 20 : 1,
-                        transition: 'transform 1.4s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
+                        transform: animationStep >= 2 ? 'translateY(-75%)' : 'translateY(0)',
+                        opacity: animationStep >= 1 ? 1 : 0, // Oculta hasta abrir
+                        zIndex: animationStep >= 2 ? 20 : 1, // Sube de nivel al salir
+                        transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
                     }}>
                         <div style={styles.cardContent}>
                             <p style={styles.saveTheDate}>NOS CASAMOS</p>
@@ -188,29 +153,32 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- SOBRE (ESTILO FULL SCREEN DEL ADJUNTO) --- */}
+                    {/* --- SOBRE PREMIUM (Con Sombras y Profundidad) --- */}
                     <div style={styles.envelope}>
                         
-                        {/* Interior */}
-                        <div style={styles.envelopeInner}></div>
-                        
-                        {/* Laterales (Beige) */}
-                        <div style={styles.flapLeft}></div>
-                        <div style={styles.flapRight}></div>
-                        
-                        {/* Abajo (Beige Oscuro) */}
-                        <div style={styles.flapBottom}></div>
+                        {/* 1. Fondo del Sobre (Respaldo) */}
+                        <div style={{...styles.layer, ...styles.backFace}}></div>
 
-                        {/* Tapa Superior (Beige Claro) - Se abre rotando */}
+                        {/* 2. Solapas Laterales (Con gradientes para simular curvatura) */}
+                        <div style={{...styles.layer, ...styles.flapLeft}}></div>
+                        <div style={{...styles.layer, ...styles.flapRight}}></div>
+
+                        {/* 3. Solapa Inferior (Bolsillo principal con sombra superior) */}
+                        <div style={{...styles.layer, ...styles.flapBottom}}></div>
+
+                        {/* 4. Solapa Superior (Tapa con sombra realista) */}
                         <div style={{
-                            ...styles.flapTop,
+                            ...styles.layer, ...styles.flapTop,
                             transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
                             zIndex: animationStep >= 1 ? 1 : 50, 
                             transition: 'transform 0.9s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s linear 0.4s'
-                        }}></div>
+                        }}>
+                            {/* Interior de la tapa (se ve al abrir) */}
+                            <div style={styles.flapTopInner}></div>
+                        </div>
 
-                        {/* Sello */}
-                        <div onClick={animationStep === 0 ? startAnimation : undefined}
+                        {/* 5. Sello Centrado (Con relieve) */}
+                        <div onClick={animationStep === 0 ? startEnvelopeAnimation : undefined}
                              style={{
                                 ...styles.waxSeal,
                                 opacity: animationStep === 0 ? 1 : 0,
@@ -229,87 +197,109 @@ export default function InvitationEnvelope() {
     );
 }
 
+// --- ESTILOS MEJORADOS ---
 const styles = {
     container: {
-        width: '100vw', height: '100vh',
-        backgroundColor: '#1a1a1a', // Fondo oscuro general
-        display: 'flex', justifyContent: 'center', alignItems: 'flex-end',
+        width: '100vw', height: '100vh', backgroundColor: '#111',
+        display: 'flex', justifyContent: 'center', alignItems: 'center',
         overflow: 'hidden', position: 'relative',
+        background: 'radial-gradient(circle at center, #2c2c2c 0%, #000000 100%)' // Vignette sutil
     },
     wrapper: {
-        position: 'relative', width: '100%', height: '100%',
-        maxWidth: '600px', margin: '0 auto',
-        display: 'flex', justifyContent: 'center', alignItems: 'flex-end', 
-        perspective: '1500px',
+        position: 'relative',
+        width: '320px',  // Ancho realista
+        height: '220px', // Alto realista
+        perspective: '1200px', // Profundidad 3D mejorada
+        filter: 'drop-shadow(0 30px 40px rgba(0,0,0,0.6))', // Sombra flotante del sobre entero
     },
-    
-    // --- CARTA (Vertical y Elegante) ---
+
+    // --- CARTA ---
     card: {
-        position: 'absolute', bottom: '0', width: '90%', height: '85%',
-        backgroundColor: '#fffcf5', // Crema suave
-        backgroundImage: `url("https://www.transparenttextures.com/patterns/cream-paper.png")`,
-        boxShadow: '0 -5px 25px rgba(0,0,0,0.2)',
+        position: 'absolute',
+        top: '5px', left: '10px', right: '10px',
+        height: '95%', // Casi todo el alto para salir bien
+        backgroundColor: '#fffcf5',
+        borderRadius: '4px',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        padding: '20px', boxSizing: 'border-box', borderRadius: '4px 4px 0 0',
+        boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+        // Textura papel
+        backgroundImage: `url("https://www.transparenttextures.com/patterns/cream-paper.png")`,
     },
     cardContent: {
         width: '100%', height: '100%',
-        border: '1px solid #d4af37', // Borde Dorado
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-around',
-        textAlign: 'center', padding: '20px 10px',
+        padding: '15px', boxSizing: 'border-box',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly',
+        border: '1px solid #d4af37', margin: '5px',
+        width: 'calc(100% - 10px)', height: 'calc(100% - 10px)',
     },
-    saveTheDate: { fontFamily: '"Montserrat", sans-serif', fontSize: '12px', letterSpacing: '4px', color: '#888', textTransform: 'uppercase', margin: 0 },
-    names: { fontFamily: '"Great Vibes", cursive', fontSize: 'clamp(40px, 5vh, 60px)', color: '#222', margin: '10px 0', lineHeight: 1.1 },
-    divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '10px 0' },
-    date: { fontFamily: '"Cormorant Garamond", serif', fontSize: '18px', fontWeight: '600', color: '#333', letterSpacing: '1px', marginTop: '5px' },
-    location: { fontFamily: '"Montserrat", sans-serif', fontSize: '10px', color: '#666', letterSpacing: '2px', textTransform: 'uppercase', marginBottom: '10px' },
-    quote: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontStyle: 'italic', color: '#666', lineHeight: '1.4', marginBottom: '5px', maxWidth: '80%' },
-    button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '15px 30px', fontSize: '12px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', boxShadow: '0 4px 10px rgba(0,0,0,0.2)', marginTop: '20px' },
+    // Tipografías
+    saveTheDate: { fontFamily: '"Montserrat", sans-serif', fontSize: '9px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', margin: 0 },
+    names: { fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#222', margin: '0', lineHeight: 1 },
+    divider: { width: '30px', height: '1px', backgroundColor: '#d4af37', margin: '5px 0' },
+    date: { fontFamily: '"Cormorant Garamond", serif', fontSize: '1rem', fontWeight: '600', color: '#333', letterSpacing: '1px' },
+    location: { fontFamily: '"Montserrat", sans-serif', fontSize: '8px', color: '#555', letterSpacing: '2px', textTransform: 'uppercase' },
+    quote: { fontFamily: '"Cormorant Garamond", serif', fontSize: '12px', fontStyle: 'italic', color: '#666', textAlign: 'center' },
+    button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '8px 20px', fontSize: '9px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '1px', cursor: 'pointer', marginTop: '5px' },
 
-    // --- SOBRE (GEOMETRÍA DEL ADJUNTO + COLORES BEIGE) ---
-    envelope: { position: 'relative', width: '100%', height: '100%', zIndex: 10, pointerEvents: 'none' },
-    envelopeInner: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: '#2a2520' }, // Interior oscuro
+    // --- ESTRUCTURA DEL SOBRE ---
+    envelope: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d' },
     
-    // Usamos CLIP-PATH para permitir degradados en la geometría Full Screen
+    // Clase base para las capas
+    layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%' },
+
+    // 1. RESPALDO
+    backFace: { backgroundColor: '#2a2520', borderRadius: '4px' }, // Interior oscuro elegante
+
+    // 2. LATERALES (Con gradiente para dar volumen curvo)
     flapLeft: {
-        position: 'absolute', top: 0, left: 0, width: '55%', height: '100%', // Ancho > 50% para solapar
-        clipPath: 'polygon(0 0, 100% 50%, 0 100%)', // Triángulo izquierdo
-        background: 'linear-gradient(90deg, #e6dac3 0%, #d6c5a8 100%)', zIndex: 11,
+        clipPath: 'polygon(0 0, 0% 100%, 55% 50%)', // Triángulo lateral
+        background: 'linear-gradient(90deg, #dccab1 0%, #ede3d3 100%)', // Sombra al borde
+        zIndex: 10,
     },
     flapRight: {
-        position: 'absolute', top: 0, right: 0, width: '55%', height: '100%',
-        clipPath: 'polygon(100% 0, 0 50%, 100% 100%)', // Triángulo derecho
-        background: 'linear-gradient(-90deg, #e6dac3 0%, #d6c5a8 100%)', zIndex: 11,
-    },
-    flapBottom: {
-        position: 'absolute', bottom: 0, left: 0, width: '100%', height: '55%', // Alto > 50%
-        clipPath: 'polygon(0 100%, 50% 0, 100% 100%)', // Triángulo inferior
-        background: 'linear-gradient(to top, #d1c0a5 0%, #e6dac3 100%)', zIndex: 12,
-    },
-    flapTop: {
-        position: 'absolute', top: 0, left: 0, width: '100%', height: '55%',
-        clipPath: 'polygon(0 0, 50% 100%, 100% 0)', // Triángulo superior apuntando abajo
-        background: 'linear-gradient(to bottom, #f2eadd 0%, #e6dac3 100%)', // Beige más claro
-        transformOrigin: 'top', zIndex: 50,
-        filter: 'drop-shadow(0 5px 15px rgba(0,0,0,0.15))'
+        clipPath: 'polygon(100% 0, 100% 100%, 45% 50%)',
+        background: 'linear-gradient(-90deg, #dccab1 0%, #ede3d3 100%)', // Sombra al borde
+        zIndex: 10,
     },
 
-    // --- SELLO ROJO/GRANATE ---
+    // 3. ABAJO (Bolsillo principal)
+    flapBottom: {
+        zIndex: 11,
+        clipPath: 'polygon(0 100%, 50% 55%, 100% 100%)', // Triángulo sube hasta el 55%
+        // Gradiente vertical: Más oscuro abajo (sombra) -> Claro arriba
+        background: 'linear-gradient(to top, #cbb596 0%, #f0e7d8 100%)',
+        // Sombra ficticia arriba para separar del fondo
+        filter: 'drop-shadow(0 -2px 3px rgba(0,0,0,0.1))',
+    },
+
+    // 4. ARRIBA (TAPA)
+    flapTop: {
+        zIndex: 20, transformOrigin: 'top',
+        clipPath: 'polygon(0 0, 50% 55%, 100% 0)', // El pico baja hasta el 55% para solapar perfecto
+        background: 'linear-gradient(to bottom, #f7f1e6 0%, #e6dac3 100%)', // Papel más claro arriba
+        filter: 'drop-shadow(0 4px 5px rgba(0,0,0,0.15))', // Sombra realista sobre el resto
+    },
+    flapTopInner: { width: '100%', height: '100%', backgroundColor: '#fdfbf7' }, // Reverso de la tapa (papel limpio)
+
+    // --- SELLO ---
     waxSeal: {
-        position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
-        marginTop: '25px', marginLeft: '-40px', 
-        width: '80px', height: '80px', zIndex: 60,
+        position: 'absolute', top: '55%', left: '50%', // Justo en el pico (55%)
+        width: '70px', height: '70px', zIndex: 60,
         cursor: 'pointer', transition: 'all 0.5s ease',
-        filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.4))',
+        filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.3))', // Sombra del sello
     },
     sealContent: {
         width: '100%', height: '100%', borderRadius: '50%',
-        background: 'radial-gradient(circle at 30% 30%, #d94646, #a61e1e, #6e0a0a)',
+        // Gradiente complejo para simular cera brillante
+        background: 'radial-gradient(circle at 35% 35%, #e53935, #b71c1c, #7f0000)',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        boxShadow: 'inset 0 0 0 3px rgba(100, 0, 0, 0.2), 0 0 0 2px #8a1c1c',
+        // Borde irregular simulado
+        boxShadow: 'inset 0 0 0 4px rgba(0,0,0,0.1), 0 0 0 2px #8e0000', 
+        border: '1px solid rgba(255,255,255,0.2)'
     },
     sealText: {
-        fontFamily: '"Great Vibes", cursive', color: '#4a0505', fontSize: '24px', fontWeight: 'bold',
-        textShadow: '0 1px 1px rgba(255,255,255,0.2)', transform: 'rotate(-10deg)',
+        fontFamily: '"Great Vibes", cursive', color: '#520b0b', fontSize: '22px', fontWeight: 'bold',
+        textShadow: '0 1px 0 rgba(255,255,255,0.3)', // Efecto grabado
+        transform: 'rotate(-10deg)',
     }
 };
