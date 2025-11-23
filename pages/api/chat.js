@@ -42,31 +42,28 @@ Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puede
 
 // --- ⚡️ OPTIMIZACIÓN DE VELOCIDAD: RESPUESTA RÁPIDA ---
 
-  // Keywords para MÁXIMA PRIORIDAD (Recomendación/Precio)
+// Keywords
   const maxPriorityAccommodationKeywords = [
     "precios", "recomendacion", "recomiendas", "recomiendes", "mejor", 
     "cuanto cuesta", "hotel", "alojamiento"
   ];
 
-  // Keywords para Alojamiento GENERAL
   const generalAccommodationKeywords = [
     "hoteles", "dormir", "quedarse"
   ];
 
-  // NUEVO: Keywords para APERITIVO
   const aperitivoKeywords = [
     "aperitivo", "pica pica", "picapica", "entrantes", "coctel"
   ];
 
   let hardcodedReplyRaw = null;
 
-  // 1. Check para MÁXIMA PRIORIDAD (Recomendación/Precio Alojamiento)
+  // Check 1: Alojamiento Prioridad
   const isMaxPriorityAccommodationQuery = maxPriorityAccommodationKeywords.some(keyword => 
     normalizedMessage.includes(keyword)
   );
 
-  // 2. Check para APERITIVO (Nueva lógica para forzar lista completa)
-  // Excluimos si preguntan por "bebida" para no interferir, pero si dicen "comida aperitivo" entra aquí.
+  // Check 2: Aperitivo (¡Ahora sí funcionará porque la variable ya existe!)
   const isAperitivoQuery = aperitivoKeywords.some(keyword => normalizedMessage.includes(keyword)) 
                            && !normalizedMessage.includes("bebida");
 
@@ -76,7 +73,7 @@ Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puede
     // 🎯 FORZAMOS LA RESPUESTA EXACTA DEL APERITIVO AQUÍ
     hardcodedReplyRaw = aperitivoCompletoResponse;
   } else {
-    // 3. Check para Alojamiento GENERAL
+    // Check 3: Alojamiento General
     const isGeneralAccommodationQuery = generalAccommodationKeywords.some(keyword => 
         normalizedMessage.includes(keyword)
     ) || (normalizedMessage.includes("alojamiento") && !isMaxPriorityAccommodationQuery); 
@@ -86,8 +83,8 @@ Si quieres ver más opciones en la zona, o reservar en otro hotel cercano, puede
     }
   }
 
+  // SI ENCONTRAMOS RESPUESTA FIJA, RESPONDEMOS Y TERMINAMOS
   if (hardcodedReplyRaw) {
-    // Si se encuentra una respuesta fija, se devuelve inmediatamente (¡sin llamar a OpenAI!)
     marked.use({
       renderer: {
         link(href, title, text) {
