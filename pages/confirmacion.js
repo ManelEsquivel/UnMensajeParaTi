@@ -64,7 +64,7 @@ export default function InvitationEnvelope() {
     };
 
     // =========================================================
-    // 2. ANIMACIÓN CON TIEMPOS CORREGIDOS
+    // 2. ANIMACIÓN CON TIEMPOS AJUSTADOS
     // =========================================================
     const startEnvelopeAnimation = (e) => {
         if(e) e.stopPropagation();
@@ -72,7 +72,7 @@ export default function InvitationEnvelope() {
         // 1. Abrir tapa
         setAnimationStep(1); 
         
-        // 2. Esperar a que abra para sacar carta
+        // 2. Esperar a que la tapa esté ARRIBA del todo (1s) para que la carta salga
         setTimeout(() => setAnimationStep(2), 1000);  
         
         // 3. Zoom y Bajar todo
@@ -92,10 +92,18 @@ export default function InvitationEnvelope() {
                 <style>{`
                     html, body { margin: 0; padding: 0; background-color: #1a1a1a; overflow: hidden; height: 100%; }
                     
-                    /* TEXTURA DE PAPEL REALISTA (RUIDO SVG) */
-                    .paper-texture {
-                        background-color: #f3e6d8; /* Color base crema */
-                        background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)' opacity='0.08'/%3E%3C/svg%3E");
+                    /* TEXTURA DE PAPEL ANTIGUO */
+                    .vintage-paper {
+                        background-color: #d8c8b0;
+                        background-image: 
+                            url("https://www.transparenttextures.com/patterns/aged-paper.png"),
+                            radial-gradient(circle at center, rgba(255,255,255,0.1) 0%, rgba(0,0,0,0.2) 100%);
+                        box-shadow: inset 0 0 30px rgba(78, 59, 40, 0.6); /* Borde quemado */
+                    }
+
+                    /* FILTRO SVG PARA BORDES ROTOS */
+                    .torn-edge {
+                        filter: url(#wavy); 
                     }
 
                     @keyframes pulse-btn {
@@ -110,6 +118,18 @@ export default function InvitationEnvelope() {
                     }
                 `}</style>
             </Head>
+
+            {/* --- SVG FILTER DEFINITION (INVISIBLE) --- 
+                Este filtro crea el efecto de borde irregular en el papel
+            */}
+            <svg style={{ visibility: 'hidden', position: 'absolute' }} width="0" height="0">
+                <defs>
+                    <filter id="wavy">
+                        <feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="5" result="noise" />
+                        <feDisplacementMap in="SourceGraphic" in2="noise" scale="5" />
+                    </filter>
+                </defs>
+            </svg>
 
             {/* --- PANTALLA INICIO --- */}
             {!isStarted && (
@@ -165,32 +185,36 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- SOBRE REALISTA (MODIFICADO) --- */}
+                    {/* --- SOBRE VINTAGE --- */}
                     <div style={styles.envelope}>
                         
-                        {/* 1. Fondo del sobre (Interior oscuro) */}
-                        <div style={{...styles.layer, backgroundColor: '#2e2622', borderRadius: '2px'}}></div>
+                        {/* 1. Interior Oscuro */}
+                        <div style={{...styles.layer, backgroundColor: '#2a221b'}}></div>
                         
-                        {/* 2. Solapas Laterales (Con textura y gradiente) */}
-                        <div className="paper-texture" style={{...styles.layer, ...styles.flapLeft}}></div>
-                        <div className="paper-texture" style={{...styles.layer, ...styles.flapRight}}></div>
+                        {/* 2. Solapas Laterales (Vintage + Filtro Borde) */}
+                        <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapLeft}}></div>
+                        <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapRight}}></div>
                         
-                        {/* 3. Solapa Inferior (Con textura, gradiente y borde de luz) */}
-                        <div className="paper-texture" style={{...styles.layer, ...styles.flapBottom}}></div>
+                        {/* 3. Solapa Inferior (Con Nombres) */}
+                        <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapBottom}}>
+                            {/* Texto en la solapa inferior como en la foto */}
+                            <div style={styles.flapTextContainer}>
+                                <span style={styles.flapNames}>Manel & Carla</span>
+                            </div>
+                        </div>
                         
-                        {/* 4. Solapa Superior (Tapa con textura, sombra realista) */}
-                        <div className="paper-texture" style={{
+                        {/* 4. Solapa Superior (Tapa) */}
+                        <div className="vintage-paper torn-edge" style={{
                             ...styles.layer, ...styles.flapTop,
                             transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
                             zIndex: animationStep >= 1 ? 1 : 50, 
                             transition: 'transform 1s cubic-bezier(0.4, 0, 0.2, 1), z-index 0s linear 0.5s'
                         }}>
-                             {/* Cara interna de la tapa (se ve al abrir) */}
-                             <div style={{width:'100%', height:'100%', backgroundColor: '#fdfbf7', opacity: 0.9}}></div>
+                             <div style={{width:'100%', height:'100%', backgroundColor: 'rgba(0,0,0,0.05)'}}></div>
                         </div>
                     </div>
 
-                    {/* --- SELLO (BOTÓN) --- */}
+                    {/* --- SELLO --- */}
                     <div 
                         onClick={startEnvelopeAnimation}
                         style={{
@@ -211,7 +235,7 @@ export default function InvitationEnvelope() {
     );
 }
 
-// --- ESTILOS REALISTAS ---
+// --- ESTILOS VINTAGE ---
 const styles = {
     container: {
         width: '100vw', height: '100vh', 
@@ -225,18 +249,18 @@ const styles = {
         width: '320px',  
         height: '460px', 
         perspective: '1200px', 
-        // Sombra de contacto con el suelo (mesa)
-        filter: 'drop-shadow(0 30px 40px rgba(0,0,0,0.7))',
+        // Sombra suave en el suelo
+        filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.8))',
     },
 
     // --- CARTA ---
     card: {
         position: 'absolute',
-        top: '5px', left: '10px', right: '10px', bottom: '10px',
+        top: '10px', left: '15px', right: '15px', bottom: '10px',
         backgroundColor: '#fffcf5',
         borderRadius: '2px',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
+        boxShadow: '0 -2px 10px rgba(0,0,0,0.2)',
         backgroundImage: `url("https://www.transparenttextures.com/patterns/cream-paper.png")`,
         pointerEvents: 'auto'
     },
@@ -254,70 +278,76 @@ const styles = {
     footerText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontWeight: 'bold', color: '#333', margin: '10px 0' },
     button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '12px 30px', fontSize: '11px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', marginTop: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' },
 
-    // --- SOBRE REALISTA (ESTILOS NUEVOS) ---
+    // --- ENVELOPE ESTILO ANTIGUO ---
     envelope: { 
         width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d',
         pointerEvents: 'none' 
     },
     layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
 
-    // LATERALES: Gradiente de sombra hacia el centro para simular curvatura
+    // LATERALES (Papel Desgastado)
     flapLeft: {
         clipPath: 'polygon(0 0, 0% 100%, 55% 55%)',
-        background: 'linear-gradient(90deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 100%)', // Sombra sutil borde
         zIndex: 10,
+        filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.3))' // Sombra para profundidad
     },
     flapRight: {
         clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)',
-        background: 'linear-gradient(-90deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0) 100%)', 
         zIndex: 10,
+        filter: 'drop-shadow(-2px 0 5px rgba(0,0,0,0.3))'
     },
     
-    // ABAJO (BOLSILLO): Gradiente vertical y Borde de Luz Superior
+    // ABAJO (Bolsillo con Texto)
     flapBottom: {
         zIndex: 11,
-        clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)', 
-        // Gradiente: Oscuro abajo -> Claro arriba (Luz cenital)
-        backgroundImage: 'linear-gradient(to top, rgba(0,0,0,0.15) 0%, rgba(255,255,255,0.1) 100%)',
-        // Sombra suave para separar de los laterales
-        filter: 'drop-shadow(0 -4px 6px rgba(0,0,0,0.15))',
+        clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)', // Sube hasta el centro
+        filter: 'drop-shadow(0 -5px 10px rgba(0,0,0,0.4))', // Sombra fuerte arriba
+    },
+    flapTextContainer: {
+        position: 'absolute',
+        bottom: '15%', 
+        width: '100%',
+        textAlign: 'center',
+        transform: 'rotate(0deg)', // Asegura texto recto
+        zIndex: 20
+    },
+    flapNames: {
+        fontFamily: '"Great Vibes", cursive',
+        fontSize: '2.5rem',
+        color: '#4e3b28', // Color tinta marrón oscuro
+        textShadow: '0 1px 1px rgba(255,255,255,0.3)', // Efecto grabado
+        opacity: 0.9
     },
     
-    // TAPA: La más importante para el realismo
+    // TAPA (Papel Desgastado)
     flapTop: {
         zIndex: 50, transformOrigin: 'top',
-        clipPath: 'polygon(0 0, 50% 50%, 100% 0)',
-        // Gradiente: Claro arriba -> Un poco más oscuro en la punta
-        backgroundImage: 'linear-gradient(to bottom, rgba(255,255,255,0.4) 0%, rgba(0,0,0,0.05) 100%)',
-        // Sombra de oclusión fuerte sobre el bolsillo inferior
-        filter: 'drop-shadow(0 8px 10px rgba(0,0,0,0.25))',
-        // Borde superior de luz
-        borderTop: '1px solid rgba(255,255,255,0.4)'
+        clipPath: 'polygon(0 0, 50% 50%, 100% 0)', // Baja hasta la mitad
+        filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.3))', // Sombra realista
     },
 
-    // --- SELLO REALISTA ---
+    // --- SELLO ---
     waxSeal: {
         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
         width: '90px', height: '90px', 
         zIndex: 9999, 
         cursor: 'pointer', 
         transition: 'all 0.5s ease',
-        filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.4))', // Sombra del sello sobre el papel
+        filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.5))',
         pointerEvents: 'auto', 
         display: 'block', 
     },
     sealContent: {
         width: '80px', height: '80px', borderRadius: '50%', margin: '5px', 
-        // Gradiente Cera Roja Brillante
-        background: 'radial-gradient(circle at 30% 30%, #ff5f5f, #b71c1c, #630505)',
+        // Cera Roja Oscura y Realista
+        background: 'radial-gradient(circle at 35% 35%, #c62828, #8e0000, #4a0000)',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
-        // Bordes de cera irregulares simulados
-        boxShadow: 'inset 0 0 0 3px rgba(100,0,0,0.2), 0 0 0 2px #8e0000', 
-        border: '1px solid rgba(255,255,255,0.3)'
+        // Borde irregular
+        boxShadow: 'inset 0 0 0 5px rgba(0,0,0,0.2), 0 0 0 2px #5e0000', 
+        border: '1px solid rgba(255,255,255,0.1)'
     },
     sealText: {
-        fontFamily: '"Great Vibes", cursive', color: '#4a0a0a', fontSize: '22px', fontWeight: 'bold',
-        textShadow: '0 1px 1px rgba(255,255,255,0.3)', // Efecto grabado
-        transform: 'rotate(-10deg)',
+        fontFamily: '"Great Vibes", cursive', color: '#3b0000', fontSize: '22px', fontWeight: 'bold',
+        textShadow: '0 1px 0 rgba(255,255,255,0.2)', transform: 'rotate(-10deg)',
     }
 };
