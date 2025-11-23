@@ -3,90 +3,98 @@ import Head from 'next/head';
 
 export default function InvitationEnvelope() {
     // --- ESTADOS ---
-    const playerRef = useRef(null);
+    const playerRef = useRef(null); // Para guardar la instancia del player
     const [showVideo, setShowVideo] = useState(true); 
     const [isFadingOut, setIsFadingOut] = useState(false);
 
     // 0: Cerrado, 1: Abriendo Solapa, 2: Sacando Carta, 3: Lectura
     const [animationStep, setAnimationStep] = useState(0);
 
-    // --- LÓGICA DE YOUTUBE (AUTOPLAY + MUTE) ---
+    // --- LÓGICA DE YOUTUBE (AUTOSUFICIENTE) ---
     useEffect(() => {
-        if (typeof window !== 'undefined') {
-            
-            // Función para iniciar el player
-            const initPlayer = () => {
-                if (playerRef.current) return; // Ya existe, no recrear
+        if (typeof window === 'undefined') return;
 
-                playerRef.current = new window.YT.Player('youtube-player-confirm', {
-                    videoId: '7n-NFVzyGig', 
-                    playerVars: { 
-                        autoplay: 1,    // Autoplay activado
-                        controls: 0, 
-                        showinfo: 0, 
-                        rel: 0, 
-                        playsinline: 1, 
-                        modestbranding: 1, 
-                        loop: 0, 
-                        fs: 0,
-                        mute: 1         // MUTE OBLIGATORIO para autoplay sin click
+        let intervalId = null;
+
+        const initPlayer = () => {
+            // Si ya existe el player, no lo recreamos
+            if (playerRef.current) return;
+
+            // Doble chequeo de seguridad: ¿Existe el div en el DOM?
+            const container = document.getElementById('youtube-player-confirm');
+            if (!container) return;
+
+            playerRef.current = new window.YT.Player('youtube-player-confirm', {
+                videoId: '7n-NFVzyGig', 
+                playerVars: { 
+                    autoplay: 1,    
+                    controls: 0, 
+                    showinfo: 0, 
+                    rel: 0, 
+                    playsinline: 1, // Importante para iOS
+                    modestbranding: 1, 
+                    loop: 0, 
+                    fs: 0,
+                    mute: 1,        // Señal de intención de silencio
+                    iv_load_policy: 3 // Ocultar anotaciones
+                },
+                events: { 
+                    'onReady': (event) => {
+                        // FUERZA BRUTA PARA AUTOPLAY:
+                        // 1. Silenciar explícitamente (obligatorio para navegadores modernos)
+                        event.target.mute();
+                        // 2. Reproducir
+                        event.target.playVideo();
                     },
-                    events: { 
-                        'onReady': onPlayerReady,
-                        'onStateChange': onPlayerStateChange 
+                    'onStateChange': (event) => {
+                        // 0 = Video terminado
+                        if (event.data === 0) {
+                            finishVideoAndShowEnvelope();
+                        }
                     }
-                });
-            };
-
-            // CASO A: La API de YouTube ya está cargada (vienes de la intro)
-            if (window.YT && window.YT.Player) {
-                initPlayer();
-            } 
-            // CASO B: La API no está cargada (entras directo a esta página)
-            else {
-                // Evitamos cargar el script dos veces si ya está en el <head> pero aun no listo
-                if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
-                    const tag = document.createElement('script');
-                    tag.src = "https://www.youtube.com/iframe_api";
-                    const firstScriptTag = document.getElementsByTagName('script')[0];
-                    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
                 }
+            });
+        };
 
-                // Esperamos a que la API avise que está lista
-                const previousOnReady = window.onYouTubeIframeAPIReady;
-                window.onYouTubeIframeAPIReady = () => {
-                    if (previousOnReady) previousOnReady(); // Por seguridad
-                    initPlayer();
-                };
+        // 1. Cargar Script si no existe
+        if (!window.YT) {
+            const tag = document.createElement('script');
+            tag.src = "https://www.youtube.com/iframe_api";
+            const firstScriptTag = document.getElementsByTagName('script')[0];
+            if (firstScriptTag) {
+                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+            } else {
+                document.head.appendChild(tag);
             }
         }
-        
-        // Cleanup
-        return () => { 
-            // Opcional: destruir player al salir si fuera necesario, 
-            // pero Next.js a veces prefiere mantener el estado si navegas rápido.
+
+        // 2. Polling: Comprobar cada 100ms si la API está lista
+        // Esto es más robusto que onYouTubeIframeAPIReady cuando se navega directo
+        intervalId = setInterval(() => {
+            if (window.YT && window.YT.Player) {
+                initPlayer();
+                clearInterval(intervalId);
+            }
+        }, 100);
+
+        // Cleanup al desmontar
+        return () => {
+            if (intervalId) clearInterval(intervalId);
         };
     }, []);
 
-    const onPlayerReady = (event) => {
-        // FUERZA BRUTA: Aseguramos mute y play
-        const player = event.target;
-        player.mute(); 
-        player.playVideo();
-    };
-
-    const onPlayerStateChange = (event) => {
-        // 0 = Video terminado
-        if (event.data === 0 && !isFadingOut) {
-            finishVideoAndShowEnvelope();
-        }
-    };
 
     const finishVideoAndShowEnvelope = () => {
+        if (isFadingOut) return; // Evitar doble ejecución
         setIsFadingOut(true);
         setTimeout(() => {
             setShowVideo(false);
-        }, 1500); // Tiempo que tarda en desvanecerse el negro
+            // Destruir player para liberar memoria
+            if (playerRef.current && playerRef.current.destroy) {
+                playerRef.current.destroy();
+                playerRef.current = null;
+            }
+        }, 1500); 
     };
 
     // --- LÓGICA DEL SOBRE ---
@@ -125,6 +133,7 @@ export default function InvitationEnvelope() {
                     {/* PLAYER DE YOUTUBE */}
                     <div style={{ 
                         width: '100%', height: '100%', pointerEvents: 'none', 
+                        // Escalamos un poco para evitar bordes negros si el ratio es distinto
                         transform: 'scale(1.4)', 
                     }}>
                         <div id="youtube-player-confirm" style={{ width: '100%', height: '100%' }}></div>
