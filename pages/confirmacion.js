@@ -13,18 +13,15 @@ export default function InvitationEnvelope() {
     // --- LÓGICA DE YOUTUBE (AUTOPLAY + MUTE) ---
     useEffect(() => {
         if (typeof window !== 'undefined') {
-            if (!window.YT) {
-                const tag = document.createElement('script');
-                tag.src = "https://www.youtube.com/iframe_api";
-                const firstScriptTag = document.getElementsByTagName('script')[0];
-                firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
-            }
+            
+            // Función para iniciar el player
+            const initPlayer = () => {
+                if (playerRef.current) return; // Ya existe, no recrear
 
-            window.onYouTubeIframeAPIReady = () => {
                 playerRef.current = new window.YT.Player('youtube-player-confirm', {
                     videoId: '7n-NFVzyGig', 
                     playerVars: { 
-                        autoplay: 1,    // INTENTAR AUTOPLAY
+                        autoplay: 1,    // Autoplay activado
                         controls: 0, 
                         showinfo: 0, 
                         rel: 0, 
@@ -32,7 +29,7 @@ export default function InvitationEnvelope() {
                         modestbranding: 1, 
                         loop: 0, 
                         fs: 0,
-                        mute: 1         // IMPORTANTE: MUTE PARA PERMITIR AUTOPLAY
+                        mute: 1         // MUTE OBLIGATORIO para autoplay sin click
                     },
                     events: { 
                         'onReady': onPlayerReady,
@@ -40,14 +37,42 @@ export default function InvitationEnvelope() {
                     }
                 });
             };
+
+            // CASO A: La API de YouTube ya está cargada (vienes de la intro)
+            if (window.YT && window.YT.Player) {
+                initPlayer();
+            } 
+            // CASO B: La API no está cargada (entras directo a esta página)
+            else {
+                // Evitamos cargar el script dos veces si ya está en el <head> pero aun no listo
+                if (!document.querySelector('script[src="https://www.youtube.com/iframe_api"]')) {
+                    const tag = document.createElement('script');
+                    tag.src = "https://www.youtube.com/iframe_api";
+                    const firstScriptTag = document.getElementsByTagName('script')[0];
+                    firstScriptTag.parentNode.insertBefore(tag, firstScriptTag);
+                }
+
+                // Esperamos a que la API avise que está lista
+                const previousOnReady = window.onYouTubeIframeAPIReady;
+                window.onYouTubeIframeAPIReady = () => {
+                    if (previousOnReady) previousOnReady(); // Por seguridad
+                    initPlayer();
+                };
+            }
         }
-        return () => { window.onYouTubeIframeAPIReady = null; };
+        
+        // Cleanup
+        return () => { 
+            // Opcional: destruir player al salir si fuera necesario, 
+            // pero Next.js a veces prefiere mantener el estado si navegas rápido.
+        };
     }, []);
 
     const onPlayerReady = (event) => {
-        // Aseguramos el silencio y reproducimos
-        event.target.mute();
-        event.target.playVideo();
+        // FUERZA BRUTA: Aseguramos mute y play
+        const player = event.target;
+        player.mute(); 
+        player.playVideo();
     };
 
     const onPlayerStateChange = (event) => {
