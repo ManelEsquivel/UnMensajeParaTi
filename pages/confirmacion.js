@@ -43,7 +43,7 @@ export default function InvitationEnvelope() {
         if (timerRef.current) clearInterval(timerRef.current);
         timerRef.current = setInterval(() => {
             if (!playerRef.current || !playerRef.current.getCurrentTime) return;
-            // Cortar 2 segundos antes del final
+            // Cortar 2 segundos antes
             if (playerRef.current.getDuration() > 0 && (playerRef.current.getDuration() - playerRef.current.getCurrentTime()) <= 2) {
                 finishVideo();
                 clearInterval(timerRef.current);
@@ -68,7 +68,6 @@ export default function InvitationEnvelope() {
     // 2. ANIMACIÓN
     // =========================================================
     const startEnvelopeAnimation = () => {
-        // Al hacer clic, iniciamos la secuencia
         setAnimationStep(1); 
         setTimeout(() => setAnimationStep(2), 800);  
         setTimeout(() => setAnimationStep(3), 1800); 
@@ -91,7 +90,6 @@ export default function InvitationEnvelope() {
                         70% { box-shadow: 0 0 0 20px rgba(255, 255, 255, 0); }
                         100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
                     }
-                    /* Animación para indicar que el sello es clicable */
                     @keyframes pulse-seal {
                         0% { transform: translate(-50%, -50%) scale(1); }
                         50% { transform: translate(-50%, -50%) scale(1.05); }
@@ -155,7 +153,8 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- SOBRE (Pointer events controlled) --- */}
+                    {/* --- SOBRE --- */}
+                    {/* Quitamos pointerEvents none del contenedor para no bloquear al hijo button */}
                     <div style={styles.envelope}>
                         
                         {/* 1. Fondo */}
@@ -168,7 +167,7 @@ export default function InvitationEnvelope() {
                         {/* 3. Solapa Inferior */}
                         <div style={{...styles.layer, ...styles.flapBottom}}></div>
 
-                        {/* 4. Solapa Superior (Tapa) */}
+                        {/* 4. Solapa Superior */}
                         <div style={{
                             ...styles.layer, ...styles.flapTop,
                             transform: animationStep >= 1 ? 'rotateX(180deg)' : 'rotateX(0deg)',
@@ -178,19 +177,22 @@ export default function InvitationEnvelope() {
                             <div style={styles.flapTopInner}></div>
                         </div>
 
-                        {/* 5. SELLO (EL ÚNICO QUE TIENE POINTER-EVENTS: AUTO) */}
-                        <div onClick={animationStep === 0 ? startEnvelopeAnimation : undefined}
+                        {/* 5. SELLO (USAMOS UN BOTÓN REAL PARA MEJORAR EL TACTIL) */}
+                        <button
+                             onClick={animationStep === 0 ? startEnvelopeAnimation : undefined}
                              style={{
                                 ...styles.waxSeal,
                                 opacity: animationStep === 0 ? 1 : 0,
-                                // Si animationStep es 0, el puntero es 'auto'. Si no, 'none' para no molestar.
+                                // Si ya se abrió, deshabilitamos la interacción
                                 pointerEvents: animationStep === 0 ? 'auto' : 'none',
                                 animation: animationStep === 0 ? 'pulse-seal 2s infinite' : 'none'
-                            }}>
+                            }}
+                            aria-label="Abrir invitación"
+                        >
                             <div style={styles.sealContent}>
                                 <span style={styles.sealText}>Abrir</span>
                             </div>
-                        </div>
+                        </button>
 
                     </div>
                 </div>
@@ -213,8 +215,7 @@ const styles = {
         height: '220px', 
         perspective: '1200px', 
         filter: 'drop-shadow(0 30px 40px rgba(0,0,0,0.6))',
-        // Aseguramos que el wrapper no bloquee, pero sus hijos sí puedan ser interactivos
-        pointerEvents: 'none'
+        // ELIMINADO: pointerEvents: 'none' que causaba problemas en móvil
     },
 
     // --- CARTA ---
@@ -226,7 +227,7 @@ const styles = {
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         boxShadow: '0 -2px 10px rgba(0,0,0,0.1)',
         backgroundImage: `url("https://www.transparenttextures.com/patterns/cream-paper.png")`,
-        pointerEvents: 'auto' // La carta sí debe ser interactiva (para el botón final)
+        pointerEvents: 'auto'
     },
     cardContent: {
         width: '100%', height: '100%',
@@ -246,10 +247,10 @@ const styles = {
     // --- ENVELOPE ---
     envelope: { 
         width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d',
-        pointerEvents: 'none' // IMPORTANTE: El sobre en sí no captura clics, deja pasar
+        pointerEvents: 'none' // El sobre visual no captura clics
     },
     
-    // Capas del sobre: pointer-events none para que no bloqueen al sello
+    // Capas del sobre: pointer-events none
     layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
 
     backFace: { backgroundColor: '#2a2520', borderRadius: '4px' },
@@ -278,16 +279,23 @@ const styles = {
     },
     flapTopInner: { width: '100%', height: '100%', backgroundColor: '#fdfbf7' },
 
-    // --- SELLO ---
+    // --- SELLO (BOTÓN) ---
     waxSeal: {
+        // Reseteo de estilos de botón
+        border: 'none', background: 'transparent', padding: 0, margin: 0,
+        
         position: 'absolute', top: '55%', left: '50%', transform: 'translate(-50%, -50%)',
         width: '80px', height: '80px', 
-        zIndex: 100, // Z-index muy alto
+        zIndex: 1000, // Z-index muy alto
         cursor: 'pointer', 
         transition: 'all 0.5s ease',
         filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.3))',
-        // ESTO ES CLAVE: pointer-events auto aquí sobreescribe el none del padre
-        pointerEvents: 'auto' 
+        
+        // ESTO ES CLAVE: pointer-events auto y botón nativo
+        pointerEvents: 'auto',
+        
+        // Fix para móviles: quitar highlight azul al tocar
+        WebkitTapHighlightColor: 'transparent',
     },
     sealContent: {
         width: '100%', height: '100%', borderRadius: '50%',
