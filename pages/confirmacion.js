@@ -12,6 +12,14 @@ export default function InvitationEnvelope() {
     // 0: Cerrado | 1: Abriendo Solapa | 2: Sacando Carta | 3: Zoom Lectura
     const [animationStep, setAnimationStep] = useState(0);
 
+    // --- METADATOS PARA WHATSAPP (OPEN GRAPH) ---
+    // Asegúrate de que 'confirmacion.jpg' esté en la carpeta /public de tu proyecto.
+    // La URL debe ser absoluta para que WhatsApp la detecte bien.
+    // Cambia 'tudominio.com' por tu dominio real de Vercel.
+    const pageTitle = "Invitación de Boda - Manel & Carla";
+    const pageDescription = "Estás invitado a nuestra boda. Toca para abrir la invitación.";
+    const pageImage = "https://bodamanelcarla.vercel.app/confirmacion.jpg"; // <--- URL ABSOLUTA DE TU IMAGEN
+
     // =========================================================
     // 1. VIDEO INTRO
     // =========================================================
@@ -81,9 +89,22 @@ export default function InvitationEnvelope() {
     return (
         <>
             <Head>
-                <title>Invitación Manel & Carla</title>
+                <title>{pageTitle}</title>
                 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=0" />
+                
+                {/* --- METADATOS OPEN GRAPH (WHATSAPP) --- */}
+                <meta property="og:type" content="website" />
+                <meta property="og:title" content={pageTitle} />
+                <meta property="og:description" content={pageDescription} />
+                <meta property="og:image" content={pageImage} />
+                <meta property="og:image:secure_url" content={pageImage} />
+                <meta property="og:image:type" content="image/jpeg" />
+                <meta property="og:image:width" content="1200" />
+                <meta property="og:image:height" content="630" />
+                
+                {/* FUENTES */}
                 <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;600&family=Montserrat:wght@200;400&family=Great+Vibes&display=swap" rel="stylesheet" />
+                
                 <style>{`
                     html, body { margin: 0; padding: 0; background-color: #1a1a1a; overflow: hidden; height: 100%; }
                     
@@ -142,14 +163,14 @@ export default function InvitationEnvelope() {
             <div style={styles.container}>
                 <div style={{
                     ...styles.wrapper,
-                    transform: animationStep === 3 ? 'translateY(30vh) scale(1.1)' : 'translateY(5vh) scale(1)',
+                    transform: animationStep === 3 ? 'translateY(40vh) scale(1.1)' : 'translateY(5vh) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
                     {/* --- CARTA --- */}
                     <div style={{
                         ...styles.card,
-                        transform: animationStep >= 2 ? 'translateY(-80%)' : 'translateY(0)',
+                        transform: animationStep >= 2 ? 'translateY(-75%)' : 'translateY(0)',
                         opacity: animationStep >= 2 ? 1 : 0, 
                         zIndex: animationStep >= 2 ? 20 : 1, 
                         transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease 0.2s'
@@ -179,12 +200,7 @@ export default function InvitationEnvelope() {
                         <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapLeft}}></div>
                         <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapRight}}></div>
                         
-                        {/* SOLAPA INFERIOR CON TEXTO DENTRO */}
-                        <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapBottom}}>
-                             <div style={styles.flapTextContainer}>
-                                <span style={styles.flapNames}>Manel & Carla</span>
-                            </div>
-                        </div>
+                        <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapBottom}}></div>
                         
                         <div className="vintage-paper torn-edge" style={{
                             ...styles.layer, ...styles.flapTop,
@@ -220,7 +236,7 @@ export default function InvitationEnvelope() {
 // --- ESTILOS ---
 const styles = {
     container: {
-        width: '100vw', height: '100dvh', // Altura dinámica para móviles
+        width: '100vw', height: '100dvh', 
         backgroundColor: '#111',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         overflow: 'hidden', position: 'relative',
@@ -254,7 +270,6 @@ const styles = {
     },
     topText: { fontFamily: '"Montserrat", sans-serif', fontSize: '11px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', marginBottom: '5px' },
     
-    // Nombres de la Carta (Interior)
     names: { 
         fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#222', 
         margin: '10px 0', lineHeight: 1, whiteSpace: 'nowrap' 
@@ -273,29 +288,10 @@ const styles = {
     flapLeft: { clipPath: 'polygon(0 0, 0% 100%, 55% 55%)', zIndex: 10, filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.3))' },
     flapRight: { clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)', zIndex: 10, filter: 'drop-shadow(-2px 0 5px rgba(0,0,0,0.3))' },
     
-    // Solapa inferior
     flapBottom: {
         zIndex: 11,
         clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)',
         filter: 'drop-shadow(0 -5px 10px rgba(0,0,0,0.4))',
-    },
-    
-    // TEXTO SOBRE LA SOLAPA (DENTRO DE LA CAPA, TAMAÑO REDUCIDO)
-    flapTextContainer: {
-        position: 'absolute', 
-        bottom: '15%', 
-        width: '100%', 
-        textAlign: 'center', 
-        zIndex: 12,
-    },
-    flapNames: {
-        fontFamily: '"Great Vibes", cursive', 
-        // REDUCIDO PARA QUE QUEPA EN EL TRIÁNGULO SIN CORTARSE
-        fontSize: '2.2rem', 
-        color: '#4e3b28', 
-        textShadow: '0 1px 1px rgba(255,255,255,0.3)', 
-        opacity: 0.9,
-        whiteSpace: 'nowrap'
     },
     
     flapTop: {
