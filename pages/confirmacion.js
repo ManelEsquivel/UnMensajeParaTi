@@ -13,7 +13,7 @@ export default function InvitationEnvelope() {
     const [animationStep, setAnimationStep] = useState(0);
 
     // =========================================================
-    // 1. VIDEO INTRO
+    // 1. VIDEO INTRO (NUEVO VIDEO)
     // =========================================================
     useEffect(() => {
         if (typeof window !== 'undefined') {
@@ -25,7 +25,7 @@ export default function InvitationEnvelope() {
             }
             window.onYouTubeIframeAPIReady = () => {
                 playerRef.current = new window.YT.Player('youtube-player-confirm', {
-                    videoId: '7n-NFVzyGig', 
+                    videoId: 'liDatwofpxI', // <--- NUEVO VIDEO ACTUALIZADO
                     playerVars: { autoplay: 0, controls: 0, showinfo: 0, rel: 0, playsinline: 1, modestbranding: 1, loop: 0, fs: 0, mute: 1 },
                     events: { 'onStateChange': onPlayerStateChange }
                 });
@@ -68,9 +68,7 @@ export default function InvitationEnvelope() {
     // 2. ANIMACIÓN
     // =========================================================
     const startEnvelopeAnimation = (e) => {
-        // Stop propagation para asegurar que el evento se captura aquí
         if(e) e.stopPropagation();
-        
         setAnimationStep(1); 
         setTimeout(() => setAnimationStep(2), 800);  
         setTimeout(() => setAnimationStep(3), 1800); 
@@ -125,12 +123,12 @@ export default function InvitationEnvelope() {
             <div style={styles.container}>
                 <div style={{
                     ...styles.wrapper,
-                    // Zoom final
+                    // Zoom final para leer la carta
                     transform: animationStep === 3 ? 'translateY(35vh) scale(1.3)' : 'translateY(0) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
-                    {/* --- CARTA --- */}
+                    {/* --- CARTA (DISEÑO VERTICAL NUEVO) --- */}
                     <div style={{
                         ...styles.card,
                         transform: animationStep >= 2 ? 'translateY(-75%)' : 'translateY(0)',
@@ -139,12 +137,23 @@ export default function InvitationEnvelope() {
                         transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease'
                     }}>
                         <div style={styles.cardContent}>
-                            <p style={styles.saveTheDate}>NOS CASAMOS</p>
+                            <p style={styles.topText}>¡Nos Casamos!</p>
+                            
                             <h1 style={styles.names}>Manel & Carla</h1>
-                            <div style={styles.divider}></div>
-                            <p style={styles.date}>21 · OCTUBRE · 2026</p>
-                            <p style={styles.location}>MASIA MAS LLOMBART</p>
-                            <p style={styles.quote}>"El amor es lo que hace que<br/>el viaje valga la pena."</p>
+                            
+                            <div style={styles.bodyTextContainer}>
+                                <p style={styles.bodyText}>
+                                    Nos haría mucha ilusión que nos acompañaras en este día tan especial para nosotros.
+                                </p>
+                                <p style={styles.bodyText}>
+                                    Queremos celebrar nuestro amor contigo y que seas parte de este momento único.
+                                </p>
+                                <p style={{...styles.bodyText, fontWeight: 'bold', marginTop: '10px'}}>
+                                    ¡Te esperamos!
+                                </p>
+                            </div>
+
+                            {/* BOTÓN INTEGRADO EN EL DISEÑO */}
                             <button onClick={handleConfirm} style={{
                                 ...styles.button, 
                                 opacity: animationStep === 3 ? 1 : 0, 
@@ -156,7 +165,7 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- SOBRE VISUAL --- */}
+                    {/* --- SOBRE --- */}
                     <div style={styles.envelope}>
                         <div style={{...styles.layer, ...styles.backFace}}></div>
                         <div style={{...styles.layer, ...styles.flapLeft}}></div>
@@ -172,14 +181,12 @@ export default function InvitationEnvelope() {
                         </div>
                     </div>
 
-                    {/* --- BOTÓN SELLO (SACADO FUERA DEL ENVELOPE PARA ASEGURAR CLIC) --- */}
-                    {/* Al estar fuera de la estructura 3D del sobre, el navegador detecta el clic perfectamente */}
+                    {/* --- BOTÓN SELLO --- */}
                     <div 
                         onClick={startEnvelopeAnimation}
                         style={{
                             ...styles.waxSeal,
                             opacity: animationStep === 0 ? 1 : 0,
-                            // Si animationStep > 0 lo escondemos con display none para que no moleste nunca mas
                             display: animationStep > 0 ? 'none' : 'block',
                             animation: 'pulse-seal 2s infinite'
                         }}
@@ -211,7 +218,7 @@ const styles = {
         filter: 'drop-shadow(0 30px 40px rgba(0,0,0,0.6))',
     },
 
-    // --- CARTA ---
+    // --- CARTA (Vertical) ---
     card: {
         position: 'absolute',
         top: '5px', left: '10px', right: '10px', height: '95%',
@@ -224,20 +231,47 @@ const styles = {
     },
     cardContent: {
         width: '100%', height: '100%',
-        padding: '15px', boxSizing: 'border-box',
-        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'space-evenly',
+        padding: '20px 15px', boxSizing: 'border-box',
+        display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         border: '1px solid #d4af37', margin: '5px',
         width: 'calc(100% - 10px)', height: 'calc(100% - 10px)',
+        textAlign: 'center'
     },
-    saveTheDate: { fontFamily: '"Montserrat", sans-serif', fontSize: '9px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', margin: 0 },
-    names: { fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#222', margin: '0', lineHeight: 1 },
-    divider: { width: '30px', height: '1px', backgroundColor: '#d4af37', margin: '5px 0' },
-    date: { fontFamily: '"Cormorant Garamond", serif', fontSize: '1rem', fontWeight: '600', color: '#333', letterSpacing: '1px' },
-    location: { fontFamily: '"Montserrat", sans-serif', fontSize: '8px', color: '#555', letterSpacing: '2px', textTransform: 'uppercase' },
-    quote: { fontFamily: '"Cormorant Garamond", serif', fontSize: '12px', fontStyle: 'italic', color: '#666', textAlign: 'center' },
-    button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '8px 20px', fontSize: '9px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '1px', cursor: 'pointer', marginTop: '5px' },
+    
+    // Textos de la carta
+    topText: { 
+        fontFamily: '"Montserrat", sans-serif', fontSize: '10px', letterSpacing: '2px', 
+        color: '#888', textTransform: 'uppercase', marginBottom: '10px' 
+    },
+    names: { 
+        fontFamily: '"Great Vibes", cursive', fontSize: '2.4rem', color: '#222', 
+        margin: '5px 0 15px 0', lineHeight: 1 
+    },
+    bodyTextContainer: {
+        marginBottom: '20px',
+        width: '90%'
+    },
+    bodyText: {
+        fontFamily: '"Cormorant Garamond", serif', fontSize: '13px', 
+        color: '#444', lineHeight: '1.4', margin: '5px 0'
+    },
+    
+    // Botón Integrado
+    button: { 
+        backgroundColor: 'transparent', 
+        color: '#333', 
+        border: '1px solid #333', 
+        padding: '8px 20px', 
+        fontSize: '10px', 
+        fontFamily: '"Montserrat", sans-serif', 
+        textTransform: 'uppercase', 
+        letterSpacing: '1px', 
+        cursor: 'pointer', 
+        marginTop: '10px',
+        transition: 'all 0.3s ease'
+    },
 
-    // --- ENVELOPE VISUAL (Solo adorno, no interactivo) ---
+    // --- ENVELOPE ---
     envelope: { 
         width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d',
         pointerEvents: 'none' 
@@ -267,20 +301,19 @@ const styles = {
     },
     flapTopInner: { width: '100%', height: '100%', backgroundColor: '#fdfbf7' },
 
-    // --- SELLO (INTERACTIVO - POSICIONADO ABSOLUTAMENTE ENCIMA DE TODO) ---
+    // --- SELLO ---
     waxSeal: {
         position: 'absolute', top: '55%', left: '50%', transform: 'translate(-50%, -50%)',
-        width: '90px', height: '90px', // Hit area un poco más grande
-        zIndex: 9999, // Z-Index máximo
+        width: '90px', height: '90px', 
+        zIndex: 9999, 
         cursor: 'pointer', 
         transition: 'all 0.5s ease',
         filter: 'drop-shadow(0 3px 5px rgba(0,0,0,0.3))',
-        pointerEvents: 'auto', // Habilita clic explícitamente
-        // Asegura que no tenga estilos de botón predeterminados si fuera el caso
+        pointerEvents: 'auto', 
         display: 'block', 
     },
     sealContent: {
-        width: '80px', height: '80px', borderRadius: '50%', margin: '5px', // Centrado dentro del hit area
+        width: '80px', height: '80px', borderRadius: '50%', margin: '5px', 
         background: 'radial-gradient(circle at 35% 35%, #e53935, #b71c1c, #7f0000)',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         boxShadow: 'inset 0 0 0 4px rgba(0,0,0,0.1), 0 0 0 2px #8e0000', 
