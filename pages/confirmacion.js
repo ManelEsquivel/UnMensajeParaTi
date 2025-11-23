@@ -87,7 +87,6 @@ export default function InvitationEnvelope() {
                 <style>{`
                     html, body { margin: 0; padding: 0; background-color: #1a1a1a; overflow: hidden; height: 100%; }
                     
-                    /* TEXTURA VINTAGE */
                     .vintage-paper {
                         background-color: #d8c8b0;
                         background-image: 
@@ -110,7 +109,6 @@ export default function InvitationEnvelope() {
                 `}</style>
             </Head>
 
-            {/* --- SVG FILTER DEFINITION (INVISIBLE) --- */}
             <svg style={{ visibility: 'hidden', position: 'absolute' }} width="0" height="0">
                 <defs>
                     <filter id="wavy">
@@ -158,10 +156,7 @@ export default function InvitationEnvelope() {
                     }}>
                         <div style={styles.cardContent}>
                             <p style={styles.topText}>¡NOS CASAMOS!</p>
-                            
-                            {/* AQUÍ ESTÁ EL CAMBIO IMPORTANTE: */}
                             <h1 style={styles.names}>Manel & Carla</h1>
-                            
                             <div style={styles.divider}></div>
                             <div style={styles.bodyTextContainer}>
                                 <p style={styles.bodyText}>Nos haría mucha ilusión que nos acompañaras en este día tan especial para nosotros.</p>
@@ -184,8 +179,8 @@ export default function InvitationEnvelope() {
                         <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapLeft}}></div>
                         <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapRight}}></div>
                         
+                        {/* SOLAPA INFERIOR CON TEXTO DENTRO */}
                         <div className="vintage-paper torn-edge" style={{...styles.layer, ...styles.flapBottom}}>
-                             {/* Texto en la solapa inferior */}
                              <div style={styles.flapTextContainer}>
                                 <span style={styles.flapNames}>Manel & Carla</span>
                             </div>
@@ -225,7 +220,7 @@ export default function InvitationEnvelope() {
 // --- ESTILOS ---
 const styles = {
     container: {
-        width: '100vw', height: '100vh', 
+        width: '100vw', height: '100dvh', // Altura dinámica para móviles
         backgroundColor: '#111',
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         overflow: 'hidden', position: 'relative',
@@ -233,7 +228,7 @@ const styles = {
     },
     wrapper: {
         position: 'relative',
-        width: '340px',  // Ensanchado ligeramente para dar más espacio horizontal
+        width: '340px',  
         height: '460px', 
         perspective: '1200px', 
         filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.8))',
@@ -252,21 +247,17 @@ const styles = {
     },
     cardContent: {
         width: 'calc(100% - 20px)', height: 'calc(100% - 20px)',
-        padding: '20px 5px', // Menos padding lateral para dar espacio al texto
+        padding: '20px 5px', 
         boxSizing: 'border-box',
         display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center',
         border: '1px solid #d4af37', textAlign: 'center'
     },
     topText: { fontFamily: '"Montserrat", sans-serif', fontSize: '11px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', marginBottom: '5px' },
     
-    // NOMBRES CORREGIDOS PARA QUE QUEPAN EN UNA LÍNEA
+    // Nombres de la Carta (Interior)
     names: { 
-        fontFamily: '"Great Vibes", cursive', 
-        fontSize: '2.2rem', // Reducido para que quepa
-        color: '#222', 
-        margin: '10px 0', 
-        lineHeight: 1,
-        whiteSpace: 'nowrap' // Fuerza una sola línea
+        fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#222', 
+        margin: '10px 0', lineHeight: 1, whiteSpace: 'nowrap' 
     },
     
     divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '15px 0' },
@@ -279,26 +270,32 @@ const styles = {
     envelope: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', pointerEvents: 'none' },
     layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
 
-    flapLeft: {
-        clipPath: 'polygon(0 0, 0% 100%, 55% 55%)', zIndex: 10,
-        filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.3))'
-    },
-    flapRight: {
-        clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)', zIndex: 10,
-        filter: 'drop-shadow(-2px 0 5px rgba(0,0,0,0.3))'
-    },
+    flapLeft: { clipPath: 'polygon(0 0, 0% 100%, 55% 55%)', zIndex: 10, filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.3))' },
+    flapRight: { clipPath: 'polygon(100% 0, 100% 100%, 45% 55%)', zIndex: 10, filter: 'drop-shadow(-2px 0 5px rgba(0,0,0,0.3))' },
+    
+    // Solapa inferior
     flapBottom: {
         zIndex: 11,
         clipPath: 'polygon(0 100%, 50% 45%, 100% 100%)',
         filter: 'drop-shadow(0 -5px 10px rgba(0,0,0,0.4))',
     },
-    // Texto en la solapa del sobre
+    
+    // TEXTO SOBRE LA SOLAPA (DENTRO DE LA CAPA, TAMAÑO REDUCIDO)
     flapTextContainer: {
-        position: 'absolute', bottom: '15%', width: '100%', textAlign: 'center', zIndex: 20
+        position: 'absolute', 
+        bottom: '15%', 
+        width: '100%', 
+        textAlign: 'center', 
+        zIndex: 12,
     },
     flapNames: {
-        fontFamily: '"Great Vibes", cursive', fontSize: '2.5rem', color: '#4e3b28', 
-        textShadow: '0 1px 1px rgba(255,255,255,0.3)', opacity: 0.9
+        fontFamily: '"Great Vibes", cursive', 
+        // REDUCIDO PARA QUE QUEPA EN EL TRIÁNGULO SIN CORTARSE
+        fontSize: '2.2rem', 
+        color: '#4e3b28', 
+        textShadow: '0 1px 1px rgba(255,255,255,0.3)', 
+        opacity: 0.9,
+        whiteSpace: 'nowrap'
     },
     
     flapTop: {
@@ -307,7 +304,6 @@ const styles = {
         filter: 'drop-shadow(0 5px 10px rgba(0,0,0,0.3))',
     },
 
-    // --- SELLO ---
     waxSeal: {
         position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)',
         width: '90px', height: '90px', zIndex: 9999, cursor: 'pointer', 
