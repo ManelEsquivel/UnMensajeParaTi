@@ -144,7 +144,7 @@ export default function DjPage() {
             <div className="loading-container">
                 <Head><title>Cargando Pizarra...</title></Head>
                 <div className="vinyl-icon large-spin">💿</div>
-                <h2 className="loading-text">Abriendo Pizarra...</h2>
+                <h2 className="loading-text">Cargando la lista...</h2>
                 <style jsx>{`
                     .loading-container {
                         height: 100vh; width: 100vw;
