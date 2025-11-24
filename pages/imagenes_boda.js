@@ -73,13 +73,7 @@ export default function ImagenesBoda() {
 
     useEffect(() => { fetchGallery(); }, []);
     
-    // --- ⚠️ CORRECCIÓN AQUÍ: Manejo robusto del evento clic ---
-    const handleLoadMore = (e) => { 
-        // Paramos cualquier comportamiento nativo del navegador que cause el "efecto raro"
-        if (e) {
-            e.preventDefault();
-            e.stopPropagation();
-        }
+    const handleLoadMore = () => { 
         if (nextPageToken) fetchGallery(nextPageToken, false); 
     };
 
@@ -200,13 +194,7 @@ export default function ImagenesBoda() {
                 >
                     <div style={styles.iconContainer}>📸 🎥</div>
                     <p style={styles.dropText}>{isDragging ? '¡Suelta aquí!' : 'Toca para seleccionar'}</p>
-                    <input 
-                        type="file" 
-                        onChange={handleFileSelect} 
-                        style={{display: 'none'}} 
-                        multiple 
-                        accept="image/*,video/*" 
-                    />
+                    <input type="file" onChange={handleFileSelect} style={{display: 'none'}} multiple accept="image/*,video/*" />
                 </label>
                 
                 {fileItems.length > 0 && (
@@ -265,9 +253,11 @@ export default function ImagenesBoda() {
                     })}
                 </div>
                 {nextPageToken && (
-                    /* ⚠️ AQUÍ ESTÁ EL CAMBIO CLAVE EN EL BOTÓN */
                     <button 
-                        type="button"  /* Importante: Decimos que NO es un submit */
+                        type="button" 
+                        /* 🛠 EL FIX DEL DOBLE TAP ESTÁ AQUÍ */
+                        /* onMouseDown previene que el botón coja el "foco", forzando el click directo */
+                        onMouseDown={(e) => e.preventDefault()}
                         onClick={handleLoadMore} 
                         style={styles.loadMoreBtn} 
                         disabled={isLoadingGallery}
@@ -298,10 +288,8 @@ const styles = {
     card: { backgroundColor: 'white', borderRadius: '16px', padding: '25px', width: '100%', maxWidth: '500px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: '30px' },
     title: { margin: '0 0 8px 0', color: '#2d3748', fontSize: '22px' },
     subtitle: { margin: '0 0 25px 0', color: '#718096', fontSize: '14px' },
-    
     dropZone: { display: 'block', border: '3px dashed #cbd5e0', borderRadius: '12px', padding: '30px 15px', cursor: 'pointer', backgroundColor: '#fafafa', marginBottom: '20px' },
     dropZoneActive: { borderColor: '#5a67d8', backgroundColor: '#ebf4ff' },
-    
     iconContainer: { marginBottom: '10px', fontSize: '30px' },
     dropText: { margin: 0, color: '#4a5568', fontWeight: '500' },
     previewList: { listStyle: 'none', padding: 0, margin: '0 0 20px 0', textAlign: 'left', maxHeight: '350px', overflowY: 'auto' },
@@ -321,8 +309,24 @@ const styles = {
     videoThumbImg: { width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 },
     playIconOverlay: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '24px', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 },
     
-    // Y añadimos cursor pointer aquí también
-    loadMoreBtn: { marginTop: '25px', padding: '12px 25px', backgroundColor: 'white', border: '2px solid #5a67d8', color: '#5a67d8', borderRadius: '30px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' },
+    // --- ESTILOS OPTIMIZADOS PARA MÓVIL ---
+    loadMoreBtn: { 
+        marginTop: '25px', 
+        padding: '12px 25px', 
+        backgroundColor: 'white', 
+        border: '2px solid #5a67d8', 
+        color: '#5a67d8', 
+        borderRadius: '30px', 
+        fontWeight: 'bold', 
+        fontSize: '14px', 
+        cursor: 'pointer',
+        // Esto elimina el resaltado azul/gris nativo de iOS
+        WebkitTapHighlightColor: 'transparent',
+        // Esto acelera la respuesta del toque en móviles modernos
+        touchAction: 'manipulation',
+        // Evita que el usuario seleccione el texto "Ver más fotos" sin querer
+        userSelect: 'none'
+    },
     
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
     modalContent: { position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
