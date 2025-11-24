@@ -309,6 +309,7 @@ export default function ImagenesBoda() {
                                             style={{ objectFit: 'cover' }}
                                             loading="lazy"
                                             quality={65} // Calidad reducida para carga rápida de miniaturas
+                                            unoptimized={true}
                                         />
                                     </div>
                                 )}
