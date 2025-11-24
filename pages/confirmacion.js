@@ -7,7 +7,7 @@ export default function InvitationEnvelope() {
     const [isPageLoaded, setIsPageLoaded] = useState(false);
     const [showModal, setShowModal] = useState(false);
     
-    // 0: Cerrado | 1: Abriendo Solapa | 2: Sacando Carta | 3: Lectura (Full Screen)
+    // 0: Cerrado | 1: Abriendo Solapa | 2: Sacando Carta | 3: Lectura (Abajo y Zoom)
     const [animationStep, setAnimationStep] = useState(0);
 
     // --- METADATOS ---
@@ -85,9 +85,9 @@ export default function InvitationEnvelope() {
     // --- MANEJADORES ---
     const startEnvelopeAnimation = (e) => {
         if(e) e.stopPropagation();
-        setAnimationStep(1); // Abre tapa
-        setTimeout(() => setAnimationStep(2), 1000);  // Saca carta
-        setTimeout(() => setAnimationStep(3), 2200); // Posición Final (Lectura)
+        setAnimationStep(1); 
+        setTimeout(() => setAnimationStep(2), 1000); 
+        setTimeout(() => setAnimationStep(3), 2200); 
     };
 
     const handleOpenModal = () => {
@@ -188,19 +188,16 @@ export default function InvitationEnvelope() {
                 
                 <div style={{
                     ...styles.wrapper,
-                    // AJUSTE CLAVE 1: 
-                    // - scale(1.25): Un zoom ligero para llenar el ancho del móvil sin pixelar el botón.
-                    // - translateY(60vh): Bajamos el sobre casi al fondo para que la carta tenga espacio arriba.
-                    transform: animationStep === 3 ? 'translateY(60vh) scale(1.25)' : 'translateY(5vh) scale(1)',
+                    // === CAMBIO CLAVE ===
+                    // translateY(75vh): Bajamos mucho más el sobre para que la tarjeta llegue "hasta el final".
+                    // scale(1.25): Mantenemos el zoom que se ve bien.
+                    transform: animationStep === 3 ? 'translateY(75vh) scale(1.25)' : 'translateY(5vh) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
                     {/* --- CARTA --- */}
                     <div style={{
                         ...styles.card,
-                        // AJUSTE CLAVE 2:
-                        // - translateY(-100%): Sacamos la carta COMPLETAMENTE del sobre. 
-                        // Al estar el sobre abajo (60vh), la carta queda centrada en pantalla.
                         transform: animationStep >= 2 ? 'translateY(-100%)' : 'translateY(0)',
                         opacity: animationStep >= 2 ? 1 : 0, 
                         zIndex: animationStep >= 2 ? 20 : 1, 
@@ -216,7 +213,6 @@ export default function InvitationEnvelope() {
                             </div>
                             <p style={styles.footerText}>¡Te esperamos!</p>
                             
-                            {/* BOTÓN */}
                             <button onClick={handleOpenModal} style={{
                                 ...styles.button, 
                                 opacity: animationStep === 3 ? 1 : 0, 
@@ -264,7 +260,7 @@ export default function InvitationEnvelope() {
                 </div>
             </div>
 
-            {/* --- MODAL (Sin cambios) --- */}
+            {/* --- MODAL --- */}
             <div className={`modal-overlay ${showModal ? 'active' : ''}`} onClick={(e) => e.target.className.includes('overlay') && setShowModal(false)}>
                 <div className="modal-content">
                     <h2 style={{ fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#d4af37', margin: '0 0 15px 0' }}>
@@ -300,7 +296,6 @@ const styles = {
         position: 'relative', width: '340px', height: '460px', perspective: '1200px', 
         filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.3))', 
     },
-    // --- CARTA ---
     card: {
         position: 'absolute', top: '10px', left: '15px', right: '15px', bottom: '10px',
         backgroundColor: '#fffcf5', borderRadius: '2px', display: 'flex', justifyContent: 'center', alignItems: 'center',
@@ -317,7 +312,6 @@ const styles = {
     bodyText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '15px', color: '#444', lineHeight: '1.4', margin: '8px 0' },
     footerText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontWeight: 'bold', color: '#333', margin: '10px 0' },
     button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '12px 30px', fontSize: '11px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', marginTop: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' },
-    // --- ENVELOPE ---
     envelope: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', pointerEvents: 'none' },
     layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
     flapLeft: { clipPath: 'polygon(0 0, 0% 100%, 55% 55%)', zIndex: 10, filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.2))' },
