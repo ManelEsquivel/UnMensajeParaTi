@@ -176,11 +176,11 @@ Marta Bartual,Bartual,PENDIENTE
 Iker Zarate,Zarate,PENDIENTE
 Alfonso Zarate,Zarate,PENDIENTE
 Jaime Lopez,Lopez,PENDIENTE
-Rosario,,PENDIENTE
+Rosario Ambrosio,Ambrosio,PENDIENTE
 Natalia Balcells,Balcells,PENDIENTE
 Pau,,PENDIENTE
 Susana,Lopez,PENDIENTE
-Ramon,,PENDIENTE
+Ramon Barberá,Barberá,PENDIENTE
 Natalia Belinguer,Belinguer,PENDIENTE
 Natalia Pellicer,Pellicer,PENDIENTE
 Silvia,,PENDIENTE
@@ -189,7 +189,7 @@ Alexis Postigo,Postigo,PENDIENTE
 Mª Angeles,,PENDIENTE
 Carles Castañe,Castañe,PENDIENTE
 Teodoro Lopez,Lopez,PENDIENTE
-Meritxell,,PENDIENTE
+Meritxell Gacimartín,Gacimartín,PENDIENTE
 Montse,,PENDIENTE
 Marido Montse,,PENDIENTE
 Elena Escura,Escura,PENDIENTE
@@ -200,11 +200,12 @@ Monica Falguera,Falguera,PENDIENTE
 Noa,,PENDIENTE
 Mujer Carlos Rodrigu,,PENDIENTE
 Narcis Vidal,Vidal,PENDIENTE
-Montse Asociación,,PENDIENTE
-Marido Montse,Asociación,PENDIENTE
-Didac,,PENDIENTE
-Mujer,Didac,PENDIENTE
+Montse Arroyo,Arroyo,PENDIENTE
+Pau Sanchez,Sanchez,PENDIENTE
+Didac Sanchez,Sanchez,PENDIENTE
+Isabel Larosa,Larosa,PENDIENTE
 Kike Masgrau,Masgrau,PENDIENTE
+Reme Ros,Ros,PENDIENTE
 `;
 
   // --- CÁLCULO DE CONFIRMADOS ---
