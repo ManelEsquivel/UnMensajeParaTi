@@ -209,7 +209,7 @@ export default function InvitationEnvelope() {
                             <div style={styles.divider}></div>
                             <div style={styles.bodyTextContainer}>
                                 <p style={styles.bodyText}>Nos haría mucha ilusión que nos acompañaras en este día tan especial para nosotros.</p>
-                                <p style={styles.bodyText}>Queremos celebrar nuestro amor contigo y que seas parte de este momento único.</p>
+                                <p style={styles.bodyText}>Queremos celebrarlo contigo y que seas parte de nuestro momento único.</p>
                             </div>
                             <p style={styles.footerText}>¡Te esperamos!</p>
                             
@@ -267,7 +267,7 @@ export default function InvitationEnvelope() {
                         ¡Qué ilusión!
                     </h2>
                     <p style={{ fontFamily: '"Cormorant Garamond", serif', fontSize: '1.1rem', color: '#555', marginBottom: '25px', lineHeight: '1.4' }}>
-                        Gracias por querer acompañarnos. Antes de confirmar, te recomendamos guardar la fecha en tu calendario para no olvidarte.
+                        Gracias por confirmar!. Antes de confirmar, puedes guardar la fecha en tu calendario.
                     </p>
                     
                     <button className="btn-modal-cal" onClick={downloadICalFile}>
