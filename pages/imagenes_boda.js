@@ -1,8 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 
-// --- VERSIÓN DEFINITIVA: SIN NEXT/IMAGE Y CON BOTÓN ARREGLADO ---
-
 export default function ImagenesBoda() {
     const [fileItems, setFileItems] = useState([]); 
     const [galleryPhotos, setGalleryPhotos] = useState([]); 
@@ -13,8 +11,7 @@ export default function ImagenesBoda() {
     
     const [selectedMedia, setSelectedMedia] = useState(null);
     
-    // Ya no necesitamos useRef para el input porque usaremos <label>
-    
+    // Configuración: Límite de 50 MB
     const MAX_VIDEO_SIZE_MB = 50;
     const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024;
 
@@ -55,14 +52,14 @@ export default function ImagenesBoda() {
         });
     };
 
-    // --- 2. CARGA DE GALERÍA (CON LIMIT=20) ---
+    // --- 2. CARGA DE GALERÍA (CON LIMIT 20 PARA QUE VAYA RÁPIDO) ---
     const fetchGallery = async (token = null, reset = false) => {
         if (!reset) setIsLoadingGallery(true);
         try {
             // Pedimos 20 fotos
             let url = '/api/get-photos?limit=20';
             if (token) url += `&pageToken=${encodeURIComponent(token)}`;
-
+            
             const res = await fetch(url);
             if (res.ok) {
                 const data = await res.json();
@@ -86,7 +83,7 @@ export default function ImagenesBoda() {
         if (nextPageToken) fetchGallery(nextPageToken, false); 
     };
 
-    // --- 3. SELECCIÓN Y VALIDACIÓN ---
+    // --- 3. SELECCIÓN Y PROCESADO ---
     const processNewFiles = (incomingFiles) => {
         const validFiles = Array.from(incomingFiles).filter(file => {
             const isImage = file.type.startsWith('image/');
@@ -119,8 +116,13 @@ export default function ImagenesBoda() {
         return () => { fileItems.forEach(item => URL.revokeObjectURL(item.previewUrl)); };
     }, [fileItems]);
 
-    // Elimino handleZoneClick porque con <label> es automático
-    const handleFileSelect = (e) => { if (e.target.files?.length) processNewFiles(e.target.files); };
+    // --- EVENTOS DE ARRASTRAR Y SELECCIONAR ---
+    // Ya no necesitamos handleZoneClick porque el input es "fantasma" y recibe el clic directo
+    const handleFileSelect = (e) => { 
+        if (e.target.files?.length) processNewFiles(e.target.files); 
+        // Reseteamos el valor para poder subir el mismo archivo dos veces si queremos
+        e.target.value = null; 
+    };
     
     const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
     const handleDragLeave = () => { setIsDragging(false); };
@@ -159,6 +161,7 @@ export default function ImagenesBoda() {
             }
 
             const typeToSend = fileToUpload.type; 
+
             const urlRes = await fetch('/api/get-signed-url', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -177,7 +180,6 @@ export default function ImagenesBoda() {
             if (!uploadRes.ok) throw new Error('Error subida');
 
             updateItemStatus(item.id, 'success');
-            // Refrescamos galería tras éxito
             setTimeout(() => {
                 fetchGallery(null, true).catch(err => console.warn("Error refrescando galería:", err));
             }, 1500); 
@@ -209,7 +211,6 @@ export default function ImagenesBoda() {
         });
     };
 
-    // --- RENDERIZADO ---
     return (
         <div style={styles.pageContainer}>
             <Head>
@@ -222,10 +223,10 @@ export default function ImagenesBoda() {
                 <h1 style={styles.title}>Sube tus fotos de la boda 🥂</h1>
                 <p style={styles.subtitle}>Fotos y vídeos cortos (máx 50MB)</p>
                 
-                {/* ⚠️ CAMBIO CRÍTICO: Usamos <label> en lugar de <div> 
-                   Esto hace que el clic funcione SIEMPRE en móviles
+                {/* 🛠 SOLUCIÓN DEFINITIVA PARA MÓVILES: INPUT FANTASMA
+                    El div tiene 'relative' y el input 'absolute' encima de todo.
                 */}
-                <label 
+                <div 
                     style={{ ...styles.dropZone, ...(isDragging ? styles.dropZoneActive : {}) }}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -234,22 +235,24 @@ export default function ImagenesBoda() {
                     <div style={styles.iconContainer}>📸 🎥</div>
                     <p style={styles.dropText}>{isDragging ? '¡Suelta aquí!' : 'Toca para seleccionar'}</p>
                     
-                    {/* El input va DENTRO del label y oculto */}
+                    {/* 👇 AQUÍ ESTÁ EL TRUCO: Input invisible pero clicable 👇 */}
                     <input 
                         type="file" 
                         onChange={handleFileSelect} 
-                        style={{display:'none'}} 
+                        style={styles.ghostInput} 
                         multiple 
                         accept="image/*,video/*" 
                     />
-                </label>
+                </div>
                 
                 {fileItems.length > 0 && (
                     <ul style={styles.previewList}>
                         {fileItems.map((item) => (
                             <li key={item.id} style={styles.previewItem}>
                                 {item.isVideo ? (
-                                    <div style={styles.videoPreviewBox}><span style={{fontSize:'20px'}}>🎬</span></div>
+                                    <div style={styles.videoPreviewBox}>
+                                         <span style={{fontSize:'20px'}}>🎬</span>
+                                    </div>
                                 ) : (
                                     <img src={item.previewUrl} alt="Preview" style={styles.thumbnail} />
                                 )}
@@ -263,7 +266,8 @@ export default function ImagenesBoda() {
                                     {item.status === 'error' && <span style={{color: 'red', fontWeight: 'bold'}}>Error ❌</span>}
                                 </div>
                                 {item.status !== 'uploading' && item.status !== 'success' && (
-                                    <button onClick={(e) => { e.preventDefault(); handleRemoveItem(item.id); }} style={styles.removeBtn}>✕</button>
+                                    // Prevenimos que el clic en borrar dispare el input de abajo
+                                    <button onClick={(e) => { e.stopPropagation(); handleRemoveItem(item.id); }} style={styles.removeBtn}>✕</button>
                                 )}
                             </li>
                         ))}
@@ -279,7 +283,7 @@ export default function ImagenesBoda() {
                 </button>
             </div>
 
-            {/* Galería (Igual que antes) */}
+            {/* Galería de Fotos */}
             <div style={styles.galleryContainer}>
                 <h2 style={styles.galleryTitle}>📸 Galería en Vivo</h2>
                 <div style={styles.grid}>
@@ -302,13 +306,7 @@ export default function ImagenesBoda() {
                                         <div style={styles.playIconOverlay}>▶️</div>
                                     </div>
                                 ) : (
-                                    <img 
-                                        src={media.url} 
-                                        alt="Boda" 
-                                        style={styles.image} 
-                                        loading="lazy" 
-                                        decoding="async"
-                                    />
+                                    <img src={media.url} alt="Boda" style={styles.image} loading="lazy" />
                                 )}
                             </div>
                         );
@@ -321,16 +319,19 @@ export default function ImagenesBoda() {
                 )}
             </div>
 
+            {/* Modal Zoom */}
             {selectedMedia && (
                 <div style={styles.modalOverlay} onClick={() => setSelectedMedia(null)}>
                     <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
+                        
                         {selectedMedia.type === 'video' ? (
-                            <video src={selectedMedia.url} controls autoPlay playsInline style={styles.modalMedia}>
+                            <video src={selectedMedia.url} controls autoPlay playsInline preload="auto" style={styles.modalMedia}>
                                 Tu navegador no soporta este video.
                             </video>
                         ) : (
                             <img src={selectedMedia.url} alt="Zoom" style={styles.modalMedia} />
                         )}
+
                         <button style={styles.closeButton} onClick={() => setSelectedMedia(null)}>✕</button>
                     </div>
                 </div>
@@ -339,36 +340,52 @@ export default function ImagenesBoda() {
     );
 }
 
-// ESTILOS
+// --- ESTILOS ---
 const styles = {
     pageContainer: { display: 'flex', flexDirection: 'column', alignItems: 'center', minHeight: '100vh', backgroundColor: '#f0f2f5', fontFamily: 'sans-serif', padding: '15px' },
     card: { backgroundColor: 'white', borderRadius: '16px', padding: '25px', width: '100%', maxWidth: '500px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: '30px' },
     title: { margin: '0 0 8px 0', color: '#2d3748', fontSize: '22px' },
     subtitle: { margin: '0 0 25px 0', color: '#718096', fontSize: '14px' },
     
-    // NOTA: Añadimos display block para que el label se comporte como una caja
-    dropZone: { display: 'block', border: '3px dashed #cbd5e0', borderRadius: '12px', padding: '30px 15px', cursor: 'pointer', backgroundColor: '#fafafa', marginBottom: '20px' },
+    // CAMBIOS CLAVE AQUÍ:
+    dropZone: { position: 'relative', border: '3px dashed #cbd5e0', borderRadius: '12px', padding: '30px 15px', cursor: 'pointer', backgroundColor: '#fafafa', marginBottom: '20px' },
     dropZoneActive: { borderColor: '#5a67d8', backgroundColor: '#ebf4ff' },
+    
+    // ESTILO DEL INPUT FANTASMA
+    ghostInput: {
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        opacity: 0, // Completamente transparente
+        cursor: 'pointer',
+        zIndex: 10
+    },
+
     iconContainer: { marginBottom: '10px', fontSize: '30px' },
     dropText: { margin: 0, color: '#4a5568', fontWeight: '500' },
-    
     previewList: { listStyle: 'none', padding: 0, margin: '0 0 20px 0', textAlign: 'left', maxHeight: '350px', overflowY: 'auto' },
     previewItem: { display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #edf2f7' },
     thumbnail: { width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover', marginRight: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' },
     videoPreviewBox: { width: '80px', height: '80px', borderRadius: '8px', backgroundColor: '#e2e8f0', display: 'flex', alignItems: 'center', justifyContent: 'center', marginRight: '15px' },
     fileInfo: { flex: 1, overflow: 'hidden', fontSize: '14px' },
     fileName: { display: 'block', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', fontWeight: 'bold', color: '#2d3748', marginBottom: '4px' },
-    removeBtn: { background: '#fff5f5', border: '1px solid #feb2b2', color: '#c53030', cursor: 'pointer', fontSize: '20px', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '10px' },
+    removeBtn: { background: '#fff5f5', border: '1px solid #feb2b2', color: '#c53030', cursor: 'pointer', fontSize: '20px', width: '44px', height: '44px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', marginLeft: '10px', position: 'relative', zIndex: 20 },
     submitBtn: { width: '100%', padding: '15px', borderRadius: '10px', border: 'none', backgroundColor: '#5a67d8', color: 'white', fontWeight: 'bold', fontSize: '18px', cursor: 'pointer', boxShadow: '0 4px 6px rgba(90, 103, 216, 0.3)' },
     galleryContainer: { width: '100%', maxWidth: '800px', textAlign: 'center', paddingBottom: '40px' },
     galleryTitle: { color: '#2d3748', marginBottom: '20px', fontSize: '20px', fontWeight: 'bold' },
     grid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px', width: '100%' },
     gridItem: { backgroundColor: '#fff', borderRadius: '4px', overflow: 'hidden', aspectRatio: '1 / 1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #eee', position: 'relative' },
+    
+    image: { width: '100%', height: '100%', objectFit: 'cover' },
+    
     videoContainer: { width: '100%', height: '100%', position: 'relative', backgroundColor: '#000' },
     videoThumbImg: { width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 },
     playIconOverlay: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '24px', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 },
-    image: { width: '100%', height: '100%', objectFit: 'cover' },
+
     loadMoreBtn: { marginTop: '25px', padding: '12px 25px', backgroundColor: 'white', border: '2px solid #5a67d8', color: '#5a67d8', borderRadius: '30px', fontWeight: 'bold', fontSize: '14px' },
+    
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
     modalContent: { position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
     modalMedia: { width: '100%', maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain', borderRadius: '4px' },
