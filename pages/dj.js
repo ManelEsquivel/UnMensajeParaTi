@@ -12,32 +12,81 @@ const ENTRY_ALBUM  = "entry.2026891459";
 const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ9RxSCBQemScY8lZhfg2Bbi4T5xOoNhTcmENIJSZWFo8yVF0bxd7yXy5gx0HoKIb87-chczYEccKr/pub?output=csv";
 // *******************************************************************
 
-export default function DjPage({ initialTracks }) {
+export default function DjPage() {
     const router = useRouter();
     
+    // --- ESTADOS ---
     const [formData, setFormData] = useState({ song: '', artist: '', album: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showNotice, setShowNotice] = useState(false); 
+    
+    // Estado de carga y playlist
+    const [isLoading, setIsLoading] = useState(true); // Empieza cargando
+    const [playlist, setPlaylist] = useState([]);
 
-    // 1️⃣ ESTADO INICIAL
-    const [playlist, setPlaylist] = useState(initialTracks || []);
-
-    // 2️⃣ AL CARGAR LA PÁGINA
+    // 1️⃣ AL CARGAR LA PÁGINA (Lógica movida al Cliente)
     useEffect(() => {
-        const localData = localStorage.getItem('dj_pending_tracks');
-        if (localData) {
-            let localTracks = JSON.parse(localData);
-            const pendingTracks = localTracks.filter(local => {
-                const yaEstaEnExcel = initialTracks.some(remote => remote.id === local.id);
-                return !yaEstaEnExcel;
-            });
-            localStorage.setItem('dj_pending_tracks', JSON.stringify(pendingTracks));
+        async function fetchData() {
+            try {
+                // 1. Descargamos el CSV
+                const res = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`);
+                const text = await res.text();
+                
+                let remoteTracks = [];
+                
+                // 2. Procesamos el CSV (misma lógica que tenías antes)
+                if (text && !text.trim().startsWith("<") && text.length > 50) {
+                    const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').slice(1);
+                    const separator = text.indexOf(';') > -1 && text.indexOf(',') < text.indexOf(';') ? ';' : ',';
+                    
+                    remoteTracks = rows.map((row) => {
+                        if (!row || row.trim() === "") return null;
+                        // Regex compleja para separar por comas ignorando las que están entre comillas
+                        const regex = new RegExp(`${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
+                        const columns = row.split(regex); 
+                        
+                        const clean = (str) => str ? str.replace(/^"|"$/g, '').replace(/""/g, '"').trim() : '';
+                        const songName = clean(columns[1]);
+                        const artistName = clean(columns[2]) || "Desconocido";
+                        const uniqueId = `${songName}-${artistName}`.replace(/\s+/g, '-').toLowerCase();
+                        
+                        return { 
+                            id: uniqueId, 
+                            song: songName, 
+                            artist: artistName, 
+                            album: clean(columns[3]) || "", 
+                            isLocal: false 
+                        };
+                    }).filter(t => t && t.song).reverse();
+                }
 
-            if (pendingTracks.length > 0) {
-                setPlaylist([...pendingTracks.reverse(), ...initialTracks]);
+                // 3. Combinamos con LocalStorage (canciones recién añadidas por el usuario)
+                const localData = localStorage.getItem('dj_pending_tracks');
+                if (localData) {
+                    let localTracks = JSON.parse(localData);
+                    // Filtramos para no duplicar si ya aparecieron en el Excel
+                    const pendingTracks = localTracks.filter(local => {
+                        const yaEstaEnExcel = remoteTracks.some(remote => remote.id === local.id);
+                        return !yaEstaEnExcel;
+                    });
+                    localStorage.setItem('dj_pending_tracks', JSON.stringify(pendingTracks));
+                    
+                    // Unimos todo: Pendientes locales primero + Lista del Excel después
+                    setPlaylist([...pendingTracks.reverse(), ...remoteTracks]);
+                } else {
+                    setPlaylist(remoteTracks);
+                }
+
+            } catch (error) {
+                console.error("Error cargando lista:", error);
+            } finally {
+                // 4. ¡Terminó la carga! Quitamos la pantalla de loading
+                setIsLoading(false);
             }
         }
-    }, []); 
+
+        fetchData();
+    }, []);
 
     const handleChange = (e) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
@@ -46,12 +95,12 @@ export default function DjPage({ initialTracks }) {
     const handleSubmit = async (e) => {
         e.preventDefault();
         if (!formData.song) return;
+        setIsSubmitting(true);
         
         const songClean = formData.song.trim();
         const artistClean = (formData.artist || 'Desconocido').trim();
         const uniqueId = `${songClean}-${artistClean}`.replace(/\s+/g, '-').toLowerCase();
 
-        // Permitimos que el álbum esté vacío
         const newTrack = {
             id: uniqueId, 
             song: songClean, 
@@ -83,7 +132,35 @@ export default function DjPage({ initialTracks }) {
                 body: formBody
             });
         } catch (error) { console.error("Error envio"); }
+        
+        setIsSubmitting(false);
     };
+
+    // ============================================================
+    // RENDERIZADO: PANTALLA DE CARGA vs CONTENIDO REAL
+    // ============================================================
+    if (isLoading) {
+        return (
+            <div className="loading-container">
+                <Head><title>Cargando Pizarra...</title></Head>
+                <div className="vinyl-icon large-spin">💿</div>
+                <h2 className="loading-text">Abriendo Pizarra...</h2>
+                <style jsx>{`
+                    .loading-container {
+                        height: 100vh; width: 100vw;
+                        background: #1a202c;
+                        display: flex; flex-direction: column;
+                        justify-content: center; align-items: center;
+                        color: white; font-family: 'Poppins', sans-serif;
+                    }
+                    .large-spin { font-size: 80px; animation: spin 1s linear infinite; margin-bottom: 20px; }
+                    .loading-text { font-size: 18px; font-weight: 400; opacity: 0.8; animation: pulse 1.5s infinite; }
+                    @keyframes spin { 100% { transform: rotate(360deg); } }
+                    @keyframes pulse { 0% { opacity: 0.5; } 50% { opacity: 1; } 100% { opacity: 0.5; } }
+                `}</style>
+            </div>
+        );
+    }
 
     return (
         <div className="container">
@@ -112,12 +189,11 @@ export default function DjPage({ initialTracks }) {
                         </div>
                         <div className="input-group half-width">
                             <label>💿 Álbum</label>
-                            {/* Placeholder visual, pero valor inicial vacío */}
                             <input name="album" value={formData.album} onChange={handleChange} placeholder="Single" />
                         </div>
                     </div>
                     <button type="submit" className="submit-btn" disabled={isSubmitting}>
-                        AÑADIR A LA PIZARRA ✨
+                        {isSubmitting ? 'ENVIANDO...' : 'AÑADIR A LA PIZARRA ✨'}
                     </button>
                 </form>
                 <button onClick={() => router.push('/homepage')} className="back-btn">← Volver</button>
@@ -151,11 +227,8 @@ export default function DjPage({ initialTracks }) {
                                         <div className="chalk-song">"{track.song}"</div>
                                         <div className="chalk-details">
                                             <span className="artist">🎤 {track.artist}</span>
-                                            
-                                            {/* CAMBIO AQUÍ: Eliminamos la condición if. Siempre muestra el separador y el icono. */}
                                             <span className="separator"> | </span>
                                             <span className="album">💿 {track.album}</span>
-                                            
                                         </div>
                                     </div>
                                     <div className="chalk-line-separator"></div>
@@ -193,6 +266,7 @@ export default function DjPage({ initialTracks }) {
                 .half-width { flex: 1; width: 50%; }
                 .submit-btn { width: 100%; padding: 18px; margin-top: 10px; background: #2d3748; color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); touch-action: manipulation; transition: transform 0.1s; }
                 .submit-btn:active { transform: scale(0.98); }
+                .submit-btn:disabled { opacity: 0.7; cursor: wait; }
                 .back-btn { background: none; border: none; color: rgba(255,255,255,0.8); margin-top: 20px; padding: 10px; font-size: 14px; font-weight: 600; }
                 
                 .notice-box { background: #C6F6D5; border-left: 5px solid #48BB78; padding: 15px; margin: 20px 20px 0 20px; border-radius: 8px; color: #22543D; animation: slideIn 0.5s ease-out; max-width: 500px; width: 90%; align-self: center; }
@@ -226,35 +300,4 @@ export default function DjPage({ initialTracks }) {
             `}</style>
         </div>
     );
-}
-
-// SERVER SIDE
-export async function getServerSideProps({ res }) {
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
-    
-    try {
-        const fetchRes = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`, {
-            headers: { 'Pragma': 'no-cache', 'Cache-Control': 'no-cache' }
-        });
-        const text = await fetchRes.text();
-        let initialTracks = [];
-        if (text && !text.trim().startsWith("<") && text.length > 50) {
-            const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').slice(1);
-            const separator = text.indexOf(';') > -1 && text.indexOf(',') < text.indexOf(';') ? ';' : ',';
-            initialTracks = rows.map((row) => {
-                if (!row || row.trim() === "") return null;
-                const regex = new RegExp(`${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
-                const columns = row.split(regex); 
-                const clean = (str) => str ? str.replace(/^"|"$/g, '').replace(/""/g, '"').trim() : '';
-                const songName = clean(columns[1]);
-                const artistName = clean(columns[2]) || "Desconocido";
-                const uniqueId = `${songName}-${artistName}`.replace(/\s+/g, '-').toLowerCase();
-                // Permitimos strings vacíos, no forzamos "Single"
-                return { id: uniqueId, song: songName, artist: artistName, album: clean(columns[3]) || "", isLocal: false };
-            }).filter(t => t && t.song).reverse();
-        }
-        return { props: { initialTracks } };
-    } catch (error) {
-        return { props: { initialTracks: [] } };
-    }
 }
