@@ -10,7 +10,6 @@ export default function ImagenesBoda() {
     const [isGlobalUploading, setIsGlobalUploading] = useState(false);
     const [selectedMedia, setSelectedMedia] = useState(null);
     
-    // Configuración: Límite de 50 MB
     const MAX_VIDEO_SIZE_MB = 50;
     const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024;
 
@@ -74,7 +73,15 @@ export default function ImagenesBoda() {
 
     useEffect(() => { fetchGallery(); }, []);
     
-    const handleLoadMore = () => { if (nextPageToken) fetchGallery(nextPageToken, false); };
+    // --- ⚠️ CORRECCIÓN AQUÍ: Manejo robusto del evento clic ---
+    const handleLoadMore = (e) => { 
+        // Paramos cualquier comportamiento nativo del navegador que cause el "efecto raro"
+        if (e) {
+            e.preventDefault();
+            e.stopPropagation();
+        }
+        if (nextPageToken) fetchGallery(nextPageToken, false); 
+    };
 
     // --- 3. SELECCIÓN Y PROCESADO ---
     const processNewFiles = (incomingFiles) => {
@@ -104,10 +111,9 @@ export default function ImagenesBoda() {
 
     useEffect(() => { return () => { fileItems.forEach(item => URL.revokeObjectURL(item.previewUrl)); }; }, [fileItems]);
 
-    // --- EVENTOS ---
     const handleFileSelect = (e) => { 
         if (e.target.files?.length) processNewFiles(e.target.files); 
-        e.target.value = null; // Reset para permitir subir el mismo archivo
+        e.target.value = null; 
     };
     
     const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
@@ -186,10 +192,6 @@ export default function ImagenesBoda() {
                 <h1 style={styles.title}>Sube tus fotos de la boda 🥂</h1>
                 <p style={styles.subtitle}>Fotos y vídeos cortos (máx 50MB)</p>
                 
-                {/* 🔥 LA SOLUCIÓN DEFINITIVA: <label> 🔥 
-                    Al ser un label, hacer clic en CUALQUIER PARTE del recuadro
-                    dispara el input automáticamente en todos los móviles.
-                */}
                 <label 
                     style={{ ...styles.dropZone, ...(isDragging ? styles.dropZoneActive : {}) }}
                     onDragOver={handleDragOver}
@@ -198,9 +200,6 @@ export default function ImagenesBoda() {
                 >
                     <div style={styles.iconContainer}>📸 🎥</div>
                     <p style={styles.dropText}>{isDragging ? '¡Suelta aquí!' : 'Toca para seleccionar'}</p>
-                    
-                    {/* El input está DENTRO. display:none lo oculta visualmente, 
-                        pero al estar en el label, sigue funcionando. */}
                     <input 
                         type="file" 
                         onChange={handleFileSelect} 
@@ -243,7 +242,6 @@ export default function ImagenesBoda() {
                 </button>
             </div>
 
-            {/* Galería */}
             <div style={styles.galleryContainer}>
                 <h2 style={styles.galleryTitle}>📸 Galería en Vivo</h2>
                 <div style={styles.grid}>
@@ -267,13 +265,18 @@ export default function ImagenesBoda() {
                     })}
                 </div>
                 {nextPageToken && (
-                    <button onClick={handleLoadMore} style={styles.loadMoreBtn} disabled={isLoadingGallery}>
+                    /* ⚠️ AQUÍ ESTÁ EL CAMBIO CLAVE EN EL BOTÓN */
+                    <button 
+                        type="button"  /* Importante: Decimos que NO es un submit */
+                        onClick={handleLoadMore} 
+                        style={styles.loadMoreBtn} 
+                        disabled={isLoadingGallery}
+                    >
                         {isLoadingGallery ? 'Cargando...' : 'Ver más fotos 👇'}
                     </button>
                 )}
             </div>
 
-            {/* Modal */}
             {selectedMedia && (
                 <div style={styles.modalOverlay} onClick={() => setSelectedMedia(null)}>
                     <div style={styles.modalContent} onClick={(e) => e.stopPropagation()}>
@@ -296,7 +299,6 @@ const styles = {
     title: { margin: '0 0 8px 0', color: '#2d3748', fontSize: '22px' },
     subtitle: { margin: '0 0 25px 0', color: '#718096', fontSize: '14px' },
     
-    // IMPORTANTISIMO: Dropzone ahora es un 'label', añadimos display block para que se vea bien
     dropZone: { display: 'block', border: '3px dashed #cbd5e0', borderRadius: '12px', padding: '30px 15px', cursor: 'pointer', backgroundColor: '#fafafa', marginBottom: '20px' },
     dropZoneActive: { borderColor: '#5a67d8', backgroundColor: '#ebf4ff' },
     
@@ -318,7 +320,10 @@ const styles = {
     videoContainer: { width: '100%', height: '100%', position: 'relative', backgroundColor: '#000' },
     videoThumbImg: { width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 },
     playIconOverlay: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '24px', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 },
-    loadMoreBtn: { marginTop: '25px', padding: '12px 25px', backgroundColor: 'white', border: '2px solid #5a67d8', color: '#5a67d8', borderRadius: '30px', fontWeight: 'bold', fontSize: '14px' },
+    
+    // Y añadimos cursor pointer aquí también
+    loadMoreBtn: { marginTop: '25px', padding: '12px 25px', backgroundColor: 'white', border: '2px solid #5a67d8', color: '#5a67d8', borderRadius: '30px', fontWeight: 'bold', fontSize: '14px', cursor: 'pointer' },
+    
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
     modalContent: { position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
     modalMedia: { width: '100%', maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain', borderRadius: '4px' },
