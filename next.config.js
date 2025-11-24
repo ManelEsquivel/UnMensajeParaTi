@@ -6,8 +6,7 @@ const nextConfig = {
       {
         protocol: 'https',
         hostname: 'firebasestorage.googleapis.com',
-        port: '',
-        pathname: '/**', // <--- Aceptamos CUALQUIER ruta dentro de Firebase
+        // HE QUITADO "pathname" y "port" para que acepte TODO lo que venga de Firebase
       },
     ],
   },
