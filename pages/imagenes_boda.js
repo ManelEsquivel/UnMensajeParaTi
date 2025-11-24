@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import Head from 'next/head';
+import Image from 'next/image'; // <--- NUEVO: Importamos el componente de optimización
 
 export default function ImagenesBoda() {
     const [fileItems, setFileItems] = useState([]); 
@@ -22,7 +23,7 @@ export default function ImagenesBoda() {
             const reader = new FileReader();
             reader.readAsDataURL(file);
             reader.onload = (event) => {
-                const img = new Image();
+                const img = new Image(); // Nota: Esto es el objeto Image nativo del navegador, no el componente de Next
                 img.src = event.target.result;
                 img.onload = () => {
                     const canvas = document.createElement('canvas');
@@ -132,7 +133,7 @@ export default function ImagenesBoda() {
         });
     };
 
-    // --- 4. SUBIDA (CORREGIDO PARA EVITAR FALSOS ERRORES) ---
+    // --- 4. SUBIDA ---
     const updateItemStatus = (id, newStatus, errorMessage = null) => {
         setFileItems(prev => prev.map(item => 
             item.id === id ? { ...item, status: newStatus, error: errorMessage } : item
@@ -176,14 +177,12 @@ export default function ImagenesBoda() {
             
             if (!uploadRes.ok) throw new Error('Error subida');
 
-            // --- FIX: MARCAR ÉXITO ANTES DE REFRESCAR GALERÍA ---
-            // Esto asegura que si el refresco de galería falla, el usuario ve el tick verde igual.
             updateItemStatus(item.id, 'success');
 
-            // C. Esperar un poco y refrescar galería (Independiente del éxito de subida)
+            // C. Esperar un poco y refrescar galería
             setTimeout(() => {
                 fetchGallery(null, true).catch(err => console.warn("Error refrescando galería (no crítico):", err));
-            }, 1500); // Esperamos 1.5s para asegurar que el servidor ha indexado el archivo
+            }, 1500); 
 
         } catch (error) {
             console.error(error);
@@ -285,18 +284,33 @@ export default function ImagenesBoda() {
                         return (
                             <div key={index} style={styles.gridItem} onClick={() => openMediaInModal(media.url)}>
                                 {isVid ? (
+                                    /* --- VÍDEO --- */
                                     <div style={styles.videoContainer}>
+                                        <div style={{...styles.videoContainer, background: '#000', display: 'flex', alignItems: 'center', justifyContent: 'center'}}>
+                                             <span style={{fontSize:'24px'}}>🎬</span>
+                                        </div>
                                         <video 
                                             src={`${media.url}#t=0.1`} 
                                             preload="metadata"
-                                            style={styles.videoThumbImg}
+                                            style={{...styles.videoThumbImg, position: 'absolute', top:0, left:0}}
                                             playsInline
                                             muted
                                         />
                                         <div style={styles.playIconOverlay}>▶️</div>
                                     </div>
                                 ) : (
-                                    <img src={media.url} alt="Boda" style={styles.image} loading="lazy" />
+                                    /* --- IMAGEN OPTIMIZADA CON NEXT/IMAGE --- */
+                                    <div style={{ position: 'relative', width: '100%', height: '100%' }}>
+                                        <Image 
+                                            src={media.url} 
+                                            alt="Foto boda"
+                                            fill 
+                                            sizes="(max-width: 768px) 33vw, 20vw"
+                                            style={{ objectFit: 'cover' }}
+                                            loading="lazy"
+                                            quality={65} // Calidad reducida para carga rápida de miniaturas
+                                        />
+                                    </div>
                                 )}
                             </div>
                         );
@@ -359,16 +373,16 @@ const styles = {
     galleryTitle: { color: '#2d3748', marginBottom: '20px', fontSize: '20px', fontWeight: 'bold' },
     grid: { display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '5px', width: '100%' },
     gridItem: { backgroundColor: '#fff', borderRadius: '4px', overflow: 'hidden', aspectRatio: '1 / 1', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', border: '1px solid #eee', position: 'relative' },
-    image: { width: '100%', height: '100%', objectFit: 'cover' },
     
+    // --- ESTILOS DE VIDEO ---
     videoContainer: { width: '100%', height: '100%', position: 'relative', backgroundColor: '#000' },
     videoThumbImg: { width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 },
-    playIconOverlay: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '24px', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)' },
+    playIconOverlay: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '24px', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 },
 
     loadMoreBtn: { marginTop: '25px', padding: '12px 25px', backgroundColor: 'white', border: '2px solid #5a67d8', color: '#5a67d8', borderRadius: '30px', fontWeight: 'bold', fontSize: '14px' },
     
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
     modalContent: { position: 'relative', width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center' },
     modalMedia: { width: '100%', maxWidth: '100%', maxHeight: '90vh', objectFit: 'contain', borderRadius: '4px' },
-    closeButton: { position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: '24px', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center' }
+    closeButton: { position: 'absolute', top: '20px', right: '20px', background: 'rgba(255,255,255,0.2)', border: 'none', color: 'white', fontSize: '24px', cursor: 'pointer', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }
 };
