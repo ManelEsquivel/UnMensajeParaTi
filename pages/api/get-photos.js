@@ -7,13 +7,16 @@ export default async function handler(req, res) {
   try {
     const bucket = adminApp.storage().bucket();
     
-    // Leemos el token de la página siguiente si el frontend nos lo envía
-    const { pageToken } = req.query;
+    // 1. Leemos el token Y el límite que envía el frontend
+    const { pageToken, limit } = req.query;
+
+    // Convertimos el límite a número. Si no viene nada, usamos 20 por defecto.
+    const resultsLimit = parseInt(limit) || 20;
 
     const options = {
       prefix: 'bodas/',
-      maxResults: 12, // ⚠️ LÍMITE: Cargamos solo 12 fotos por vez
-      pageToken: pageToken || undefined, // Si hay token, seguimos desde ahí
+      maxResults: resultsLimit, // <--- AHORA ES DINÁMICO
+      pageToken: pageToken || undefined, 
     };
 
     // getFiles devuelve [files, nextQuery, apiResponse]
@@ -37,7 +40,7 @@ export default async function handler(req, res) {
 
     res.status(200).json({ 
       photos: validPhotos, 
-      nextPageToken: nextQuery ? nextQuery.pageToken : null // Enviamos el token para la siguiente carga
+      nextPageToken: nextQuery ? nextQuery.pageToken : null 
     });
 
   } catch (error) {
