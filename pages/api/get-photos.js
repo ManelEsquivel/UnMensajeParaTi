@@ -7,26 +7,34 @@ export default async function handler(req, res) {
   try {
     const bucket = adminApp.storage().bucket();
     
-    // 1. Leemos el token Y el límite que envía el frontend
+    // Recibimos el "token" (que ahora usaremos como número de página/índice)
     const { pageToken, limit } = req.query;
-
-    // Convertimos el límite a número. Si no viene nada, usamos 20 por defecto.
+    
+    // Si no hay token, empezamos en la foto 0. Si hay token, lo convertimos a número.
+    const startIndex = parseInt(pageToken) || 0;
     const resultsLimit = parseInt(limit) || 20;
 
-    const options = {
+    // 1. OBTENER TODO (Sin límite inicial, para poder ordenar)
+    const [files] = await bucket.getFiles({
       prefix: 'bodas/',
-      maxResults: resultsLimit, // <--- AHORA ES DINÁMICO
-      pageToken: pageToken || undefined, 
-    };
+    });
 
-    // getFiles devuelve [files, nextQuery, apiResponse]
-    const [files, nextQuery] = await bucket.getFiles(options);
+    // 2. ORDENAR: De más reciente a más antigua
+    // Usamos 'timeCreated' que viene en los metadatos del archivo
+    files.sort((a, b) => {
+        const timeA = new Date(a.metadata.timeCreated).getTime();
+        const timeB = new Date(b.metadata.timeCreated).getTime();
+        return timeB - timeA; // B - A pone los más nuevos primero
+    });
 
+    // 3. CORTAR (PAGINACIÓN MANUAL)
+    // Cogemos desde el índice actual (ej. 0) hasta el límite (ej. 20)
+    const filesOnThisPage = files.slice(startIndex, startIndex + resultsLimit);
+
+    // Generar URLs firmadas solo para estas 20
     const photos = await Promise.all(
-      files.map(async (file) => {
-        // Ignorar la carpeta misma
+      filesOnThisPage.map(async (file) => {
         if (file.name.endsWith('/')) return null;
-        
         const [url] = await file.getSignedUrl({
           action: 'read',
           expires: '01-01-2030',
@@ -35,12 +43,18 @@ export default async function handler(req, res) {
       })
     );
 
-    // Filtramos los nulos (carpetas)
     const validPhotos = photos.filter(p => p !== null);
+
+    // 4. CALCULAR SIGUIENTE PÁGINA
+    // Si quedan fotos por mostrar, el "token" será el índice donde nos quedamos
+    let nextToken = null;
+    if (startIndex + resultsLimit < files.length) {
+        nextToken = startIndex + resultsLimit;
+    }
 
     res.status(200).json({ 
       photos: validPhotos, 
-      nextPageToken: nextQuery ? nextQuery.pageToken : null 
+      nextPageToken: nextToken // Enviamos un número (ej. 20, 40...)
     });
 
   } catch (error) {
