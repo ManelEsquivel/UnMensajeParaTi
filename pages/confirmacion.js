@@ -4,29 +4,26 @@ import Head from 'next/head';
 export default function InvitationEnvelope() {
     
     // --- ESTADOS ---
-    const [isPageLoaded, setIsPageLoaded] = useState(false); // Controla el Fade-In de la página
-    const [showModal, setShowModal] = useState(false);       // Controla la Modal
+    const [isPageLoaded, setIsPageLoaded] = useState(false);
+    const [showModal, setShowModal] = useState(false);
     
-    // 0: Cerrado | 1: Abriendo Solapa | 2: Sacando Carta | 3: Zoom Lectura
+    // 0: Cerrado | 1: Abriendo Solapa | 2: Sacando Carta | 3: Lectura (Full Screen)
     const [animationStep, setAnimationStep] = useState(0);
 
-    // --- METADATOS (WHATSAPP) ---
+    // --- METADATOS ---
     const pageTitle = "Invitación de Boda - Manel & Carla";
     const pageDescription = "Estás invitado a nuestra boda. Toca para abrir el sobre.";
     const pageImage = "https://bodamanelcarla.vercel.app/confirmacion.jpg"; 
 
-    // --- DATOS DEL EVENTO (CALENDARIO) ---
+    // --- DATOS DEL EVENTO ---
     const eventData = {
         title: "Boda Manel & Carla",
         location: "Masia Mas Llombart, Sant Fost de Campsentelles, Barcelona",
         description: "¡Nos encantaría que nos acompañaras en nuestro gran día! Confirma aquí: https://www.bodas.net/web/manel-y-carla/confirmatuasistencia-3",
-        date: "20261031T120000", // 31 Oct 2026, 12:00
+        date: "20261031T120000",
         durationHours: 10
     };
 
-    // =========================================================
-    // EFECTO DE CARGA SUAVE
-    // =========================================================
     useEffect(() => {
         const timer = setTimeout(() => {
             setIsPageLoaded(true);
@@ -34,9 +31,7 @@ export default function InvitationEnvelope() {
         return () => clearTimeout(timer);
     }, []);
 
-    // =========================================================
-    // LÓGICA CALENDARIO (.ICS)
-    // =========================================================
+    // --- LÓGICA CALENDARIO (.ICS) ---
     const formatICSDate = (dateString, isEnd = false) => {
         const year = parseInt(dateString.substring(0, 4));
         const month = parseInt(dateString.substring(4, 6)) - 1;
@@ -87,14 +82,12 @@ export default function InvitationEnvelope() {
         URL.revokeObjectURL(url);
     };
 
-    // =========================================================
-    // MANEJADORES
-    // =========================================================
+    // --- MANEJADORES ---
     const startEnvelopeAnimation = (e) => {
         if(e) e.stopPropagation();
         setAnimationStep(1); // Abre tapa
         setTimeout(() => setAnimationStep(2), 1000);  // Saca carta
-        setTimeout(() => setAnimationStep(3), 2200); // Zoom final
+        setTimeout(() => setAnimationStep(3), 2200); // Posición Final (Lectura)
     };
 
     const handleOpenModal = () => {
@@ -140,7 +133,6 @@ export default function InvitationEnvelope() {
                         100% { transform: translate(-50%, -50%) scale(1); filter: drop-shadow(0 3px 5px rgba(0,0,0,0.3)); }
                     }
 
-                    /* MODAL STYLES */
                     .modal-overlay {
                         position: fixed; top: 0; left: 0; width: 100%; height: 100%;
                         background-color: rgba(0,0,0,0.6); backdrop-filter: blur(5px);
@@ -187,7 +179,7 @@ export default function InvitationEnvelope() {
                 </defs>
             </svg>
 
-            {/* --- CONTENEDOR PRINCIPAL (CON FADE IN AL CARGAR) --- */}
+            {/* --- CONTENEDOR PRINCIPAL --- */}
             <div style={{
                 ...styles.container,
                 opacity: isPageLoaded ? 1 : 0, 
@@ -196,16 +188,20 @@ export default function InvitationEnvelope() {
                 
                 <div style={{
                     ...styles.wrapper,
-                    // === CAMBIO ESTÉTICO 1: Zoom fuerte (1.5) y bajar el sobre (50vh) ===
-                    transform: animationStep === 3 ? 'translateY(50vh) scale(1.5)' : 'translateY(5vh) scale(1)',
+                    // AJUSTE CLAVE 1: 
+                    // - scale(1.25): Un zoom ligero para llenar el ancho del móvil sin pixelar el botón.
+                    // - translateY(60vh): Bajamos el sobre casi al fondo para que la carta tenga espacio arriba.
+                    transform: animationStep === 3 ? 'translateY(60vh) scale(1.25)' : 'translateY(5vh) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
                     {/* --- CARTA --- */}
                     <div style={{
                         ...styles.card,
-                        // === CAMBIO ESTÉTICO 2: La carta sale más (-85%) para compensar el zoom ===
-                        transform: animationStep >= 2 ? 'translateY(-85%)' : 'translateY(0)',
+                        // AJUSTE CLAVE 2:
+                        // - translateY(-100%): Sacamos la carta COMPLETAMENTE del sobre. 
+                        // Al estar el sobre abajo (60vh), la carta queda centrada en pantalla.
+                        transform: animationStep >= 2 ? 'translateY(-100%)' : 'translateY(0)',
                         opacity: animationStep >= 2 ? 1 : 0, 
                         zIndex: animationStep >= 2 ? 20 : 1, 
                         transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease 0.2s'
@@ -220,7 +216,7 @@ export default function InvitationEnvelope() {
                             </div>
                             <p style={styles.footerText}>¡Te esperamos!</p>
                             
-                            {/* BOTÓN ABRE LA MODAL */}
+                            {/* BOTÓN */}
                             <button onClick={handleOpenModal} style={{
                                 ...styles.button, 
                                 opacity: animationStep === 3 ? 1 : 0, 
@@ -268,7 +264,7 @@ export default function InvitationEnvelope() {
                 </div>
             </div>
 
-            {/* --- MODAL DE CONFIRMACIÓN --- */}
+            {/* --- MODAL (Sin cambios) --- */}
             <div className={`modal-overlay ${showModal ? 'active' : ''}`} onClick={(e) => e.target.className.includes('overlay') && setShowModal(false)}>
                 <div className="modal-content">
                     <h2 style={{ fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#d4af37', margin: '0 0 15px 0' }}>
