@@ -28,7 +28,6 @@ export default function InvitationEnvelope() {
     // EFECTO DE CARGA SUAVE
     // =========================================================
     useEffect(() => {
-        // Pequeño timeout para asegurar que el navegador procesa el estado inicial (opacidad 0)
         const timer = setTimeout(() => {
             setIsPageLoaded(true);
         }, 100);
@@ -191,20 +190,22 @@ export default function InvitationEnvelope() {
             {/* --- CONTENEDOR PRINCIPAL (CON FADE IN AL CARGAR) --- */}
             <div style={{
                 ...styles.container,
-                opacity: isPageLoaded ? 1 : 0, // Empieza invisible, pasa a visible
-                transition: 'opacity 1.5s ease-in-out' // Transición suave de 1.5s
+                opacity: isPageLoaded ? 1 : 0, 
+                transition: 'opacity 1.5s ease-in-out'
             }}>
                 
                 <div style={{
                     ...styles.wrapper,
-                    transform: animationStep === 3 ? 'translateY(40vh) scale(1.1)' : 'translateY(5vh) scale(1)',
+                    // === CAMBIO ESTÉTICO 1: Zoom fuerte (1.5) y bajar el sobre (50vh) ===
+                    transform: animationStep === 3 ? 'translateY(50vh) scale(1.5)' : 'translateY(5vh) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
 
                     {/* --- CARTA --- */}
                     <div style={{
                         ...styles.card,
-                        transform: animationStep >= 2 ? 'translateY(-75%)' : 'translateY(0)',
+                        // === CAMBIO ESTÉTICO 2: La carta sale más (-85%) para compensar el zoom ===
+                        transform: animationStep >= 2 ? 'translateY(-85%)' : 'translateY(0)',
                         opacity: animationStep >= 2 ? 1 : 0, 
                         zIndex: animationStep >= 2 ? 20 : 1, 
                         transition: 'transform 1.5s cubic-bezier(0.34, 1.56, 0.64, 1), opacity 0.5s ease 0.2s'
@@ -297,11 +298,11 @@ const styles = {
         backgroundColor: '#f7f3ed', 
         display: 'flex', justifyContent: 'center', alignItems: 'center',
         overflow: 'hidden', position: 'relative',
-        background: 'radial-gradient(circle at center, #fbf7f2 0%, #f7f3ed 100%)' // Fondo claro radial
+        background: 'radial-gradient(circle at center, #fbf7f2 0%, #f7f3ed 100%)' 
     },
     wrapper: {
         position: 'relative', width: '340px', height: '460px', perspective: '1200px', 
-        filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.3))', // Sombra más suave para fondo claro
+        filter: 'drop-shadow(0 20px 30px rgba(0,0,0,0.3))', 
     },
     // --- CARTA ---
     card: {
