@@ -1,5 +1,7 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
+
+// --- VERSIÓN DEFINITIVA: SIN NEXT/IMAGE Y CON BOTÓN ARREGLADO ---
 
 export default function ImagenesBoda() {
     const [fileItems, setFileItems] = useState([]); 
@@ -10,8 +12,9 @@ export default function ImagenesBoda() {
     const [isGlobalUploading, setIsGlobalUploading] = useState(false);
     
     const [selectedMedia, setSelectedMedia] = useState(null);
-    const fileInputRef = useRef(null);
-
+    
+    // Ya no necesitamos useRef para el input porque usaremos <label>
+    
     const MAX_VIDEO_SIZE_MB = 50;
     const MAX_VIDEO_SIZE_BYTES = MAX_VIDEO_SIZE_MB * 1024 * 1024;
 
@@ -52,18 +55,13 @@ export default function ImagenesBoda() {
         });
     };
 
-    // --- 2. CARGA DE GALERÍA (MODIFICADO PARA PAGINACIÓN DE 20 EN 20) ---
+    // --- 2. CARGA DE GALERÍA (CON LIMIT=20) ---
     const fetchGallery = async (token = null, reset = false) => {
         if (!reset) setIsLoadingGallery(true);
         try {
-            // ⚠️ AQUÍ ESTÁ EL CAMBIO: Añadimos limit=20
-            // Usamos ? para el primer parámetro y & para los siguientes
-            let url = '/api/get-photos?limit=20'; 
-            
-            if (token) {
-                // Si hay token, lo añadimos con & porque ya existe el ?limit=20
-                url += `&pageToken=${encodeURIComponent(token)}`;
-            }
+            // Pedimos 20 fotos
+            let url = '/api/get-photos?limit=20';
+            if (token) url += `&pageToken=${encodeURIComponent(token)}`;
 
             const res = await fetch(url);
             if (res.ok) {
@@ -121,8 +119,9 @@ export default function ImagenesBoda() {
         return () => { fileItems.forEach(item => URL.revokeObjectURL(item.previewUrl)); };
     }, [fileItems]);
 
-    const handleZoneClick = () => fileInputRef.current.click();
+    // Elimino handleZoneClick porque con <label> es automático
     const handleFileSelect = (e) => { if (e.target.files?.length) processNewFiles(e.target.files); };
+    
     const handleDragOver = (e) => { e.preventDefault(); setIsDragging(true); };
     const handleDragLeave = () => { setIsDragging(false); };
     const handleDrop = (e) => {
@@ -178,6 +177,7 @@ export default function ImagenesBoda() {
             if (!uploadRes.ok) throw new Error('Error subida');
 
             updateItemStatus(item.id, 'success');
+            // Refrescamos galería tras éxito
             setTimeout(() => {
                 fetchGallery(null, true).catch(err => console.warn("Error refrescando galería:", err));
             }, 1500); 
@@ -209,6 +209,7 @@ export default function ImagenesBoda() {
         });
     };
 
+    // --- RENDERIZADO ---
     return (
         <div style={styles.pageContainer}>
             <Head>
@@ -221,17 +222,27 @@ export default function ImagenesBoda() {
                 <h1 style={styles.title}>Sube tus fotos de la boda 🥂</h1>
                 <p style={styles.subtitle}>Fotos y vídeos cortos (máx 50MB)</p>
                 
-                <div 
+                {/* ⚠️ CAMBIO CRÍTICO: Usamos <label> en lugar de <div> 
+                   Esto hace que el clic funcione SIEMPRE en móviles
+                */}
+                <label 
                     style={{ ...styles.dropZone, ...(isDragging ? styles.dropZoneActive : {}) }}
-                    onClick={handleZoneClick}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
                 >
                     <div style={styles.iconContainer}>📸 🎥</div>
                     <p style={styles.dropText}>{isDragging ? '¡Suelta aquí!' : 'Toca para seleccionar'}</p>
-                    <input type="file" ref={fileInputRef} onChange={handleFileSelect} style={{display:'none'}} multiple accept="image/*,video/*" />
-                </div>
+                    
+                    {/* El input va DENTRO del label y oculto */}
+                    <input 
+                        type="file" 
+                        onChange={handleFileSelect} 
+                        style={{display:'none'}} 
+                        multiple 
+                        accept="image/*,video/*" 
+                    />
+                </label>
                 
                 {fileItems.length > 0 && (
                     <ul style={styles.previewList}>
@@ -252,7 +263,7 @@ export default function ImagenesBoda() {
                                     {item.status === 'error' && <span style={{color: 'red', fontWeight: 'bold'}}>Error ❌</span>}
                                 </div>
                                 {item.status !== 'uploading' && item.status !== 'success' && (
-                                    <button onClick={() => handleRemoveItem(item.id)} style={styles.removeBtn}>✕</button>
+                                    <button onClick={(e) => { e.preventDefault(); handleRemoveItem(item.id); }} style={styles.removeBtn}>✕</button>
                                 )}
                             </li>
                         ))}
@@ -268,6 +279,7 @@ export default function ImagenesBoda() {
                 </button>
             </div>
 
+            {/* Galería (Igual que antes) */}
             <div style={styles.galleryContainer}>
                 <h2 style={styles.galleryTitle}>📸 Galería en Vivo</h2>
                 <div style={styles.grid}>
@@ -302,7 +314,6 @@ export default function ImagenesBoda() {
                         );
                     })}
                 </div>
-                {/* BOTÓN "VER MÁS FOTOS" - Solo sale si hay más de 20 */}
                 {nextPageToken && (
                     <button onClick={handleLoadMore} style={styles.loadMoreBtn} disabled={isLoadingGallery}>
                         {isLoadingGallery ? 'Cargando...' : 'Ver más fotos 👇'}
@@ -334,10 +345,13 @@ const styles = {
     card: { backgroundColor: 'white', borderRadius: '16px', padding: '25px', width: '100%', maxWidth: '500px', textAlign: 'center', boxShadow: '0 4px 20px rgba(0,0,0,0.08)', marginBottom: '30px' },
     title: { margin: '0 0 8px 0', color: '#2d3748', fontSize: '22px' },
     subtitle: { margin: '0 0 25px 0', color: '#718096', fontSize: '14px' },
-    dropZone: { border: '3px dashed #cbd5e0', borderRadius: '12px', padding: '30px 15px', cursor: 'pointer', backgroundColor: '#fafafa', marginBottom: '20px' },
+    
+    // NOTA: Añadimos display block para que el label se comporte como una caja
+    dropZone: { display: 'block', border: '3px dashed #cbd5e0', borderRadius: '12px', padding: '30px 15px', cursor: 'pointer', backgroundColor: '#fafafa', marginBottom: '20px' },
     dropZoneActive: { borderColor: '#5a67d8', backgroundColor: '#ebf4ff' },
     iconContainer: { marginBottom: '10px', fontSize: '30px' },
     dropText: { margin: 0, color: '#4a5568', fontWeight: '500' },
+    
     previewList: { listStyle: 'none', padding: 0, margin: '0 0 20px 0', textAlign: 'left', maxHeight: '350px', overflowY: 'auto' },
     previewItem: { display: 'flex', alignItems: 'center', padding: '12px 0', borderBottom: '1px solid #edf2f7' },
     thumbnail: { width: '80px', height: '80px', borderRadius: '8px', objectFit: 'cover', marginRight: '15px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)' },
