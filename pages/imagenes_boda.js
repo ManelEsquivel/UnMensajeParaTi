@@ -73,10 +73,6 @@ export default function ImagenesBoda() {
 
     useEffect(() => { fetchGallery(); }, []);
     
-    const handleLoadMore = () => { 
-        if (nextPageToken) fetchGallery(nextPageToken, false); 
-    };
-
     // --- 3. SELECCIÓN Y PROCESADO ---
     const processNewFiles = (incomingFiles) => {
         const validFiles = Array.from(incomingFiles).filter(file => {
@@ -253,17 +249,19 @@ export default function ImagenesBoda() {
                     })}
                 </div>
                 {nextPageToken && (
-                    <button 
-                        type="button" 
-                        /* 🛠 EL FIX DEL DOBLE TAP ESTÁ AQUÍ */
-                        /* onMouseDown previene que el botón coja el "foco", forzando el click directo */
-                        onMouseDown={(e) => e.preventDefault()}
-                        onClick={handleLoadMore} 
-                        style={styles.loadMoreBtn} 
-                        disabled={isLoadingGallery}
+                    /* ⚠️ SOLUCIÓN: Usamos un DIV en vez de BUTTON */
+                    /* Al ser un div, el móvil no intenta enfocarlo primero, clic directo */
+                    <div 
+                        onClick={() => {
+                            if (!isLoadingGallery) fetchGallery(nextPageToken, false);
+                        }}
+                        style={{
+                            ...styles.loadMoreBtn, 
+                            opacity: isLoadingGallery ? 0.6 : 1
+                        }}
                     >
                         {isLoadingGallery ? 'Cargando...' : 'Ver más fotos 👇'}
-                    </button>
+                    </div>
                 )}
             </div>
 
@@ -309,8 +307,10 @@ const styles = {
     videoThumbImg: { width: '100%', height: '100%', objectFit: 'cover', opacity: 0.8 },
     playIconOverlay: { position: 'absolute', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', fontSize: '24px', color: 'white', textShadow: '0 2px 4px rgba(0,0,0,0.5)', zIndex: 10 },
     
-    // --- ESTILOS OPTIMIZADOS PARA MÓVIL ---
+    // --- ESTILOS ADAPTADOS PARA EL DIV ---
     loadMoreBtn: { 
+        // Display inline-block para que actúe como botón
+        display: 'inline-block',
         marginTop: '25px', 
         padding: '12px 25px', 
         backgroundColor: 'white', 
@@ -320,12 +320,9 @@ const styles = {
         fontWeight: 'bold', 
         fontSize: '14px', 
         cursor: 'pointer',
-        // Esto elimina el resaltado azul/gris nativo de iOS
-        WebkitTapHighlightColor: 'transparent',
-        // Esto acelera la respuesta del toque en móviles modernos
-        touchAction: 'manipulation',
-        // Evita que el usuario seleccione el texto "Ver más fotos" sin querer
-        userSelect: 'none'
+        // Propiedades antiselección
+        userSelect: 'none',
+        WebkitTapHighlightColor: 'transparent'
     },
     
     modalOverlay: { position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0, 0, 0, 0.95)', display: 'flex', justifyContent: 'center', alignItems: 'center', zIndex: 1000 },
