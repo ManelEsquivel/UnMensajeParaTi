@@ -171,7 +171,7 @@ Carlos Oros,,PENDIENTE
 Mujer Oros,,PENDIENTE
 Carlos Rodriguez,Rodriguez,PENDIENTE
 Dunia Mascaro,Mascaro,PENDIENTE
-Gonzalo,,PENDIENTE
+Gonzalo Blanco,Blanco,PENDIENTE
 Marta Bartual,Bartual,PENDIENTE
 Iker Zarate,Zarate,PENDIENTE
 Alfonso Zarate,Zarate,PENDIENTE
