@@ -14,6 +14,33 @@ export async function obtenerRespuestaBoda(message) {
 
   const normalizedMessage = normalize(message);
 
+  // --- 📍 REGLA ESPECIAL: UBICACIÓN GPS (BANDERA SECRETA) ---
+  // Esta regla va PRIMERO para interceptar peticiones de mapa
+  const locationKeywords = ["donde es", "ubicacion", "como llegar", "mapa", "direccion", "gps"];
+  
+  if (locationKeywords.some(keyword => normalizedMessage.includes(keyword))) {
+    return "__UBICACION__"; 
+  }
+
+  // --- 👋 REGLA DE BIENVENIDA (Respuesta al Botón Rompehielos o Saludos) ---
+  const saludos = ["hola", "buenas", "holii", "hola, soy un invitado", "empezar"];
+  
+  if (saludos.some(s => normalizedMessage.includes(s))) {
+    return `¡Hola! Bienvenido/a al asistente virtual de la Boda de Manel y Carla. 🤵👰✨
+    
+Soy una Inteligencia Artificial entrenada para ayudarte con todos los detalles del gran día.
+
+**¿En qué puedo ayudarte?**
+🍽️ Consultar el menú
+📍 Ver la ubicación
+🚌 Horarios de autobuses
+🏨 Hoteles recomendados
+🎮 ¡O jugar al Quiz de los Novios!
+
+¡Pregúntame lo que quieras!`;
+  }
+
+
   // --- 2. DATOS FIJOS (URLS, MENÚS, BEBIDAS) ---
   
   const accommodationBookingUrl = "https://www.booking.com/searchresults.es.html?ss=Sant+Fost+de+Campsentelles&ssne=Sant+Fost+de+Campsentelles&ssne_untouched=Sant+Fost+de+Campsentelles&highlighted_hotels=11793039&efdco=1&label=New_Spanish_ES_ES_21463008145-hJVFBDQNNBQZaDgbzZaRhQS640874832442%3Apl%3Ata%3Ap1%3Ap2%3Aac%3Aap%3Aneg%3Afi%3Atidsa-55482331735%3Alp9198500%3Ali%3Adec%3Adm%3Aag21463008145%3Acmp340207705&aid=318615&lang=es&sb=1&src_elem=sb&src=hotel&dest_id=-400717&dest_type=city&checkin=2026-10-31&checkout=2026-11-01&group_adults=2&no_rooms=1&group_children=0";
