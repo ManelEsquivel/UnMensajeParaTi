@@ -1,6 +1,10 @@
 // pages/api/whatsapp.js
 import { obtenerRespuestaBoda } from '../../utils/bodaBrain';
-import { descargarYSubirFoto } from '../../utils/photoHandler'; // 👈 Importamos el nuevo manejador
+import { descargarYSubirFoto } from '../../utils/photoHandler';
+
+// IMPORTANTE: Traemos la base de datos para guardar los números
+const { adminApp } = require('../../lib/firebase');
+const db = adminApp.firestore();
 
 export default async function handler(req, res) {
   // 1. VERIFICACIÓN DEL WEBHOOK (GET)
@@ -33,19 +37,28 @@ export default async function handler(req, res) {
             const messageObj = value.messages[0];
             const from = messageObj.from; 
             const messageType = messageObj.type;
+            const userName = value.contacts?.[0]?.profile?.name || "Sin nombre";
+
+            // 💾 GUARDAR EL NÚMERO EN FIREBASE (LA AGENDA)
+            try {
+                await db.collection('invitados').doc(from).set({
+                    telefono: from,
+                    nombre: userName,
+                    ultima_interaccion: new Date()
+                }, { merge: true });
+                console.log(`📝 Contacto guardado/actualizado: ${from}`);
+            } catch (e) {
+                console.error("Error guardando contacto en Firebase:", e);
+            }
 
             // 📸 CASO 1: ES UNA IMAGEN
             if (messageType === 'image') {
               console.log(`📸 Imagen recibida de ${from}`);
-              
-              // 1. Avisamos al usuario que la estamos guardando
               await enviarMensajeWhatsApp(from, "¡Wow! 📸 Guardando foto en el álbum de la boda... ⏳");
-
-              // 2. Procesamos la subida a Firebase
+              
               const mediaId = messageObj.image.id;
               const subidaExitosa = await descargarYSubirFoto(mediaId);
 
-              // 3. Confirmamos
               if (subidaExitosa) {
                 await enviarMensajeWhatsApp(from, "¡Lista! Tu foto ya está en la galería compartida. 🎉");
               } else {
@@ -53,7 +66,7 @@ export default async function handler(req, res) {
               }
             }
 
-            // 💬 CASO 2: ES TEXTO (Tu lógica actual)
+            // 💬 CASO 2: ES TEXTO
             else if (messageType === 'text') {
               const messageBody = messageObj.text.body;
               console.log(`📩 Mensaje recibido de ${from}: ${messageBody}`);
@@ -66,7 +79,6 @@ export default async function handler(req, res) {
                 await enviarMensajeWhatsApp(from, aiReplyRaw);
               }
             }
-            // Puedes añadir más casos (video, audio) aquí en el futuro
           }
         }
       }
