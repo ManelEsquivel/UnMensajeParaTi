@@ -4,6 +4,8 @@ import { descargarYSubirFoto } from '../../utils/photoHandler';
 
 const { adminApp } = require('../../lib/firebase');
 const db = adminApp.firestore();
+// Importamos FieldValue para poder añadir elementos a una lista (array) en Firebase
+const { FieldValue } = require('firebase-admin').firestore; 
 
 export default async function handler(req, res) {
   // 1. VERIFICACIÓN DEL WEBHOOK
@@ -37,87 +39,84 @@ export default async function handler(req, res) {
             const messageType = messageObj.type;
             const userName = value.contacts?.[0]?.profile?.name || "Invitado";
 
-            // --- 👮‍♂️ ZONA LEGAL: DETECTAR INTENCIÓN DE BORRADO ---
+            // 👮‍♂️ ZONA LEGAL: BORRADO
             let esBorrado = false;
-            
             if (messageType === 'text') {
                 const texto = messageObj.text.body.toLowerCase();
-                // 🧠 LISTA DE FRASES PARA BORRAR (Más flexible)
-                const frasesBorrado = [
-                    "eliminar mi telefono", "eliminar telefono", "borrar mi telefono", 
-                    "borrar telefono", "borrar mis datos", "eliminar mis datos", 
-                    "eliminar numero", "borrar numero", "darse de baja", "baja"
-                ];
-
-                if (frasesBorrado.some(frase => texto.includes(frase))) {
-                    esBorrado = true;
-                }
+                const frasesBorrado = ["eliminar mi telefono", "borrar mi telefono", "borrar mis datos", "darse de baja"];
+                if (frasesBorrado.some(frase => texto.includes(frase))) esBorrado = true;
             }
 
-            // --- EJECUCIÓN DEL BORRADO ---
             if (esBorrado) {
                 try {
-                    console.log(`🗑️ Solicitud de borrado recibida: ${from}`);
-                    // Borramos de Firebase
                     await db.collection('invitados').doc(from).delete();
-                    
-                    // Confirmamos al usuario
-                    await enviarMensajeWhatsApp(from, "✅ *Datos Eliminados*\n\nHemos borrado tu número de nuestra base de datos correctamente. Ya no recibirás más notificaciones.\n\n¡Esperamos verte en la boda igualmente! 👋");
-                    
-                    // IMPORTANTE: Cortamos aquí para que NO guarde el número otra vez ni llame a la IA
+                    await enviarMensajeWhatsApp(from, "✅ Datos eliminados correctamente. ¡Gracias!");
                     continue; 
-
-                } catch (e) {
-                    console.error("Error al borrar:", e);
-                    await enviarMensajeWhatsApp(from, "❌ Hubo un error técnico. Por favor, avisa a Manel.");
-                }
+                } catch (e) { console.error(e); }
             }
-            // -----------------------------------------------------
 
-            // Si NO es borrado, seguimos con la lógica normal (Guardar + Responder)
-
-            // 💾 GUARDAR EL NÚMERO (Si no ha pedido borrarse)
+            // 💾 GUARDAR FICHA BÁSICA (Si no es borrado)
             try {
                 const docRef = db.collection('invitados').doc(from);
                 const docSnap = await docRef.get();
-
-                // Aviso Legal solo la primera vez
                 if (!docSnap.exists) {
-                    const mensajeLegal = `🔒 *Aviso de Privacidad*
-                    
-Hola ${userName}, bienvenido/a.
-
-Tu número se guardará en la base de datos de **Manel Esquivel** para gestionar el evento.
-
-🛑 *¿Quieres borrarte?*
-Escribe **"Eliminar teléfono"** en cualquier momento y borraremos tus datos.`;
-                    await enviarMensajeWhatsApp(from, mensajeLegal);
+                    await enviarMensajeWhatsApp(from, `🔒 *Aviso de Privacidad*\n\nHola ${userName}. Tu número se guardará para gestionar la boda.\n\nEscribe *"Eliminar mi teléfono"* cuando quieras para borrarte.`);
                 }
-
-                // Guardar/Actualizar
                 await docRef.set({
                     telefono: from,
                     nombre: userName,
                     ultima_interaccion: new Date()
                 }, { merge: true });
+            } catch (e) { console.error(e); }
 
-            } catch (e) {
-                console.error("Error Firebase:", e);
-            }
 
             // 📸 CASO 1: IMAGEN
             if (messageType === 'image') {
-              await enviarMensajeWhatsApp(from, "¡Wow! 📸 Guardando foto en el álbum... ⏳");
+              await enviarMensajeWhatsApp(from, "¡Wow! 📸 Guardando foto... ⏳");
               const mediaId = messageObj.image.id;
               const subidaExitosa = await descargarYSubirFoto(mediaId);
-              if (subidaExitosa) await enviarMensajeWhatsApp(from, "¡Lista! Tu foto ya está en la galería. 🎉");
-              else await enviarMensajeWhatsApp(from, "Ups, error al guardar la foto.");
+              if (subidaExitosa) await enviarMensajeWhatsApp(from, "¡Foto guardada en el álbum! 🎉");
+              else await enviarMensajeWhatsApp(from, "Error guardando la foto.");
             }
 
             // 💬 CASO 2: TEXTO
             else if (messageType === 'text') {
               const messageBody = messageObj.text.body;
-              // Cerebro
+              const msgLower = messageBody.toLowerCase();
+              console.log(`📩 Mensaje de ${from}: ${messageBody}`);
+
+              // --- 🚑 ZONA CATERING: DETECTOR DE ALERGIAS ---
+              // Palabras clave que indican que el usuario está REPORTANDO una alergia
+              const frasesAlergia = ["tengo alergia", "soy alergico", "soy alérgico", "soy celiaco", "soy celíaco", "soy intolerante", "tengo intolerancia", "soy vegano", "soy vegetariano", "no como carne", "no como pescado"];
+              
+              const esReporteAlergia = frasesAlergia.some(frase => msgLower.includes(frase));
+
+              if (esReporteAlergia) {
+                  try {
+                      // Guardamos la alergia en un array (lista) para que puedan añadir varias
+                      await db.collection('invitados').doc(from).update({
+                          alergias: FieldValue.arrayUnion(messageBody) // Guarda el mensaje exacto
+                      });
+
+                      // Respondemos confirmando
+                      await enviarMensajeWhatsApp(from, `📝 *¡Oído cocina!* \n\nHe anotado en tu ficha: _"${messageBody}"_. \n\nSe lo pasaremos al equipo de catering para que lo tengan en cuenta. ¡Gracias por avisar! 🛡️`);
+                      
+                      // Cortamos aquí para que la IA no responda otra cosa
+                      continue; 
+
+                  } catch (e) {
+                      console.error("Error guardando alergia:", e);
+                      // Si falla (ej: el documento no existía aún), intentamos crearlo con set
+                      await db.collection('invitados').doc(from).set({
+                          alergias: [messageBody]
+                      }, { merge: true });
+                      await enviarMensajeWhatsApp(from, `📝 Anotado en tu ficha.`);
+                      continue;
+                  }
+              }
+              // -----------------------------------------------------
+
+              // CEREBRO (Si no es borrado ni alergia)
               const aiReplyRaw = await obtenerRespuestaBoda(messageBody);
 
               if (aiReplyRaw === "__UBICACION__") {
