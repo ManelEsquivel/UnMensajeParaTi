@@ -85,25 +85,71 @@ export default async function handler(req, res) {
               console.log(`📩 Mensaje de ${from}: ${messageBody}`);
 
               // --- 🎵 ZONA DJ: PETICIONES A GOOGLE SHEETS ---
-              const frasesMusica = ["cancion", "canción", "musica", "música", "quiero escuchar", "pon la de", "temazo", "para bailar"];
               
-              // Evitamos confundir preguntas sobre la música ("qué música habrá") con peticiones
-              if (frasesMusica.some(f => msgLower.includes(f)) && !msgLower.includes("que musica")) {
+              // 1. Frases que activan el "Modo DJ"
+              const activadoresMusica = ["cancion", "canción", "musica", "música", "pon la de", "temazo", "escuchar"];
+              
+              // 2. Frases de "Relleno" que queremos borrar del título
+              // (Ordenadas de más larga a más corta para borrar primero las frases complejas)
+              const frasesLimpieza = [
+                  "quiero escuchar la canción de",
+                  "quiero escuchar la cancion de",
+                  "añadir la canción de", 
+                  "añadir la cancion de",
+                  "pon la canción de", 
+                  "pon la cancion de", 
+                  "la canción de", 
+                  "la cancion de",
+                  "una canción de",
+                  "una cancion de",
+                  "canción de", 
+                  "cancion de",
+                  "quiero la de",
+                  "pon la de",
+                  "añadir",
+                  "canción",
+                  "cancion",
+                  "musica",
+                  "música"
+              ];
+
+              // ¿Es una petición de música? (Y no una pregunta sobre qué música habrá)
+              if (activadoresMusica.some(f => msgLower.includes(f)) && !msgLower.includes("que musica")) {
                   try {
+                      // 🧹 LÓGICA DE LIMPIEZA
+                      let cancionLimpia = messageBody;
+                      
+                      // Buscamos si el mensaje empieza por alguna frase de relleno
+                      for (const frase of frasesLimpieza) {
+                          const regex = new RegExp(`^${frase}\\s*`, "i"); // ^ significa "al principio"
+                          if (regex.test(cancionLimpia)) {
+                              cancionLimpia = cancionLimpia.replace(regex, "");
+                              break; // Si ya hemos borrado el inicio, paramos
+                          }
+                      }
+                      
+                      // Limpieza final de espacios o caracteres raros al inicio/final
+                      cancionLimpia = cancionLimpia.trim().replace(/^[:\-\.]\s*/, ""); 
+
+                      // Si el usuario solo escribió "canción" y lo hemos borrado todo, recuperamos el original
+                      if (cancionLimpia.length < 2) cancionLimpia = messageBody;
+
+
                       // A. Guardamos en Firebase (Backup)
                       await db.collection('canciones').add({
-                          peticion: messageBody,
+                          peticion: cancionLimpia,
+                          original: messageBody, // Guardamos también lo que escribió por si acaso
                           solicitado_por: userName,
                           origen: "whatsapp",
                           fecha: new Date()
                       });
 
-                      // B. Enviamos al Google Form (Para que salga en la web)
+                      // B. Enviamos al Google Form (Limpio)
                       const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdUwUkcF_RHlfHdraWI0Vdca6Or6HxE1M_ykj2mfci_cokyoA/formResponse";
                       const params = new URLSearchParams();
-                      params.append("entry.38062662", messageBody); // Canción
-                      params.append("entry.1279581249", userName);  // Artista (Ponemos nombre invitado)
-                      params.append("entry.2026891459", "WhatsApp"); // Álbum (Ponemos origen)
+                      params.append("entry.38062662", cancionLimpia); 
+                      params.append("entry.1279581249", userName);  
+                      params.append("entry.2026891459", "WhatsApp"); 
 
                       await fetch(FORM_URL, {
                           method: 'POST',
@@ -112,7 +158,7 @@ export default async function handler(req, res) {
                           body: params
                       });
 
-                      await enviarMensajeWhatsApp(from, `🎶 *¡Anotada en la Pizarra!* \n\nHe añadido _"${messageBody}"_ a la lista compartida. \n\nPuedes verla aquí: https://bodamanelcarla.vercel.app/dj`);
+                      await enviarMensajeWhatsApp(from, `🎶 *¡Anotada en la Pizarra!* \n\nHe añadido _"${cancionLimpia}"_ a la lista. 💃🕺`);
                       continue; 
 
                   } catch (e) {
