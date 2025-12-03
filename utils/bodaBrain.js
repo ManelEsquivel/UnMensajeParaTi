@@ -175,12 +175,12 @@ ${partyDrinksResponse}`;
 NOMBRE,APELLIDOS,CONFIRMADO
 Manel,Esquivel,CONFIRMADO
 Carla,Bartual,CONFIRMADO
-Beatriz Esquivel,Esquivel,PENDIENTE
-Manuel Esquivel,Esquivel,PENDIENTE
-Eva Lopez,Lopez,PENDIENTE
-Marc Genes,Genes,PENDIENTE
-Maria Dolors,Dolors,PENDIENTE
-Jordi Bartual,,PENDIENTE
+Beatriz Esquivel,Esquivel,CONFIRMADO
+Manuel Esquivel,Esquivel,CONFIRMADO
+Eva Lopez,Lopez,CONFIRMADO
+Marc Genes,Genes,CONFIRMADO
+Maria Dolors,Dolors,CONFIRMADO
+Jordi Bartual,,CONFIRMADO
 Anna Bernal,Bernal,PENDIENTE
 Alex Espada,Espada,PENDIENTE
 Victor Lopez,Lopez,PENDIENTE
