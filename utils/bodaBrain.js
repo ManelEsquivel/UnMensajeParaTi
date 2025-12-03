@@ -33,7 +33,7 @@ Soy una Inteligencia Artificial entrenada para ayudarte con todos los detalles d
 **¿En qué puedo ayudarte?**
 🍽️ Consultar el menú
 📍 Ver la ubicación
-🚌 Horarios de autobuses
+🕒 Horarios del evento
 🏨 Hoteles recomendados
 🎮 ¡O jugar al Quiz de los Novios!
 
