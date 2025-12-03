@@ -5,10 +5,8 @@ import { descargarYSubirFoto } from '../../utils/photoHandler';
 const { adminApp } = require('../../lib/firebase');
 const db = adminApp.firestore();
 
-// ⏳ Pausa para dar "Efecto Humano" (2 segundos es suficiente)
-const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
 export default async function handler(req, res) {
+  // 1. VERIFICACIÓN DEL WEBHOOK
   if (req.method === 'GET') {
     const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
     const mode = req.query['hub.mode'];
@@ -24,6 +22,7 @@ export default async function handler(req, res) {
     }
   }
 
+  // 2. RECEPCIÓN DE MENSAJES
   if (req.method === 'POST') {
     const body = req.body;
 
@@ -38,11 +37,8 @@ export default async function handler(req, res) {
             const messageType = messageObj.type;
             const userName = value.contacts?.[0]?.profile?.name || "Sin nombre";
 
-            // 🟢 1. ACTIVAR "ESCRIBIENDO..." (SIN AWAIT)
-            // Quitamos el 'await' para que no frene la respuesta si falla
-            simularEscribiendo(from);
-
-            // 💾 2. GUARDAR CONTACTO
+            // 💾 GUARDAR CONTACTO (Agenda en segundo plano)
+            // No usamos await para no frenar la respuesta
             db.collection('invitados').doc(from).set({
                 telefono: from,
                 nombre: userName,
@@ -52,6 +48,7 @@ export default async function handler(req, res) {
             // 📸 CASO 1: IMAGEN
             if (messageType === 'image') {
               console.log(`📸 Imagen de ${from}`);
+              // Respuesta inmediata
               await enviarMensajeWhatsApp(from, "¡Wow! 📸 Guardando foto en el álbum... ⏳");
               
               const mediaId = messageObj.image.id;
@@ -69,10 +66,7 @@ export default async function handler(req, res) {
               const messageBody = messageObj.text.body;
               console.log(`📩 Mensaje de ${from}: ${messageBody}`);
 
-              // 🟢 3. PAUSA (2 SEGUNDOS)
-              // Mientras el usuario ve (o no) el escribiendo, el bot piensa
-              await sleep(2000); 
-
+              // 🧠 CEREBRO (Sin pausas artificiales)
               const aiReplyRaw = await obtenerRespuestaBoda(messageBody);
 
               if (aiReplyRaw === "__UBICACION__") {
@@ -94,39 +88,10 @@ export default async function handler(req, res) {
 
 // --- FUNCIONES AUXILIARES ---
 
-async function simularEscribiendo(to) {
-  const token = process.env.WHATSAPP_API_TOKEN;
-  const phoneId = process.env.WHATSAPP_PHONE_ID;
-  const url = `https://graph.facebook.com/v17.0/${phoneId}/messages`;
-
-  // 🛠️ PAYLOAD SIMPLIFICADO AL MÁXIMO
-  // Quitamos 'type' y 'recipient_type' para evitar conflictos
-  const data = {
-    messaging_product: "whatsapp",
-    to: to,
-    sender_action: "typing_on"
-  };
-
-  try {
-    // No usamos await aquí para no bloquear, pero capturamos error en log
-    fetch(url, {
-      method: "POST",
-      headers: {
-        "Authorization": `Bearer ${token}`,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify(data),
-    }).catch(err => console.error("Error silencioso escribiendo:", err));
-    
-  } catch (error) {
-    console.error("Error lanzando escribiendo:", error);
-  }
-}
-
 async function enviarMensajeWhatsApp(to, text) {
   const token = process.env.WHATSAPP_API_TOKEN;
   const phoneId = process.env.WHATSAPP_PHONE_ID;
-  const url = `https://graph.facebook.com/v17.0/${phoneId}/messages`;
+  const url = `https://graph.facebook.com/v21.0/${phoneId}/messages`;
 
   const data = {
     messaging_product: "whatsapp",
@@ -152,7 +117,7 @@ async function enviarMensajeWhatsApp(to, text) {
 async function enviarUbicacionNativa(to) {
   const token = process.env.WHATSAPP_API_TOKEN;
   const phoneId = process.env.WHATSAPP_PHONE_ID;
-  const url = `https://graph.facebook.com/v17.0/${phoneId}/messages`;
+  const url = `https://graph.facebook.com/v21.0/${phoneId}/messages`;
 
   const data = {
     messaging_product: "whatsapp",
