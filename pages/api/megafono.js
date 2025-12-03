@@ -7,16 +7,12 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'No tienes permiso 👮‍♂️' });
   }
 
-  // 2. Mensaje a enviar (lo leemos de la URL)
-  // Ejemplo: .../megafono?mensaje=El bus sale ya
-  const mensajeAviso = req.query.mensaje || "¡Hola! Esto es una prueba del megáfono.";
-
   try {
     const db = adminApp.firestore();
     const token = process.env.WHATSAPP_API_TOKEN;
     const phoneId = process.env.WHATSAPP_PHONE_ID;
 
-    // 3. Leer invitados de la base de datos (Colección 'invitados')
+    // 2. Leer invitados de la base de datos (Colección 'invitados')
     const snapshot = await db.collection('invitados').get();
     
     if (snapshot.empty) {
@@ -26,7 +22,7 @@ export default async function handler(req, res) {
     let enviados = 0;
     let errores = 0;
 
-    // 4. Enviar a cada uno
+    // 3. Enviar a cada uno
     const envios = snapshot.docs.map(async (doc) => {
       const invitado = doc.data();
       const numero = invitado.telefono;
@@ -43,16 +39,10 @@ export default async function handler(req, res) {
             to: numero,
             type: "template",
             template: {
-              name: "aviso_boda", // El nombre exacto de tu plantilla en Meta
-              language: { code: "es_ES" }, // El idioma que elegiste (Spanish - Spain)
-              components: [
-                {
-                  type: "body",
-                  parameters: [
-                    { type: "text", text: mensajeAviso } // Rellena el {{1}}
-                  ]
-                }
-              ]
+              // 👇 CAMBIO TEMPORAL: Usamos la plantilla de prueba que SIEMPRE funciona
+              name: "hello_world", 
+              language: { code: "en_US" } 
+              // ⚠️ IMPORTANTE: Hemos borrado 'components' porque hello_world no admite texto personalizado
             }
           })
         });
@@ -74,7 +64,7 @@ export default async function handler(req, res) {
     await Promise.all(envios);
 
     return res.status(200).json({ 
-      resultado: `📢 Megáfono terminado. Enviados: ${enviados}, Fallos: ${errores}` 
+      resultado: `📢 Prueba terminada. Enviados: ${enviados}, Fallos: ${errores}` 
     });
 
   } catch (error) {
