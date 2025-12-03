@@ -1,11 +1,11 @@
 // pages/api/whatsapp.js
-import { obtenerRespuestaBoda } from '../../utils/bodaBrain'; // Importamos el cerebro
+import { obtenerRespuestaBoda } from '../../utils/bodaBrain';
+import { descargarYSubirFoto } from '../../utils/photoHandler'; // 👈 Importamos el nuevo manejador
 
 export default async function handler(req, res) {
   // 1. VERIFICACIÓN DEL WEBHOOK (GET)
   if (req.method === 'GET') {
     const VERIFY_TOKEN = process.env.WHATSAPP_VERIFY_TOKEN;
-
     const mode = req.query['hub.mode'];
     const token = req.query['hub.verify_token'];
     const challenge = req.query['hub.challenge'];
@@ -25,7 +25,6 @@ export default async function handler(req, res) {
     const body = req.body;
 
     if (body.object === 'whatsapp_business_account') {
-      
       for (const entry of body.entry) {
         for (const change of entry.changes) {
           const value = change.value;
@@ -35,24 +34,39 @@ export default async function handler(req, res) {
             const from = messageObj.from; 
             const messageType = messageObj.type;
 
-            // Solo procesamos texto por ahora
-            if (messageType === 'text') {
+            // 📸 CASO 1: ES UNA IMAGEN
+            if (messageType === 'image') {
+              console.log(`📸 Imagen recibida de ${from}`);
+              
+              // 1. Avisamos al usuario que la estamos guardando
+              await enviarMensajeWhatsApp(from, "¡Wow! 📸 Guardando foto en el álbum de la boda... ⏳");
+
+              // 2. Procesamos la subida a Firebase
+              const mediaId = messageObj.image.id;
+              const subidaExitosa = await descargarYSubirFoto(mediaId);
+
+              // 3. Confirmamos
+              if (subidaExitosa) {
+                await enviarMensajeWhatsApp(from, "¡Lista! Tu foto ya está en la galería compartida. 🎉");
+              } else {
+                await enviarMensajeWhatsApp(from, "Ups, hubo un error guardando la foto. Intenta enviarla de nuevo.");
+              }
+            }
+
+            // 💬 CASO 2: ES TEXTO (Tu lógica actual)
+            else if (messageType === 'text') {
               const messageBody = messageObj.text.body;
               console.log(`📩 Mensaje recibido de ${from}: ${messageBody}`);
 
-              // --- LLAMAMOS AL CEREBRO DE LA BODA 🧠 ---
               const aiReplyRaw = await obtenerRespuestaBoda(messageBody);
 
-              // --- DETECCIÓN DE MAPA/UBICACIÓN 📍 ---
-              // Si el cerebro nos devuelve la "bandera secreta", enviamos el mapa nativo
               if (aiReplyRaw === "__UBICACION__") {
-                console.log("📍 Enviando ubicación nativa...");
                 await enviarUbicacionNativa(from);
               } else {
-                // Si es texto normal, lo enviamos como siempre
                 await enviarMensajeWhatsApp(from, aiReplyRaw);
               }
             }
+            // Puedes añadir más casos (video, audio) aquí en el futuro
           }
         }
       }
@@ -65,10 +79,11 @@ export default async function handler(req, res) {
   return res.status(405).send('Método no permitido');
 }
 
-// --- FUNCIÓN ESTÁNDAR PARA TEXTO ---
+// --- FUNCIONES AUXILIARES ---
+
 async function enviarMensajeWhatsApp(to, text) {
-  const token = process.env.WHATSAPP_API_TOKEN; 
-  const phoneId = process.env.WHATSAPP_PHONE_ID; 
+  const token = process.env.WHATSAPP_API_TOKEN;
+  const phoneId = process.env.WHATSAPP_PHONE_ID;
   const url = `https://graph.facebook.com/v17.0/${phoneId}/messages`;
 
   const data = {
@@ -87,11 +102,10 @@ async function enviarMensajeWhatsApp(to, text) {
       body: JSON.stringify(data),
     });
   } catch (error) {
-    console.error("Error enviando mensaje a WhatsApp:", error);
+    console.error("Error enviando mensaje:", error);
   }
 }
 
-// --- NUEVA FUNCIÓN PARA ENVIAR UBICACIÓN NATIVA 📍 ---
 async function enviarUbicacionNativa(to) {
   const token = process.env.WHATSAPP_API_TOKEN;
   const phoneId = process.env.WHATSAPP_PHONE_ID;
@@ -102,7 +116,7 @@ async function enviarUbicacionNativa(to) {
     to: to,
     type: "location",
     location: {
-      latitude: "41.503889", // Coordenadas de Masia Mas Llombart
+      latitude: "41.503889", 
       longitude: "2.246389",
       name: "Masia Mas Llombart",
       address: "Sant Fost de Campsentelles, Barcelona"
@@ -119,6 +133,6 @@ async function enviarUbicacionNativa(to) {
       body: JSON.stringify(data),
     });
   } catch (error) {
-    console.error("Error enviando ubicación nativa:", error);
+    console.error("Error enviando ubicación:", error);
   }
 }
