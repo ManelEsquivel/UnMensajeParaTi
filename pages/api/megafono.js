@@ -2,27 +2,31 @@
 const { adminApp } = require('../../lib/firebase'); 
 
 export default async function handler(req, res) {
-  // 1. SEGURIDAD: Contraseña simple
+  // 1. SEGURIDAD
   if (req.query.clave !== 'boda_secreta_1234') { 
     return res.status(401).json({ error: 'No tienes permiso 👮‍♂️' });
   }
+
+  // Leemos el mensaje de la URL (ej: ...?mensaje=El bus sale ya)
+  const mensajeAviso = req.query.mensaje || "Aviso importante de la boda";
 
   try {
     const db = adminApp.firestore();
     const token = process.env.WHATSAPP_API_TOKEN;
     const phoneId = process.env.WHATSAPP_PHONE_ID;
 
-    // 2. Leer invitados de la base de datos (Colección 'invitados')
+    // 2. LEER INVITADOS
     const snapshot = await db.collection('invitados').get();
     
     if (snapshot.empty) {
-      return res.status(200).json({ status: 'No hay invitados guardados en la base de datos aún.' });
+      return res.status(200).json({ status: 'No hay invitados guardados aún.' });
     }
 
     let enviados = 0;
     let errores = 0;
+    let logDetalles = [];
 
-    // 3. Enviar a cada uno
+    // 3. ENVIAR A CADA UNO
     const envios = snapshot.docs.map(async (doc) => {
       const invitado = doc.data();
       const numero = invitado.telefono;
@@ -39,10 +43,17 @@ export default async function handler(req, res) {
             to: numero,
             type: "template",
             template: {
-              // 👇 CAMBIO TEMPORAL: Usamos la plantilla de prueba que SIEMPRE funciona
-              name: "hello_world", 
-              language: { code: "en_US" } 
-              // ⚠️ IMPORTANTE: Hemos borrado 'components' porque hello_world no admite texto personalizado
+              name: "aviso_boda", // 👈 TU PLANTILLA REAL
+              language: { code: "es_ES" }, // 👈 IDIOMA ESPAÑOL
+              components: [
+                {
+                  type: "body",
+                  parameters: [
+                    // Aquí metemos tu mensaje en la variable {{1}}
+                    { type: "text", text: mensajeAviso } 
+                  ]
+                }
+              ]
             }
           })
         });
@@ -52,6 +63,7 @@ export default async function handler(req, res) {
         } else {
             const errData = await response.json();
             console.error(`Fallo envío a ${numero}:`, errData);
+            logDetalles.push({ numero, error: errData.error?.message });
             errores++;
         }
         
@@ -64,7 +76,8 @@ export default async function handler(req, res) {
     await Promise.all(envios);
 
     return res.status(200).json({ 
-      resultado: `📢 Prueba terminada. Enviados: ${enviados}, Fallos: ${errores}` 
+      resultado: `📢 Megáfono terminado. Enviados: ${enviados}, Fallos: ${errores}`,
+      detalles: logDetalles
     });
 
   } catch (error) {
