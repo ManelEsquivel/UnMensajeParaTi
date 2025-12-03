@@ -1,5 +1,5 @@
 // pages/api/chat.js 
-import { marked } from "marked";
+import { marked } from "marked"; 
 import { obtenerRespuestaBoda } from '../../utils/bodaBrain'; // 👈 AQUÍ ESTÁ EL TRUCO
 
 export default async function handler(req, res) {
