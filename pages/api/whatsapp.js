@@ -37,88 +37,87 @@ export default async function handler(req, res) {
             const messageType = messageObj.type;
             const userName = value.contacts?.[0]?.profile?.name || "Invitado";
 
-            // --- 👮‍♂️ ZONA LEGAL: GESTIÓN DE CONTACTOS ---
-            
-            // Verificamos primero si es un comando de borrado para NO guardarlo
+            // --- 👮‍♂️ ZONA LEGAL: DETECTAR INTENCIÓN DE BORRADO ---
             let esBorrado = false;
+            
             if (messageType === 'text') {
                 const texto = messageObj.text.body.toLowerCase();
-                if (texto.includes("eliminar mi telefono") || texto.includes("borrar mi telefono")) {
+                // 🧠 LISTA DE FRASES PARA BORRAR (Más flexible)
+                const frasesBorrado = [
+                    "eliminar mi telefono", "eliminar telefono", "borrar mi telefono", 
+                    "borrar telefono", "borrar mis datos", "eliminar mis datos", 
+                    "eliminar numero", "borrar numero", "darse de baja", "baja"
+                ];
+
+                if (frasesBorrado.some(frase => texto.includes(frase))) {
                     esBorrado = true;
                 }
             }
 
-            if (!esBorrado) {
-                // Si NO quiere borrarse, gestionamos su ficha normalmente
+            // --- EJECUCIÓN DEL BORRADO ---
+            if (esBorrado) {
                 try {
-                    const docRef = db.collection('invitados').doc(from);
-                    const docSnap = await docRef.get();
-
-                    // Si es NUEVO, le damos el aviso legal CON la instrucción de borrado
-                    if (!docSnap.exists) {
-                        console.log(`👤 Nuevo usuario: ${from}`);
-                        const mensajeLegal = `🔒 *Aviso de Privacidad*
-                        
-Hola ${userName}, bienvenido al asistente de la boda.
-
-Tu número se guardará en la base de datos de **Manel Esquivel** para gestionar el evento.
-
-🛑 *¿Quieres darte de baja?*
-Solo tienes que escribir **"Eliminar mi teléfono"** en cualquier momento y borraremos tus datos al instante.`;
-
-                        await enviarMensajeWhatsApp(from, mensajeLegal);
-                    }
-
-                    // Guardamos/Actualizamos interacción
-                    await docRef.set({
-                        telefono: from,
-                        nombre: userName,
-                        ultima_interaccion: new Date()
-                    }, { merge: true });
+                    console.log(`🗑️ Solicitud de borrado recibida: ${from}`);
+                    // Borramos de Firebase
+                    await db.collection('invitados').doc(from).delete();
+                    
+                    // Confirmamos al usuario
+                    await enviarMensajeWhatsApp(from, "✅ *Datos Eliminados*\n\nHemos borrado tu número de nuestra base de datos correctamente. Ya no recibirás más notificaciones.\n\n¡Esperamos verte en la boda igualmente! 👋");
+                    
+                    // IMPORTANTE: Cortamos aquí para que NO guarde el número otra vez ni llame a la IA
+                    continue; 
 
                 } catch (e) {
-                    console.error("Error Firebase:", e);
+                    console.error("Error al borrar:", e);
+                    await enviarMensajeWhatsApp(from, "❌ Hubo un error técnico. Por favor, avisa a Manel.");
                 }
             }
             // -----------------------------------------------------
 
+            // Si NO es borrado, seguimos con la lógica normal (Guardar + Responder)
+
+            // 💾 GUARDAR EL NÚMERO (Si no ha pedido borrarse)
+            try {
+                const docRef = db.collection('invitados').doc(from);
+                const docSnap = await docRef.get();
+
+                // Aviso Legal solo la primera vez
+                if (!docSnap.exists) {
+                    const mensajeLegal = `🔒 *Aviso de Privacidad*
+                    
+Hola ${userName}, bienvenido/a.
+
+Tu número se guardará en la base de datos de **Manel Esquivel** para gestionar el evento.
+
+🛑 *¿Quieres borrarte?*
+Escribe **"Eliminar teléfono"** en cualquier momento y borraremos tus datos.`;
+                    await enviarMensajeWhatsApp(from, mensajeLegal);
+                }
+
+                // Guardar/Actualizar
+                await docRef.set({
+                    telefono: from,
+                    nombre: userName,
+                    ultima_interaccion: new Date()
+                }, { merge: true });
+
+            } catch (e) {
+                console.error("Error Firebase:", e);
+            }
+
             // 📸 CASO 1: IMAGEN
             if (messageType === 'image') {
-              console.log(`📸 Imagen de ${from}`);
               await enviarMensajeWhatsApp(from, "¡Wow! 📸 Guardando foto en el álbum... ⏳");
               const mediaId = messageObj.image.id;
               const subidaExitosa = await descargarYSubirFoto(mediaId);
-
-              if (subidaExitosa) {
-                await enviarMensajeWhatsApp(from, "¡Lista! Tu foto ya está en la galería. 🎉");
-              } else {
-                await enviarMensajeWhatsApp(from, "Ups, error al guardar la foto.");
-              }
+              if (subidaExitosa) await enviarMensajeWhatsApp(from, "¡Lista! Tu foto ya está en la galería. 🎉");
+              else await enviarMensajeWhatsApp(from, "Ups, error al guardar la foto.");
             }
 
             // 💬 CASO 2: TEXTO
             else if (messageType === 'text') {
               const messageBody = messageObj.text.body;
-              const messageBodyLower = messageBody.toLowerCase();
-              console.log(`📩 Mensaje de ${from}: ${messageBody}`);
-
-              // 🗑️ LÓGICA DE BORRADO (GDPR)
-              if (messageBodyLower.includes("eliminar mi telefono") || messageBodyLower.includes("borrar mi telefono")) {
-                  try {
-                      // Borramos el documento de la colección 'invitados'
-                      await db.collection('invitados').doc(from).delete();
-                      console.log(`🗑️ Usuario eliminado: ${from}`);
-                      
-                      await enviarMensajeWhatsApp(from, "✅ Hecho. Hemos eliminado tu número de nuestra base de datos. Ya no recibiras los avisos de los novios. ¡Esperamos verte en la boda!");
-                  } catch (e) {
-                      console.error("Error al borrar:", e);
-                      await enviarMensajeWhatsApp(from, "❌ Hubo un error técnico al intentar borrarte. Por favor, avisa a Manel.");
-                  }
-                  // IMPORTANTE: No seguimos procesando para que no salte el Cerebro
-                  continue; 
-              }
-
-              // Si no es borrado, preguntamos al Cerebro
+              // Cerebro
               const aiReplyRaw = await obtenerRespuestaBoda(messageBody);
 
               if (aiReplyRaw === "__UBICACION__") {
