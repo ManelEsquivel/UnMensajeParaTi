@@ -1,9 +1,9 @@
 // pages/api/chat.js 
 import { marked } from "marked"; 
-import { obtenerRespuestaBoda } from '../../utils/bodaBrain'; // 👈 AQUÍ ESTÁ EL TRUCO
+import { obtenerRespuestaBoda } from '../../utils/bodaBrain'; 
 
 export default async function handler(req, res) {
-  // 1. Verificaciones de seguridad (igual que antes)
+  // 1. Verificaciones de seguridad
   if (req.method !== "POST") {
     return res.status(405).json({ reply: "Método no permitido" }); 
   }
@@ -15,12 +15,21 @@ export default async function handler(req, res) {
 
   try {
     // 2. LLAMAMOS AL CEREBRO COMPARTIDO 🧠
-    // En lugar de calcular invitados aquí, se lo pedimos a bodaBrain.
-    // Esto nos devuelve el texto en Markdown (negritas con **, etc.)
-    const aiReplyRaw = await obtenerRespuestaBoda(message);
+    // Usamos 'let' en lugar de 'const' porque quizás necesitemos cambiar el valor
+    let aiReplyRaw = await obtenerRespuestaBoda(message);
+
+    // --- 📍 TRUCO PARA LA WEB: MANEJO DE UBICACIÓN ---
+    // Si el cerebro devuelve la bandera secreta "__UBICACION__" (que usa WhatsApp para el mapa nativo),
+    // aquí en la web la sustituimos por un texto con enlace a Google Maps.
+    if (aiReplyRaw === "__UBICACION__") {
+      aiReplyRaw = `La boda se celebrará en **Masia Mas Llombart**.
+      
+📍 Sant Fost de Campsentelles, Barcelona.
+
+[🗺️ Ver ubicación exacta en Google Maps](https://www.google.com/maps/search/?api=1&query=Masia+Mas+Llombart)`;
+    }
 
     // 3. ADAPTACIÓN PARA LA WEB (Markdown -> HTML) 🎨
-    // Como la web necesita HTML para verse bonita, usamos 'marked' aquí.
     marked.use({
       renderer: {
         link(href, title, text) {
@@ -31,7 +40,7 @@ export default async function handler(req, res) {
 
     const aiReplyHTML = marked.parse(aiReplyRaw);
 
-    // 4. Enviamos la respuesta limpia
+    // 4. Enviamos la respuesta
     return res.status(200).json({ reply: aiReplyHTML });
 
   } catch (error) {
