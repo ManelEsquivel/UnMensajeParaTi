@@ -2,7 +2,7 @@
 import { obtenerRespuestaBoda } from '../../utils/bodaBrain';
 import { descargarYSubirFoto } from '../../utils/photoHandler';
 
-// IMPORTANTE: Traemos la base de datos para guardar los números
+// Base de datos para guardar contactos
 const { adminApp } = require('../../lib/firebase');
 const db = adminApp.firestore();
 
@@ -39,16 +39,19 @@ export default async function handler(req, res) {
             const messageType = messageObj.type;
             const userName = value.contacts?.[0]?.profile?.name || "Sin nombre";
 
-            // 💾 GUARDAR EL NÚMERO EN FIREBASE (LA AGENDA)
+            // 🟢 EFECTO HUMANO: PONER "ESCRIBIENDO..." 🟢
+            // Lo lanzamos sin 'await' para que no bloquee, pero que aparezca ya
+            simularEscribiendo(from); 
+
+            // 💾 GUARDAR EL NÚMERO EN FIREBASE
             try {
                 await db.collection('invitados').doc(from).set({
                     telefono: from,
                     nombre: userName,
                     ultima_interaccion: new Date()
                 }, { merge: true });
-                console.log(`📝 Contacto guardado/actualizado: ${from}`);
             } catch (e) {
-                console.error("Error guardando contacto en Firebase:", e);
+                console.error("Error guardando contacto:", e);
             }
 
             // 📸 CASO 1: ES UNA IMAGEN
@@ -71,6 +74,7 @@ export default async function handler(req, res) {
               const messageBody = messageObj.text.body;
               console.log(`📩 Mensaje recibido de ${from}: ${messageBody}`);
 
+              // El "Escribiendo..." ya está activo mientras esto piensa
               const aiReplyRaw = await obtenerRespuestaBoda(messageBody);
 
               if (aiReplyRaw === "__UBICACION__") {
@@ -92,6 +96,33 @@ export default async function handler(req, res) {
 }
 
 // --- FUNCIONES AUXILIARES ---
+
+// 🆕 FUNCIÓN PARA QUE APAREZCA "ESCRIBIENDO..."
+async function simularEscribiendo(to) {
+  const token = process.env.WHATSAPP_API_TOKEN;
+  const phoneId = process.env.WHATSAPP_PHONE_ID;
+  const url = `https://graph.facebook.com/v17.0/${phoneId}/messages`;
+
+  const data = {
+    messaging_product: "whatsapp",
+    to: to,
+    type: "sender_action",
+    sender_action: "typing_on" // 👈 ESTA ES LA CLAVE MÁGICA
+  };
+
+  try {
+    await fetch(url, {
+      method: "POST",
+      headers: {
+        "Authorization": `Bearer ${token}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify(data),
+    });
+  } catch (error) {
+    console.error("Error enviando estado 'escribiendo':", error);
+  }
+}
 
 async function enviarMensajeWhatsApp(to, text) {
   const token = process.env.WHATSAPP_API_TOKEN;
