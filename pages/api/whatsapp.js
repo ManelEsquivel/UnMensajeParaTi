@@ -5,7 +5,7 @@ import { descargarYSubirFoto } from '../../utils/photoHandler';
 const { adminApp } = require('../../lib/firebase');
 const db = adminApp.firestore();
 
-// Pequeña función para pausar la ejecución (Delay)
+// ⏳ AUMENTADO: Pausa de 3 segundos para que dé tiempo a ver "Escribiendo..."
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default async function handler(req, res) {
@@ -38,40 +38,41 @@ export default async function handler(req, res) {
             const messageType = messageObj.type;
             const userName = value.contacts?.[0]?.profile?.name || "Sin nombre";
 
-            // 🟢 1. ACTIVAR "ESCRIBIENDO..." (CON AWAIT)
-            // Esperamos a que Facebook confirme que ha recibido la orden
+            // 🟢 1. ACTIVAR "ESCRIBIENDO..."
+            // Lo ejecutamos con await para asegurar que sale antes que nada
             await simularEscribiendo(from);
 
-            // 💾 2. GUARDAR EL NÚMERO (Sin await para que no bloquee)
+            // 💾 2. GUARDAR CONTACTO (En segundo plano)
             db.collection('invitados').doc(from).set({
                 telefono: from,
                 nombre: userName,
                 ultima_interaccion: new Date()
-            }, { merge: true }).catch(e => console.error("Error guardando contacto:", e));
+            }, { merge: true }).catch(e => console.error("Error Firebase:", e));
 
-            // 📸 CASO 1: ES UNA IMAGEN
+            // 📸 CASO 1: IMAGEN
             if (messageType === 'image') {
-              // ... lógica de imagen ...
-              await enviarMensajeWhatsApp(from, "¡Wow! 📸 Guardando foto en el álbum de la boda... ⏳");
+              console.log(`📸 Imagen de ${from}`);
+              await enviarMensajeWhatsApp(from, "¡Wow! 📸 Guardando foto en el álbum... ⏳");
+              
               const mediaId = messageObj.image.id;
               const subidaExitosa = await descargarYSubirFoto(mediaId);
+
               if (subidaExitosa) {
-                await enviarMensajeWhatsApp(from, "¡Lista! Tu foto ya está en la galería compartida. 🎉");
+                await enviarMensajeWhatsApp(from, "¡Lista! Tu foto ya está en la galería. 🎉");
               } else {
-                await enviarMensajeWhatsApp(from, "Ups, hubo un error guardando la foto.");
+                await enviarMensajeWhatsApp(from, "Ups, error al guardar la foto.");
               }
             }
 
-            // 💬 CASO 2: ES TEXTO
+            // 💬 CASO 2: TEXTO
             else if (messageType === 'text') {
               const messageBody = messageObj.text.body;
-              console.log(`📩 Mensaje recibido de ${from}: ${messageBody}`);
+              console.log(`📩 Mensaje de ${from}: ${messageBody}`);
 
-              // 🟢 3. PEQUEÑO RETRASO ARTIFICIAL (HUMANIZACIÓN)
-              // Esperamos 1.5 segundos para que el usuario vea los puntitos escribiendo
-              await sleep(1500); 
+              // 🟢 3. PAUSA DRAMÁTICA (3 SEGUNDOS)
+              // Mientras el usuario ve "Escribiendo...", el cerebro piensa
+              await sleep(3000); 
 
-              // Mientras espera, el cerebro piensa la respuesta
               const aiReplyRaw = await obtenerRespuestaBoda(messageBody);
 
               if (aiReplyRaw === "__UBICACION__") {
@@ -96,18 +97,19 @@ export default async function handler(req, res) {
 async function simularEscribiendo(to) {
   const token = process.env.WHATSAPP_API_TOKEN;
   const phoneId = process.env.WHATSAPP_PHONE_ID;
-  const url = `https://graph.facebook.com/v17.0/${phoneId}/messages`;
+  // 🆙 Actualizado a v21.0
+  const url = `https://graph.facebook.com/v21.0/${phoneId}/messages`;
 
   const data = {
     messaging_product: "whatsapp",
-    recipient_type: "individual", // Importante añadir esto
+    recipient_type: "individual",
     to: to,
-    type: "sender_action",
-    sender_action: "typing_on"
+    type: "sender_action", // Tipo de mensaje especial
+    sender_action: "typing_on" // La orden clave
   };
 
   try {
-    await fetch(url, {
+    const response = await fetch(url, {
       method: "POST",
       headers: {
         "Authorization": `Bearer ${token}`,
@@ -115,15 +117,24 @@ async function simularEscribiendo(to) {
       },
       body: JSON.stringify(data),
     });
+    
+    // 🔍 LOG DE CONTROL: Mira en los logs de Vercel si sale esto
+    if (!response.ok) {
+        const errorData = await response.json();
+        console.error("❌ Error activando 'Escribiendo':", errorData);
+    } else {
+        console.log("✅ Estado 'Escribiendo' enviado correctamente.");
+    }
+
   } catch (error) {
-    console.error("Error enviando estado 'escribiendo':", error);
+    console.error("Error de red al enviar 'escribiendo':", error);
   }
 }
 
 async function enviarMensajeWhatsApp(to, text) {
   const token = process.env.WHATSAPP_API_TOKEN;
   const phoneId = process.env.WHATSAPP_PHONE_ID;
-  const url = `https://graph.facebook.com/v17.0/${phoneId}/messages`;
+  const url = `https://graph.facebook.com/v21.0/${phoneId}/messages`;
 
   const data = {
     messaging_product: "whatsapp",
@@ -149,7 +160,7 @@ async function enviarMensajeWhatsApp(to, text) {
 async function enviarUbicacionNativa(to) {
   const token = process.env.WHATSAPP_API_TOKEN;
   const phoneId = process.env.WHATSAPP_PHONE_ID;
-  const url = `https://graph.facebook.com/v17.0/${phoneId}/messages`;
+  const url = `https://graph.facebook.com/v21.0/${phoneId}/messages`;
 
   const data = {
     messaging_product: "whatsapp",
