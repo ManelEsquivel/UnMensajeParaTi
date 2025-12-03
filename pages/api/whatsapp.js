@@ -4,7 +4,6 @@ import { descargarYSubirFoto } from '../../utils/photoHandler';
 
 const { adminApp } = require('../../lib/firebase');
 const db = adminApp.firestore();
-// Importamos FieldValue para poder añadir elementos a una lista (array) en Firebase
 const { FieldValue } = require('firebase-admin').firestore; 
 
 export default async function handler(req, res) {
@@ -55,7 +54,7 @@ export default async function handler(req, res) {
                 } catch (e) { console.error(e); }
             }
 
-            // 💾 GUARDAR FICHA BÁSICA (Si no es borrado)
+            // 💾 GUARDAR FICHA BÁSICA
             try {
                 const docRef = db.collection('invitados').doc(from);
                 const docSnap = await docRef.get();
@@ -85,38 +84,60 @@ export default async function handler(req, res) {
               const msgLower = messageBody.toLowerCase();
               console.log(`📩 Mensaje de ${from}: ${messageBody}`);
 
-              // --- 🚑 ZONA CATERING: DETECTOR DE ALERGIAS ---
-              // Palabras clave que indican que el usuario está REPORTANDO una alergia
-              const frasesAlergia = ["tengo alergia", "soy alergico", "soy alérgico", "soy celiaco", "soy celíaco", "soy intolerante", "tengo intolerancia", "soy vegano", "soy vegetariano", "no como carne", "no como pescado"];
+              // --- 🎵 ZONA DJ: PETICIONES A GOOGLE SHEETS ---
+              const frasesMusica = ["cancion", "canción", "musica", "música", "quiero escuchar", "pon la de", "temazo", "para bailar"];
               
-              const esReporteAlergia = frasesAlergia.some(frase => msgLower.includes(frase));
-
-              if (esReporteAlergia) {
+              // Evitamos confundir preguntas sobre la música ("qué música habrá") con peticiones
+              if (frasesMusica.some(f => msgLower.includes(f)) && !msgLower.includes("que musica")) {
                   try {
-                      // Guardamos la alergia en un array (lista) para que puedan añadir varias
-                      await db.collection('invitados').doc(from).update({
-                          alergias: FieldValue.arrayUnion(messageBody) // Guarda el mensaje exacto
+                      // A. Guardamos en Firebase (Backup)
+                      await db.collection('canciones').add({
+                          peticion: messageBody,
+                          solicitado_por: userName,
+                          origen: "whatsapp",
+                          fecha: new Date()
                       });
 
-                      // Respondemos confirmando
-                      await enviarMensajeWhatsApp(from, `📝 *¡Oído cocina!* \n\nHe anotado en tu ficha: _"${messageBody}"_. \n\nSe lo pasaremos al equipo de catering para que lo tengan en cuenta. ¡Gracias por avisar! 🛡️`);
-                      
-                      // Cortamos aquí para que la IA no responda otra cosa
+                      // B. Enviamos al Google Form (Para que salga en la web)
+                      const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdUwUkcF_RHlfHdraWI0Vdca6Or6HxE1M_ykj2mfci_cokyoA/formResponse";
+                      const params = new URLSearchParams();
+                      params.append("entry.38062662", messageBody); // Canción
+                      params.append("entry.1279581249", userName);  // Artista (Ponemos nombre invitado)
+                      params.append("entry.2026891459", "WhatsApp"); // Álbum (Ponemos origen)
+
+                      await fetch(FORM_URL, {
+                          method: 'POST',
+                          mode: 'no-cors',
+                          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                          body: params
+                      });
+
+                      await enviarMensajeWhatsApp(from, `🎶 *¡Anotada en la Pizarra!* \n\nHe añadido _"${messageBody}"_ a la lista compartida. \n\nPuedes verla aquí: https://bodamanelcarla.vercel.app/dj`);
                       continue; 
 
                   } catch (e) {
-                      console.error("Error guardando alergia:", e);
-                      // Si falla (ej: el documento no existía aún), intentamos crearlo con set
-                      await db.collection('invitados').doc(from).set({
-                          alergias: [messageBody]
-                      }, { merge: true });
+                      console.error("Error guardando canción:", e);
+                      await enviarMensajeWhatsApp(from, "Ups, error al guardar la canción.");
+                  }
+              }
+
+              // --- 🚑 ZONA CATERING: ALERGIAS ---
+              const frasesAlergia = ["tengo alergia", "soy alergico", "soy alérgico", "soy celiaco", "soy celíaco", "soy intolerante", "tengo intolerancia", "soy vegano", "soy vegetariano"];
+              if (frasesAlergia.some(frase => msgLower.includes(frase))) {
+                  try {
+                      await db.collection('invitados').doc(from).update({
+                          alergias: FieldValue.arrayUnion(messageBody)
+                      });
+                      await enviarMensajeWhatsApp(from, `📝 *Anotado* \n\nHe guardado tu alergia/intolerancia en tu ficha. ¡Gracias por avisar! 🛡️`);
+                      continue; 
+                  } catch (e) {
+                      await db.collection('invitados').doc(from).set({ alergias: [messageBody] }, { merge: true });
                       await enviarMensajeWhatsApp(from, `📝 Anotado en tu ficha.`);
                       continue;
                   }
               }
-              // -----------------------------------------------------
 
-              // CEREBRO (Si no es borrado ni alergia)
+              // --- 🧠 CEREBRO GENERAL (IA + MAPA) ---
               const aiReplyRaw = await obtenerRespuestaBoda(messageBody);
 
               if (aiReplyRaw === "__UBICACION__") {
