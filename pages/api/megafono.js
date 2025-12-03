@@ -44,7 +44,7 @@ export default async function handler(req, res) {
             type: "template",
             template: {
               name: "aviso_boda", // 👈 TU PLANTILLA REAL
-              language: { code: "es_ES" }, // 👈 IDIOMA ESPAÑOL
+              language: { code: "es" }, // 👈 IDIOMA ESPAÑOL
               components: [
                 {
                   type: "body",
