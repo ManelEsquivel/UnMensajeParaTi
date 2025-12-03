@@ -5,7 +5,7 @@ import { descargarYSubirFoto } from '../../utils/photoHandler';
 const { adminApp } = require('../../lib/firebase');
 const db = adminApp.firestore();
 
-// ⏳ AUMENTADO: Pausa de 3 segundos para que dé tiempo a ver "Escribiendo..."
+// ⏳ Pausa de 3 segundos para que dé tiempo a ver "Escribiendo..."
 const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
 export default async function handler(req, res) {
@@ -39,10 +39,9 @@ export default async function handler(req, res) {
             const userName = value.contacts?.[0]?.profile?.name || "Sin nombre";
 
             // 🟢 1. ACTIVAR "ESCRIBIENDO..."
-            // Lo ejecutamos con await para asegurar que sale antes que nada
             await simularEscribiendo(from);
 
-            // 💾 2. GUARDAR CONTACTO (En segundo plano)
+            // 💾 2. GUARDAR CONTACTO
             db.collection('invitados').doc(from).set({
                 telefono: from,
                 nombre: userName,
@@ -70,7 +69,6 @@ export default async function handler(req, res) {
               console.log(`📩 Mensaje de ${from}: ${messageBody}`);
 
               // 🟢 3. PAUSA DRAMÁTICA (3 SEGUNDOS)
-              // Mientras el usuario ve "Escribiendo...", el cerebro piensa
               await sleep(3000); 
 
               const aiReplyRaw = await obtenerRespuestaBoda(messageBody);
@@ -97,15 +95,14 @@ export default async function handler(req, res) {
 async function simularEscribiendo(to) {
   const token = process.env.WHATSAPP_API_TOKEN;
   const phoneId = process.env.WHATSAPP_PHONE_ID;
-  // 🆙 Actualizado a v21.0
   const url = `https://graph.facebook.com/v21.0/${phoneId}/messages`;
 
   const data = {
     messaging_product: "whatsapp",
     recipient_type: "individual",
     to: to,
-    type: "sender_action", // Tipo de mensaje especial
-    sender_action: "typing_on" // La orden clave
+    // ❌ HE BORRADO LA LÍNEA 'type: "sender_action"' QUE DABA ERROR
+    sender_action: "typing_on" 
   };
 
   try {
@@ -118,7 +115,6 @@ async function simularEscribiendo(to) {
       body: JSON.stringify(data),
     });
     
-    // 🔍 LOG DE CONTROL: Mira en los logs de Vercel si sale esto
     if (!response.ok) {
         const errorData = await response.json();
         console.error("❌ Error activando 'Escribiendo':", errorData);
