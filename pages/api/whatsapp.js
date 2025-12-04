@@ -6,6 +6,15 @@ const { adminApp } = require('../../lib/firebase');
 const db = adminApp.firestore();
 const { FieldValue } = require('firebase-admin').firestore; 
 
+// --- FUNCIÓN DE LIMPIEZA (Quita tildes y mayúsculas) ---
+const normalize = (str) => {
+  if (!str) return '';
+  return str.toLowerCase()
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "") // Elimina tildes (é -> e)
+            .trim();
+};
+
 export default async function handler(req, res) {
   // 1. VERIFICACIÓN DEL WEBHOOK
   if (req.method === 'GET') {
@@ -38,18 +47,28 @@ export default async function handler(req, res) {
             const messageType = messageObj.type;
             const userName = value.contacts?.[0]?.profile?.name || "Invitado";
 
-            // 👮‍♂️ ZONA LEGAL: BORRADO
+            // 👮‍♂️ ZONA LEGAL: BORRADO (Mejorada con normalización)
             let esBorrado = false;
+            
             if (messageType === 'text') {
-                const texto = messageObj.text.body.toLowerCase();
-                const frasesBorrado = ["eliminar mi telefono", "borrar mi telefono", "borrar mis datos", "darse de baja"];
-                if (frasesBorrado.some(frase => texto.includes(frase))) esBorrado = true;
+                const textoOriginal = messageObj.text.body;
+                const textoLimpio = normalize(textoOriginal); // "Teléfono" -> "telefono"
+
+                const frasesBorrado = [
+                    "eliminar mi telefono", "eliminar telefono", "borrar mi telefono", 
+                    "borrar telefono", "borrar mis datos", "eliminar mis datos", 
+                    "eliminar numero", "borrar numero", "darse de baja", "baja"
+                ];
+
+                if (frasesBorrado.some(frase => textoLimpio.includes(frase))) {
+                    esBorrado = true;
+                }
             }
 
             if (esBorrado) {
                 try {
                     await db.collection('invitados').doc(from).delete();
-                    await enviarMensajeWhatsApp(from, "✅ Datos eliminados correctamente. ¡Gracias!");
+                    await enviarMensajeWhatsApp(from, "✅ Datos eliminados correctamente. Tu número ha sido borrado de nuestra base de datos. ¡Gracias!");
                     continue; 
                 } catch (e) { console.error(e); }
             }
@@ -59,7 +78,7 @@ export default async function handler(req, res) {
                 const docRef = db.collection('invitados').doc(from);
                 const docSnap = await docRef.get();
                 if (!docSnap.exists) {
-                    await enviarMensajeWhatsApp(from, `🔒 *Aviso de Privacidad*\n\nHola ${userName}. Tu número se guardará para gestionar la boda.\n\nEscribe *"Eliminar mi teléfono"* cuando quieras para borrarte.`);
+                    await enviarMensajeWhatsApp(from, `🔒 *Aviso de Privacidad*\n\nHola ${userName}. Tu número se guardará para gestionar la boda.\n\nSi quieres borrarte en el futuro, solo escribe *"Eliminar mi teléfono"*.`);
                 }
                 await docRef.set({
                     telefono: from,
@@ -81,70 +100,38 @@ export default async function handler(req, res) {
             // 💬 CASO 2: TEXTO
             else if (messageType === 'text') {
               const messageBody = messageObj.text.body;
-              const msgLower = messageBody.toLowerCase();
+              const msgLower = messageBody.toLowerCase(); // Para las otras comprobaciones simples
               console.log(`📩 Mensaje de ${from}: ${messageBody}`);
 
-              // --- 🎵 ZONA DJ: PETICIONES A GOOGLE SHEETS ---
+              // --- 🎵 ZONA DJ: PETICIONES ---
+              const frasesMusica = ["cancion", "canción", "musica", "música", "quiero escuchar", "pon la de", "temazo", "para bailar"];
               
-              // 1. Frases que activan el "Modo DJ"
-              const activadoresMusica = ["cancion", "canción", "musica", "música", "pon la de", "temazo", "escuchar"];
-              
-              // 2. Frases de "Relleno" que queremos borrar del título
-              // (Ordenadas de más larga a más corta para borrar primero las frases complejas)
-              const frasesLimpieza = [
-                  "quiero escuchar la canción de",
-                  "quiero escuchar la cancion de",
-                  "añadir la canción de", 
-                  "añadir la cancion de",
-                  "pon la canción de", 
-                  "pon la cancion de", 
-                  "la canción de", 
-                  "la cancion de",
-                  "una canción de",
-                  "una cancion de",
-                  "canción de", 
-                  "cancion de",
-                  "quiero la de",
-                  "pon la de",
-                  "añadir",
-                  "canción",
-                  "cancion",
-                  "musica",
-                  "música"
-              ];
-
-              // ¿Es una petición de música? (Y no una pregunta sobre qué música habrá)
-              if (activadoresMusica.some(f => msgLower.includes(f)) && !msgLower.includes("que musica")) {
+              if (frasesMusica.some(f => msgLower.includes(f)) && !msgLower.includes("que musica")) {
                   try {
-                      // 🧹 LÓGICA DE LIMPIEZA
+                      // Limpieza inteligente del título
                       let cancionLimpia = messageBody;
+                      const frasesLimpieza = ["quiero escuchar la canción de", "quiero escuchar la cancion de", "añadir la canción de", "añadir la cancion de", "pon la canción de", "pon la cancion de", "la canción de", "la cancion de", "canción de", "cancion de", "pon la de", "añadir", "canción", "cancion", "musica", "música"];
                       
-                      // Buscamos si el mensaje empieza por alguna frase de relleno
                       for (const frase of frasesLimpieza) {
-                          const regex = new RegExp(`^${frase}\\s*`, "i"); // ^ significa "al principio"
+                          const regex = new RegExp(`^${frase}\\s*`, "i");
                           if (regex.test(cancionLimpia)) {
                               cancionLimpia = cancionLimpia.replace(regex, "");
-                              break; // Si ya hemos borrado el inicio, paramos
+                              break;
                           }
                       }
-                      
-                      // Limpieza final de espacios o caracteres raros al inicio/final
                       cancionLimpia = cancionLimpia.trim().replace(/^[:\-\.]\s*/, ""); 
-
-                      // Si el usuario solo escribió "canción" y lo hemos borrado todo, recuperamos el original
                       if (cancionLimpia.length < 2) cancionLimpia = messageBody;
 
-
-                      // A. Guardamos en Firebase (Backup)
+                      // A. Firebase
                       await db.collection('canciones').add({
                           peticion: cancionLimpia,
-                          original: messageBody, // Guardamos también lo que escribió por si acaso
+                          original: messageBody,
                           solicitado_por: userName,
                           origen: "whatsapp",
                           fecha: new Date()
                       });
 
-                      // B. Enviamos al Google Form (Limpio)
+                      // B. Google Sheets
                       const FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSdUwUkcF_RHlfHdraWI0Vdca6Or6HxE1M_ykj2mfci_cokyoA/formResponse";
                       const params = new URLSearchParams();
                       params.append("entry.38062662", cancionLimpia); 
