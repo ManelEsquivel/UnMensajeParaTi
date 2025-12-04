@@ -78,7 +78,7 @@ export default async function handler(req, res) {
                 const docRef = db.collection('invitados').doc(from);
                 const docSnap = await docRef.get();
                 if (!docSnap.exists) {
-                    await enviarMensajeWhatsApp(from, `🔒 *Aviso de Privacidad*\n\nHola ${userName}. Tu número se guardará para gestionar la boda.\n\nSi quieres borrarte en el futuro, solo escribe *"Eliminar mi teléfono"*.`);
+                    await enviarMensajeWhatsApp(from, `🔒 *Aviso de Privacidad*\n\nHola ${userName}. Tu número se guardará en la base de datos de Manel para gestionar las notificaciones.\n\nSi quieres borrarte en el futuro, solo escribe *"Eliminar mi teléfono"*.`);
                 }
                 await docRef.set({
                     telefono: from,
