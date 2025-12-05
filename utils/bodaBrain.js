@@ -223,8 +223,8 @@ Alexia Galobardes,Galobardes,PENDIENTE
 Marta Oliver,Oliver,PENDIENTE
 Helena Briones,Briones,PENDIENTE
 Joan,,PENDIENTE
-Josua Bayona,Bayona,PENDIENTE
-Amandine Liam,Liam,PENDIENTE
+Josua Bayona,Bayona,CONFIRMADO
+Amandine Liam,Liam,CONFIRMADO
 Sara ytarte,ytarte,PENDIENTE
 Eva Areny,Areny,PENDIENTE
 Jesus,,PENDIENTE
