@@ -100,7 +100,7 @@ export default async function handler(req, res) {
             // 💬 CASO 2: TEXTO
             else if (messageType === 'text') {
               const messageBody = messageObj.text.body;
-              const msgLower = messageBody.toLowerCase(); // Para las otras comprobaciones simples
+              const msgLower = messageBody.toLowerCase(); 
               console.log(`📩 Mensaje de ${from}: ${messageBody}`);
 
               // --- 🎵 ZONA DJ: PETICIONES ---
@@ -110,7 +110,6 @@ export default async function handler(req, res) {
                   try {
                       // Limpieza inteligente del título
                       let cancionLimpia = messageBody;
-                      // ⬇️ AQUÍ ESTÁ LA CORRECCIÓN: Añadido "quiero añadir" y sus variantes al principio
                       const frasesLimpieza = [
                           "quiero añadir la canción de", "quiero añadir la cancion de", "quiero añadir","la canción", 
                           "quiero escuchar la canción de", "quiero escuchar la cancion de", 
@@ -128,7 +127,19 @@ export default async function handler(req, res) {
                           }
                       }
                       cancionLimpia = cancionLimpia.trim().replace(/^[:\-\.]\s*/, ""); 
-                      if (cancionLimpia.length < 2) cancionLimpia = messageBody;
+
+                      // ---------------------------------------------------------
+                      // 🛡️ NUEVO FILTRO: DETECTAR PETICIÓN GENÉRICA
+                      // ---------------------------------------------------------
+                      const textoVerificacion = cancionLimpia.toLowerCase();
+                      const esGenerico = ["una cancion", "una canción", "cancion", "canción", "musica", "música", ""].includes(textoVerificacion);
+
+                      // Si está vacío o es solo "una canción", enviamos instrucciones y PARAMOS
+                      if (cancionLimpia.length < 2 || esGenerico) {
+                          await enviarMensajeWhatsApp(from, "¡Claro! 🎧 Para añadir una canción, dime la **canción y el artista** y la subo directamente.\n\nPuedes ver la lista completa en: https://bodamanelcarla.vercel.app/dj");
+                          continue; // 🛑 Importante: Esto evita que se guarde en la BD
+                      }
+                      // ---------------------------------------------------------
 
                       // A. Firebase
                       await db.collection('canciones').add({
