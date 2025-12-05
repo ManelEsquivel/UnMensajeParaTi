@@ -112,7 +112,7 @@ export default async function handler(req, res) {
                       let cancionLimpia = messageBody;
                       // ⬇️ AQUÍ ESTÁ LA CORRECCIÓN: Añadido "quiero añadir" y sus variantes al principio
                       const frasesLimpieza = [
-                          "quiero añadir la canción de", "quiero añadir la cancion de", "quiero añadir", 
+                          "quiero añadir la canción de", "quiero añadir la cancion de", "quiero añadir","la canción", 
                           "quiero escuchar la canción de", "quiero escuchar la cancion de", 
                           "añadir la canción de", "añadir la cancion de", "pon la canción de", 
                           "pon la cancion de", "la canción de", "la cancion de", 
