@@ -264,7 +264,7 @@ export default function DjPage() {
                 .form-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px 30px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%; flex-shrink: 0; position: relative; }
                 
                 .header { text-align: center; color: white; margin-bottom: 15px; width: 100%; }
-                .vinyl-container { height: 40px; margin-bottom: 5px; }
+                .vinyl-container { height: 40px; margin-bottom: 25px; }
                 .vinyl-icon { font-size: 40px; display: inline-block; animation: spin 4s linear infinite; }
                 .title { margin: 5px 0; font-size: 24px; font-weight: 800; letter-spacing: 1px; line-height: 1.2; }
                 .subtitle { margin: 0; opacity: 0.9; font-size: 13px; }
