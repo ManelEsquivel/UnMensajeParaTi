@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react'; // 1. AÑADIMOS useRef
+import React, { useState, useEffect, useRef } from 'react';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
@@ -14,8 +14,6 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ9RxSCB
 
 export default function DjPage() {
     const router = useRouter();
-    
-    // 2. CREAMOS LA REFERENCIA PARA EL SCROLL
     const boardRef = useRef(null);
 
     // --- ESTADOS ---
@@ -73,6 +71,8 @@ export default function DjPage() {
                 console.error("Error cargando lista:", error);
             } finally {
                 setIsLoading(false);
+                // 🔹 FORZAR SCROLL ARRIBA AL TERMINAR DE CARGAR
+                setTimeout(() => window.scrollTo(0, 0), 100); 
             }
         }
         fetchData();
@@ -125,24 +125,30 @@ export default function DjPage() {
         setIsSubmitting(false);
     };
 
-    // 3. FUNCIÓN PARA HACER SCROLL
     const scrollToBoard = () => {
         if (boardRef.current) {
             boardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     };
 
+    // ============================================================
+    // PANTALLA DE CARGA (SOLUCIÓN VISUAL FIX)
+    // ============================================================
     if (isLoading) {
         return (
             <div className="loading-container">
-                <Head><title>Cargando Pizarra...</title></Head>
+                <Head><title>Cargando...</title></Head>
                 <div className="vinyl-icon large-spin">💿</div>
                 <h2 className="loading-text">Cargando la lista...</h2>
                 <style jsx>{`
                     .loading-container {
-                        height: 100vh; width: 100vw; background: #1a202c;
-                        display: flex; flex-direction: column; justifyContent: center; alignItems: center;
+                        position: fixed; /* 🔹 ESTO EVITA EL SALTO VISUAL */
+                        top: 0; left: 0; right: 0; bottom: 0;
+                        background: #1a202c;
+                        display: flex; flex-direction: column;
+                        justify-content: center; align-items: center;
                         color: white; font-family: 'Poppins', sans-serif;
+                        z-index: 9999;
                     }
                     .large-spin { font-size: 80px; animation: spin 1s linear infinite; margin-bottom: 20px; }
                     .loading-text { font-size: 18px; font-weight: 400; opacity: 0.8; animation: pulse 1.5s infinite; }
@@ -153,6 +159,9 @@ export default function DjPage() {
         );
     }
 
+    // ============================================================
+    // CONTENIDO PRINCIPAL
+    // ============================================================
     return (
         <div className="container">
             <Head>
@@ -188,13 +197,14 @@ export default function DjPage() {
                     </button>
                 </form>
                 
-                <button onClick={() => router.push('/homepage')} className="back-btn">← Volver</button>
+                <div className="footer-actions">
+                    <button onClick={() => router.push('/homepage')} className="back-btn">← Volver</button>
 
-                {/* 4. AÑADIMOS EL BOTÓN DE VER LISTADO */}
-                <div onClick={scrollToBoard} className="scroll-btn">
-                    <div className="scroll-icon">📜</div>
-                    <span>Ver listado de canciones</span>
-                    <div className="arrow-down">▼</div>
+                    <div onClick={scrollToBoard} className="scroll-btn">
+                        <div className="scroll-icon">📜</div>
+                        <span>Ver listado de canciones</span>
+                        <div className="arrow-down">▼</div>
+                    </div>
                 </div>
             </div>
 
@@ -207,7 +217,6 @@ export default function DjPage() {
                 </div>
             )}
 
-            {/* 5. AÑADIMOS LA REF AQUÍ */}
             <div className="board-section" ref={boardRef}>
                 <div className="chalkboard">
                     <div style={{display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'10px'}}>
@@ -250,36 +259,40 @@ export default function DjPage() {
 
             <style jsx>{`
                 .container { min-height: 100vh; display: flex; flex-direction: column; font-family: 'Poppins', sans-serif; background: #1a202c; overflow-x: hidden; padding-bottom: 50px; }
-                .form-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 60px 20px 40px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%; flex-shrink: 0; position: relative; }
-                .header { text-align: center; color: white; margin-bottom: 25px; width: 100%; }
-                .vinyl-container { height: 50px; margin-bottom: 10px; }
-                .vinyl-icon { font-size: 45px; display: inline-block; animation: spin 4s linear infinite; }
-                .title { margin: 5px 0; font-size: 28px; font-weight: 800; letter-spacing: 1px; line-height: 1.2; }
-                .subtitle { margin: 0; opacity: 0.9; font-size: 14px; }
-                .form-card { background: rgba(255, 255, 255, 0.96); padding: 25px 20px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin: 0 auto; }
-                .input-group { margin-bottom: 15px; width: 100%; }
-                .input-group label { display: block; font-size: 12px; font-weight: 800; color: #4a5568; margin-bottom: 6px; text-transform: uppercase; }
-                .input-group input { width: 100%; padding: 14px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 16px; outline: none; background-color: #f7fafc; font-family: 'Poppins', sans-serif; -webkit-appearance: none; }
+                
+                /* 🔹 AJUSTE: MENOS PADDING ARRIBA PARA QUE QUEPA TODO */
+                .form-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 40px 20px 30px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%; flex-shrink: 0; position: relative; }
+                
+                .header { text-align: center; color: white; margin-bottom: 15px; width: 100%; }
+                .vinyl-container { height: 40px; margin-bottom: 5px; }
+                .vinyl-icon { font-size: 40px; display: inline-block; animation: spin 4s linear infinite; }
+                .title { margin: 5px 0; font-size: 24px; font-weight: 800; letter-spacing: 1px; line-height: 1.2; }
+                .subtitle { margin: 0; opacity: 0.9; font-size: 13px; }
+                
+                .form-card { background: rgba(255, 255, 255, 0.96); padding: 20px 20px; border-radius: 20px; width: 100%; max-width: 400px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); margin: 0 auto; }
+                
+                .input-group { margin-bottom: 12px; width: 100%; }
+                .input-group label { display: block; font-size: 11px; font-weight: 800; color: #4a5568; margin-bottom: 4px; text-transform: uppercase; }
+                .input-group input { width: 100%; padding: 12px; border-radius: 12px; border: 2px solid #e2e8f0; font-size: 16px; outline: none; background-color: #f7fafc; font-family: 'Poppins', sans-serif; -webkit-appearance: none; }
                 .input-group input:focus { border-color: #667eea; background: #fff; }
-                .row-group { display: flex; gap: 12px; width: 100%; }
+                
+                .row-group { display: flex; gap: 10px; width: 100%; }
                 .half-width { flex: 1; width: 50%; }
-                .submit-btn { width: 100%; padding: 18px; margin-top: 10px; background: #2d3748; color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); touch-action: manipulation; transition: transform 0.1s; }
+                .submit-btn { width: 100%; padding: 16px; margin-top: 5px; background: #2d3748; color: #fff; border: none; border-radius: 14px; font-size: 15px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); touch-action: manipulation; transition: transform 0.1s; }
                 .submit-btn:active { transform: scale(0.98); }
                 .submit-btn:disabled { opacity: 0.7; cursor: wait; }
                 
-                .back-btn { background: none; border: none; color: rgba(255,255,255,0.7); margin-top: 20px; padding: 5px 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+                .footer-actions { display: flex; flex-direction: column; align-items: center; margin-top: 15px; width: 100%; }
+                .back-btn { background: none; border: none; color: rgba(255,255,255,0.7); margin-bottom: 10px; padding: 5px 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
                 
-                /* ESTILOS DEL NUEVO BOTÓN SCROLL */
                 .scroll-btn {
-                    margin-top: 15px;
                     display: flex; flex-direction: column; align-items: center;
-                    color: white; cursor: pointer; opacity: 0.9;
+                    color: white; cursor: pointer; opacity: 1;
                     animation: float 2s ease-in-out infinite;
                 }
-                .scroll-btn:hover { opacity: 1; }
                 .scroll-icon { font-size: 24px; margin-bottom: 2px; }
-                .scroll-btn span { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px dashed rgba(255,255,255,0.5); padding-bottom: 2px; }
-                .arrow-down { font-size: 10px; margin-top: 5px; opacity: 0.7; }
+                .scroll-btn span { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px dashed rgba(255,255,255,0.5); padding-bottom: 2px; text-shadow: 0 2px 4px rgba(0,0,0,0.2); }
+                .arrow-down { font-size: 10px; margin-top: 5px; opacity: 0.8; }
 
                 .notice-box { background: #C6F6D5; border-left: 5px solid #48BB78; padding: 15px; margin: 20px 20px 0 20px; border-radius: 8px; color: #22543D; animation: slideIn 0.5s ease-out; max-width: 500px; width: 90%; align-self: center; }
                 .notice-title { font-weight: 800; margin-bottom: 5px; font-size: 14px; }
