@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react'; // 1. AÑADIMOS useRef
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 
@@ -15,36 +15,32 @@ const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vTZ9RxSCB
 export default function DjPage() {
     const router = useRouter();
     
+    // 2. CREAMOS LA REFERENCIA PARA EL SCROLL
+    const boardRef = useRef(null);
+
     // --- ESTADOS ---
     const [formData, setFormData] = useState({ song: '', artist: '', album: '' });
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [showNotice, setShowNotice] = useState(false); 
-    
-    // Estado de carga y playlist
-    const [isLoading, setIsLoading] = useState(true); // Empieza cargando
+    const [isLoading, setIsLoading] = useState(true);
     const [playlist, setPlaylist] = useState([]);
 
-    // 1️⃣ AL CARGAR LA PÁGINA (Lógica movida al Cliente)
+    // 1️⃣ AL CARGAR LA PÁGINA
     useEffect(() => {
         async function fetchData() {
             try {
-                // 1. Descargamos el CSV
                 const res = await fetch(`${SHEET_CSV_URL}&uid=${Date.now()}`);
                 const text = await res.text();
-                
                 let remoteTracks = [];
                 
-                // 2. Procesamos el CSV (misma lógica que tenías antes)
                 if (text && !text.trim().startsWith("<") && text.length > 50) {
                     const rows = text.replace(/\r\n/g, '\n').replace(/\r/g, '\n').split('\n').slice(1);
                     const separator = text.indexOf(';') > -1 && text.indexOf(',') < text.indexOf(';') ? ';' : ',';
                     
                     remoteTracks = rows.map((row) => {
                         if (!row || row.trim() === "") return null;
-                        // Regex compleja para separar por comas ignorando las que están entre comillas
                         const regex = new RegExp(`${separator}(?=(?:(?:[^"]*"){2})*[^"]*$)`);
                         const columns = row.split(regex); 
-                        
                         const clean = (str) => str ? str.replace(/^"|"$/g, '').replace(/""/g, '"').trim() : '';
                         const songName = clean(columns[1]);
                         const artistName = clean(columns[2]) || "Desconocido";
@@ -60,18 +56,14 @@ export default function DjPage() {
                     }).filter(t => t && t.song).reverse();
                 }
 
-                // 3. Combinamos con LocalStorage (canciones recién añadidas por el usuario)
                 const localData = localStorage.getItem('dj_pending_tracks');
                 if (localData) {
                     let localTracks = JSON.parse(localData);
-                    // Filtramos para no duplicar si ya aparecieron en el Excel
                     const pendingTracks = localTracks.filter(local => {
                         const yaEstaEnExcel = remoteTracks.some(remote => remote.id === local.id);
                         return !yaEstaEnExcel;
                     });
                     localStorage.setItem('dj_pending_tracks', JSON.stringify(pendingTracks));
-                    
-                    // Unimos todo: Pendientes locales primero + Lista del Excel después
                     setPlaylist([...pendingTracks.reverse(), ...remoteTracks]);
                 } else {
                     setPlaylist(remoteTracks);
@@ -80,11 +72,9 @@ export default function DjPage() {
             } catch (error) {
                 console.error("Error cargando lista:", error);
             } finally {
-                // 4. ¡Terminó la carga! Quitamos la pantalla de loading
                 setIsLoading(false);
             }
         }
-
         fetchData();
     }, []);
 
@@ -111,7 +101,6 @@ export default function DjPage() {
         };
 
         setPlaylist(prev => [newTrack, ...prev]);
-        
         const currentLocals = JSON.parse(localStorage.getItem('dj_pending_tracks') || '[]');
         currentLocals.push(newTrack);
         localStorage.setItem('dj_pending_tracks', JSON.stringify(currentLocals));
@@ -136,9 +125,13 @@ export default function DjPage() {
         setIsSubmitting(false);
     };
 
-    // ============================================================
-    // RENDERIZADO: PANTALLA DE CARGA vs CONTENIDO REAL
-    // ============================================================
+    // 3. FUNCIÓN PARA HACER SCROLL
+    const scrollToBoard = () => {
+        if (boardRef.current) {
+            boardRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+    };
+
     if (isLoading) {
         return (
             <div className="loading-container">
@@ -147,10 +140,8 @@ export default function DjPage() {
                 <h2 className="loading-text">Cargando la lista...</h2>
                 <style jsx>{`
                     .loading-container {
-                        height: 100vh; width: 100vw;
-                        background: #1a202c;
-                        display: flex; flex-direction: column;
-                        justify-content: center; align-items: center;
+                        height: 100vh; width: 100vw; background: #1a202c;
+                        display: flex; flex-direction: column; justifyContent: center; alignItems: center;
                         color: white; font-family: 'Poppins', sans-serif;
                     }
                     .large-spin { font-size: 80px; animation: spin 1s linear infinite; margin-bottom: 20px; }
@@ -196,7 +187,15 @@ export default function DjPage() {
                         {isSubmitting ? 'ENVIANDO...' : 'AÑADIR A LA PIZARRA ✨'}
                     </button>
                 </form>
+                
                 <button onClick={() => router.push('/homepage')} className="back-btn">← Volver</button>
+
+                {/* 4. AÑADIMOS EL BOTÓN DE VER LISTADO */}
+                <div onClick={scrollToBoard} className="scroll-btn">
+                    <div className="scroll-icon">📜</div>
+                    <span>Ver listado de canciones</span>
+                    <div className="arrow-down">▼</div>
+                </div>
             </div>
 
             {showNotice && (
@@ -208,7 +207,8 @@ export default function DjPage() {
                 </div>
             )}
 
-            <div className="board-section">
+            {/* 5. AÑADIMOS LA REF AQUÍ */}
+            <div className="board-section" ref={boardRef}>
                 <div className="chalkboard">
                     <div style={{display:'flex', justifyContent:'center', alignItems:'center', marginBottom:'10px'}}>
                         <h2 className="chalk-title" style={{margin:0}}>PETICIONES</h2>
@@ -240,7 +240,6 @@ export default function DjPage() {
                     <div className="chalk-footer">
                         * Recarga la página para ver nuevas canciones.
                     </div>
-
                 </div>
             </div>
 
@@ -251,7 +250,7 @@ export default function DjPage() {
 
             <style jsx>{`
                 .container { min-height: 100vh; display: flex; flex-direction: column; font-family: 'Poppins', sans-serif; background: #1a202c; overflow-x: hidden; padding-bottom: 50px; }
-                .form-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 60px 20px 40px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%; flex-shrink: 0; }
+                .form-section { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); padding: 60px 20px 40px 20px; border-bottom-left-radius: 30px; border-bottom-right-radius: 30px; display: flex; flex-direction: column; align-items: center; box-shadow: 0 10px 30px rgba(0,0,0,0.3); width: 100%; flex-shrink: 0; position: relative; }
                 .header { text-align: center; color: white; margin-bottom: 25px; width: 100%; }
                 .vinyl-container { height: 50px; margin-bottom: 10px; }
                 .vinyl-icon { font-size: 45px; display: inline-block; animation: spin 4s linear infinite; }
@@ -267,8 +266,21 @@ export default function DjPage() {
                 .submit-btn { width: 100%; padding: 18px; margin-top: 10px; background: #2d3748; color: #fff; border: none; border-radius: 14px; font-size: 16px; font-weight: 800; cursor: pointer; box-shadow: 0 4px 6px rgba(0,0,0,0.1); touch-action: manipulation; transition: transform 0.1s; }
                 .submit-btn:active { transform: scale(0.98); }
                 .submit-btn:disabled { opacity: 0.7; cursor: wait; }
-                .back-btn { background: none; border: none; color: rgba(255,255,255,0.8); margin-top: 20px; padding: 10px; font-size: 14px; font-weight: 600; }
                 
+                .back-btn { background: none; border: none; color: rgba(255,255,255,0.7); margin-top: 20px; padding: 5px 10px; font-size: 14px; font-weight: 600; cursor: pointer; }
+                
+                /* ESTILOS DEL NUEVO BOTÓN SCROLL */
+                .scroll-btn {
+                    margin-top: 15px;
+                    display: flex; flex-direction: column; align-items: center;
+                    color: white; cursor: pointer; opacity: 0.9;
+                    animation: float 2s ease-in-out infinite;
+                }
+                .scroll-btn:hover { opacity: 1; }
+                .scroll-icon { font-size: 24px; margin-bottom: 2px; }
+                .scroll-btn span { font-size: 12px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; border-bottom: 1px dashed rgba(255,255,255,0.5); padding-bottom: 2px; }
+                .arrow-down { font-size: 10px; margin-top: 5px; opacity: 0.7; }
+
                 .notice-box { background: #C6F6D5; border-left: 5px solid #48BB78; padding: 15px; margin: 20px 20px 0 20px; border-radius: 8px; color: #22543D; animation: slideIn 0.5s ease-out; max-width: 500px; width: 90%; align-self: center; }
                 .notice-title { font-weight: 800; margin-bottom: 5px; font-size: 14px; }
                 .notice-text { font-size: 12px; line-height: 1.4; }
@@ -296,6 +308,8 @@ export default function DjPage() {
 
                 @keyframes spin { 100% { transform: rotate(360deg); } }
                 @keyframes slideIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+                @keyframes float { 0% { transform: translateY(0px); } 50% { transform: translateY(5px); } 100% { transform: translateY(0px); } }
+
                 @media (max-width: 380px) { .form-section { padding-top: 50px; } .title { font-size: 24px; } .form-card { padding: 20px 15px; } }
             `}</style>
         </div>
