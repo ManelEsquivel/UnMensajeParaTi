@@ -34,6 +34,7 @@ Soy una Inteligencia Artificial entrenada para ayudarte con todos los detalles d
 🍽️ Consultar el menú
 📍 Ver la ubicación
 🕒 Horarios del evento
+🎶 Añade tu canción para la fiesta
 🏨 Hoteles recomendados
 🎮 ¡O jugar al Quiz de los Novios!
 
