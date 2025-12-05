@@ -104,13 +104,21 @@ export default async function handler(req, res) {
               console.log(`📩 Mensaje de ${from}: ${messageBody}`);
 
               // --- 🎵 ZONA DJ: PETICIONES ---
-              const frasesMusica = ["cancion", "canción", "musica", "música", "quiero escuchar", "pon la de", "temazo", "para bailar"];
+              const frasesMusica = ["cancion", "canción", "musica", "música", "quiero escuchar", "pon la de", "temazo", "para bailar", "quiero añadir"];
               
               if (frasesMusica.some(f => msgLower.includes(f)) && !msgLower.includes("que musica")) {
                   try {
                       // Limpieza inteligente del título
                       let cancionLimpia = messageBody;
-                      const frasesLimpieza = ["quiero escuchar la canción de", "quiero escuchar la cancion de", "añadir la canción de", "añadir la cancion de", "pon la canción de", "pon la cancion de", "la canción de", "la cancion de", "canción de", "cancion de", "pon la de", "añadir", "canción", "cancion", "musica", "música"];
+                      // ⬇️ AQUÍ ESTÁ LA CORRECCIÓN: Añadido "quiero añadir" y sus variantes al principio
+                      const frasesLimpieza = [
+                          "quiero añadir la canción de", "quiero añadir la cancion de", "quiero añadir", 
+                          "quiero escuchar la canción de", "quiero escuchar la cancion de", 
+                          "añadir la canción de", "añadir la cancion de", "pon la canción de", 
+                          "pon la cancion de", "la canción de", "la cancion de", 
+                          "canción de", "cancion de", "pon la de", "añadir", 
+                          "canción", "cancion", "musica", "música"
+                      ];
                       
                       for (const frase of frasesLimpieza) {
                           const regex = new RegExp(`^${frase}\\s*`, "i");
