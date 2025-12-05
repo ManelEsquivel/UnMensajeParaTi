@@ -216,8 +216,8 @@ Carlos Barceló,Barceló,PENDIENTE
 Sonia Cadevall,Cadevall,PENDIENTE
 Antonio Escartín,Escartin,PENDIENTE
 Sandra Gano,Gano,PENDIENTE
-Ivan Alamo,Alamo,PENDIENTE
-Alba Martinez,,PENDIENTE
+Ivan Alamo,Alamo,CONFIRMADO
+Alba Martinez,,CONFIRMADO
 Alex Ferré,Ferré,PENDIENTE
 Alexia Galobardes,Galobardes,PENDIENTE
 Marta Oliver,Oliver,PENDIENTE
