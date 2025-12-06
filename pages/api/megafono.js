@@ -7,29 +7,44 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'No tienes permiso 👮‍♂️' });
   }
 
-  // Leemos el mensaje de la URL (ej: ...?mensaje=El bus sale ya)
+  // Leemos parámetros de la URL
   const mensajeAviso = req.query.mensaje || "Aviso importante de la boda";
+  const testTelefono = req.query.test_telefono; // <--- NUEVO: Capturamos el teléfono de prueba
 
   try {
-    const db = adminApp.firestore();
     const token = process.env.WHATSAPP_API_TOKEN;
     const phoneId = process.env.WHATSAPP_PHONE_ID;
-
-    // 2. LEER INVITADOS
-    const snapshot = await db.collection('invitados').get();
     
-    if (snapshot.empty) {
-      return res.status(200).json({ status: 'No hay invitados guardados aún.' });
+    let listaDestinatarios = [];
+
+    // 2. DECIDIR A QUIÉN ENVIAR
+    if (testTelefono) {
+        // A) MODO PRUEBA: Solo al número indicado en la URL
+        console.log(`🧫 Modo Test activado. Enviando solo a: ${testTelefono}`);
+        listaDestinatarios = [{ telefono: testTelefono }]; // Creamos una lista falsa con un solo invitado
+    } else {
+        // B) MODO MEGÁFONO REAL: Leer de Firebase
+        const db = adminApp.firestore();
+        const snapshot = await db.collection('invitados').get();
+        
+        if (snapshot.empty) {
+          return res.status(200).json({ status: 'No hay invitados guardados aún.' });
+        }
+        
+        // Convertimos los documentos de firebase a un array simple de objetos
+        listaDestinatarios = snapshot.docs.map(doc => doc.data());
     }
 
     let enviados = 0;
     let errores = 0;
     let logDetalles = [];
 
-    // 3. ENVIAR A CADA UNO
-    const envios = snapshot.docs.map(async (doc) => {
-      const invitado = doc.data();
-      const numero = invitado.telefono;
+    // 3. BUCLE DE ENVÍO (Sirve tanto para 1 prueba como para todos)
+    const envios = listaDestinatarios.map(async (invitado) => {
+      // Si viene de Firebase es invitado.telefono, si es test es directo
+      const numero = invitado.telefono; 
+
+      if (!numero) return; // Si por alguna razón no hay número, saltamos
 
       try {
         const response = await fetch(`https://graph.facebook.com/v17.0/${phoneId}/messages`, {
@@ -43,13 +58,13 @@ export default async function handler(req, res) {
             to: numero,
             type: "template",
             template: {
-              name: "aviso_boda", // 👈 TU PLANTILLA REAL
-              language: { code: "es" }, // 👈 IDIOMA ESPAÑOL
+              name: "aviso_boda", // 👈 TU PLANTILLA DE MEGÁFONO
+              language: { code: "es" },
               components: [
                 {
                   type: "body",
                   parameters: [
-                    // Aquí metemos tu mensaje en la variable {{1}}
+                    // Aquí metemos tu mensaje en la variable {{1}} de la plantilla
                     { type: "text", text: mensajeAviso } 
                   ]
                 }
@@ -76,7 +91,9 @@ export default async function handler(req, res) {
     await Promise.all(envios);
 
     return res.status(200).json({ 
-      resultado: `📢 Megáfono terminado. Enviados: ${enviados}, Fallos: ${errores}`,
+      resultado: testTelefono 
+        ? `🧪 Test enviado a ${testTelefono}` 
+        : `📢 Megáfono masivo terminado. Enviados: ${enviados}, Fallos: ${errores}`,
       detalles: logDetalles
     });
 
