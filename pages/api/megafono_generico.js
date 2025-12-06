@@ -1,4 +1,4 @@
-// pages/api/megafono.js
+// pages/api/megafono_generico.js
 const { adminApp } = require('../../lib/firebase'); 
 
 export default async function handler(req, res) {
@@ -7,8 +7,10 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'No tienes permiso 👮‍♂️' });
   }
 
-  // Leemos el mensaje de la URL (ej: ...?mensaje=El bus sale ya)
-  const mensajeAviso = req.query.mensaje || "Aviso importante de la boda";
+  const mensajeAviso = req.query.mensaje || "Aviso importante del evento";
+  
+  // 🆕 SEGURIDAD: ¿Es una prueba? Leemos el número si existe
+  const testTelefono = req.query.test_telefono; 
 
   try {
     const db = adminApp.firestore();
@@ -18,7 +20,8 @@ export default async function handler(req, res) {
     // 2. LEER INVITADOS
     const snapshot = await db.collection('invitados').get();
     
-    if (snapshot.empty) {
+    // Si no es prueba y no hay invitados, paramos.
+    if (!testTelefono && snapshot.empty) {
       return res.status(200).json({ status: 'No hay invitados guardados aún.' });
     }
 
@@ -26,8 +29,15 @@ export default async function handler(req, res) {
     let errores = 0;
     let logDetalles = [];
 
-    // 3. ENVIAR A CADA UNO
-    const envios = snapshot.docs.map(async (doc) => {
+    // 🆕 DECISIÓN: ¿A quién enviamos?
+    // Si hay test_telefono, creamos una lista falsa con SOLO ese número.
+    // Si NO hay test_telefono, usamos la lista real de la base de datos.
+    const listaDestinatarios = testTelefono 
+      ? [{ data: () => ({ telefono: testTelefono }) }] 
+      : snapshot.docs;
+
+    // 3. ENVIAR
+    const envios = listaDestinatarios.map(async (doc) => {
       const invitado = doc.data();
       const numero = invitado.telefono;
 
@@ -43,13 +53,12 @@ export default async function handler(req, res) {
             to: numero,
             type: "template",
             template: {
-              name: "alerta_evento", // 👈 TU PLANTILLA REAL
-              language: { code: "es" }, // 👈 IDIOMA ESPAÑOL
+              name: "alerta_evento", // 👈 TU PLANTILLA GENÉRICA
+              language: { code: "es" },
               components: [
                 {
                   type: "body",
                   parameters: [
-                    // Aquí metemos tu mensaje en la variable {{1}}
                     { type: "text", text: mensajeAviso } 
                   ]
                 }
@@ -76,7 +85,9 @@ export default async function handler(req, res) {
     await Promise.all(envios);
 
     return res.status(200).json({ 
-      resultado: `📢 Megáfono terminado. Enviados: ${enviados}, Fallos: ${errores}`,
+      resultado: testTelefono 
+        ? `🧪 MODO PRUEBA: Enviado solo a ${testTelefono}` 
+        : `📢 Megáfono GENÉRICO terminado. Enviados: ${enviados}, Fallos: ${errores}`,
       detalles: logDetalles
     });
 
