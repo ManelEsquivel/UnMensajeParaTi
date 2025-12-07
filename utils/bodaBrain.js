@@ -229,7 +229,7 @@ Sara ytarte,ytarte,PENDIENTE
 Eva Areny,Areny,PENDIENTE
 Jesus,,PENDIENTE
 Carla Sardà,Sardà,PENDIENTE
-Cristian Fernández,Fernández,PENDIENTE
+Cristian Fernández,Fernández,CONFIRMADO
 Clara Torres,Torres,PENDIENTE
 Pablo,,PENDIENTE
 Anna Gonzalez,Gonzalez,PENDIENTE
@@ -238,9 +238,9 @@ Mujer Oros,,PENDIENTE
 Carlos Rodriguez,Rodriguez,PENDIENTE
 Dunia Mascaro,Mascaro,PENDIENTE
 Gonzalo Blanco,Blanco,PENDIENTE
-Marta Bartual,Bartual,PENDIENTE
-Iker Zarate,Zarate,PENDIENTE
-Alfonso Zarate,Zarate,PENDIENTE
+Marta Bartual,Bartual,CONFIRMADO
+Iker Zarate,Zarate,CONFIRMADO
+Alfonso Zarate,Zarate,CONFIRMADO
 Jaime Lopez,Lopez,PENDIENTE
 Rosario Ambrosio,Ambrosio,PENDIENTE
 Natalia Balcells,Balcells,PENDIENTE
@@ -263,7 +263,7 @@ Jaime Monzon,Monzon,PENDIENTE
 Carmen Izquierdo,Izquierdo,PENDIENTE
 Laura Cester,Cester,PENDIENTE
 Monica Falguera,Falguera,PENDIENTE
-Noa,,PENDIENTE
+Noa Pallares,,CONFIRMADO
 Mujer Carlos Rodrigu,,PENDIENTE
 Narcis Vidal,Vidal,PENDIENTE
 Montse Arroyo,Arroyo,PENDIENTE
@@ -519,6 +519,9 @@ ${fullAccommodationResponse}
 - Código de vestimenta: Formal.
 - Transporte: Habrá parking gratuito y servicio de taxi disponible.
 - Alojamiento: Hoteles cercanos: Celler Suites y Villas Coliving.
+
+## 🪑 Asientos y Mesas
+- **INSTRUCCIÓN CLAVE (ASIENTOS):** Si el usuario pregunta **dónde se sienta**, **cuál es su silla**, **cuál es su mesa** o **sitio**, DEBES responder ÚNICAMENTE: "La ubicación de tu asiento se sabrá el mismo día de la ceremonia."
 
 ---
 
