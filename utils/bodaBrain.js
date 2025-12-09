@@ -202,33 +202,33 @@ ${partyDrinksResponse}`;
   const guestList = `
 NOMBRE,APELLIDOS,CONFIRMADO
 Manel,Esquivel,CONFIRMADO
-Carla,Bartual,CONFIRMADO
-Beatriz Esquivel,Esquivel,CONFIRMADO
+Carla,Bartual,CONFIRMADA
+Beatriz Esquivel,Esquivel,CONFIRMADA
 Manuel Esquivel,Esquivel,CONFIRMADO
-Eva Lopez,Lopez,CONFIRMADO
+Eva Lopez,Lopez,CONFIRMADA
 Marc Genes,Genes,CONFIRMADO
-Maria Dolors,Dolors,CONFIRMADO
+Maria Dolors,Dolors,CONFIRMADA
 Jordi Bartual,,CONFIRMADO
-Anna Bernal,Bernal,PENDIENTE
-Alex Espada,Espada,PENDIENTE
+Anna Bernal,Bernal,CONFIRMADA
+Alex Espada,Espada,CONFIRMADO
 Victor Lopez,Lopez,PENDIENTE
 Carlos Barceló,Barceló,PENDIENTE
 Sonia Cadevall,Cadevall,PENDIENTE
 Antonio Escartín,Escartin,PENDIENTE
 Sandra Gano,Gano,PENDIENTE
 Ivan Alamo,Alamo,CONFIRMADO
-Alba Martinez,,CONFIRMADO
+Alba Martinez,,CONFIRMADA
 Alex Ferré,Ferré,PENDIENTE
 Alexia Galobardes,Galobardes,PENDIENTE
 Marta Oliver,Oliver,PENDIENTE
 Helena Briones,Briones,PENDIENTE
-Joan,,PENDIENTE
+Joan Marin,,PENDIENTE
 Josua Bayona,Bayona,CONFIRMADO
 Amandine Liam,Liam,CONFIRMADO
 Sara ytarte,ytarte,PENDIENTE
 Eva Areny,Areny,PENDIENTE
 Jesus,,PENDIENTE
-Carla Sardà,Sardà,PENDIENTE
+Carla Sardà,Sardà,CONFIRMADA
 Cristian Fernández,Fernández,CONFIRMADO
 Clara Torres,Torres,PENDIENTE
 Pablo,,PENDIENTE
@@ -263,7 +263,7 @@ Jaime Monzon,Monzon,PENDIENTE
 Carmen Izquierdo,Izquierdo,PENDIENTE
 Laura Cester,Cester,PENDIENTE
 Monica Falguera,Falguera,PENDIENTE
-Noa Pallares,,CONFIRMADO
+Noa Pallares,,CONFIRMADA
 Mujer Carlos Rodrigu,,PENDIENTE
 Narcis Vidal,Vidal,PENDIENTE
 Montse Arroyo,Arroyo,PENDIENTE
@@ -404,7 +404,7 @@ ${guestList}
 
     * **2.I. 🟢 PRIORIDAD ESPECIAL (Carlos Barceló - Juegos de Mesa):** Si el nombre o nombre y apellido proporcionado es "Carlos Barceló" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Carlos! Por supuesto que estás invitado. ¡El novio me comento que después de la boda queria quedar contigo echar una partida al Descent! \n\n Tu asistencia se encuentra **PENDIENTE** de confirmación. Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Nos vemos!.\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente." 
 
-    * **2.J. 🟢 PRIORIDAD ESPECIAL (Victor Lopez - Broma "Prima Marta"):** Si el nombre o nombre y apellido proporcionado es **"Victor Lopez"** (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Victor! ¡Estás invitado! Y, ¿hay novedades con la prima de Marta Oliver? 😉 Tu asistencia se encuentra **PENDIENTE** de confirmación. \n\n Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!.\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente." .
+    * **2.J. 🟢 PRIORIDAD ESPECIAL (Victor Lopez - Broma "Prima Marta"):** Si el nombre o nombre y apellido proporcionado es **"Victor Lopez"** (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Victor! ¡Estás invitado! Y, ¿hay novedades con la prima de Marta? 😉 Tu asistencia se encuentra **PENDIENTE** de confirmación. \n\n Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Te esperamos!.\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente." .
     
     * **2.K. Ambigüedad:** Si el nombre proporcionado coincide con **MÁS de una persona** y falta información clara para una coincidencia única (e.g. "Alex" con "Alex Ferré" y "Alex Espada"), debes preguntar: "¿Me podrías indicar tu apellido, por favor? Tenemos varias personas con ese nombre en la lista."
     
