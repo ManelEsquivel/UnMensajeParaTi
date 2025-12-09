@@ -164,7 +164,7 @@ ${partyDrinksResponse}`;
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
 
-  const confirmedGuestsCountInPrompt = 12; // Manel y Carla
+  const confirmedGuestsCountInPrompt = 25; // Manel y Carla
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
   const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl;
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
@@ -212,8 +212,8 @@ Jordi Bartual,,CONFIRMADO
 Anna Bernal,Bernal,CONFIRMADA
 Alex Espada,Espada,CONFIRMADO
 Victor Lopez,Lopez,PENDIENTE
-Carlos Barceló,Barceló,PENDIENTE
-Sonia Cadevall,Cadevall,PENDIENTE
+Carlos Barceló,Barceló,CONFIRMADO
+Sonia Cadevall,Cadevall,CONFIRMADA
 Antonio Escartín,Escartin,PENDIENTE
 Sandra Gano,Gano,PENDIENTE
 Ivan Alamo,Alamo,CONFIRMADO
@@ -221,8 +221,8 @@ Alba Martinez,,CONFIRMADA
 Alex Ferré,Ferré,PENDIENTE
 Alexia Galobardes,Galobardes,PENDIENTE
 Marta Oliver,Oliver,PENDIENTE
-Helena Briones,Briones,PENDIENTE
-Joan Marin,,PENDIENTE
+Helena Briones,Briones,CONFIRMADA
+Joan Marin,,CONFIRMADO
 Josua Bayona,Bayona,CONFIRMADO
 Amandine Liam,Liam,CONFIRMADO
 Sara ytarte,ytarte,PENDIENTE
