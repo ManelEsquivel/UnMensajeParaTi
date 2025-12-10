@@ -164,7 +164,7 @@ ${partyDrinksResponse}`;
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
 
-  const confirmedGuestsCountInPrompt = 30; // Manel y Carla
+  const confirmedGuestsCountInPrompt = 33; // Manel y Carla
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
   const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl;
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
