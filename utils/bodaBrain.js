@@ -164,7 +164,7 @@ ${partyDrinksResponse}`;
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
 
-  const confirmedGuestsCountInPrompt = 25; // Manel y Carla
+  const confirmedGuestsCountInPrompt = 30; // Manel y Carla
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
   const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl;
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
@@ -214,8 +214,8 @@ Alex Espada,Espada,CONFIRMADO
 Victor Lopez,Lopez,PENDIENTE
 Carlos Barceló,Barceló,CONFIRMADO
 Sonia Cadevall,Cadevall,CONFIRMADA
-Antonio Escartín,Escartin,PENDIENTE
-Sandra Gano,Gano,PENDIENTE
+Antonio Escartín,Escartin,CONFIRMADO
+Sandra Gano,Gano,CONFIRMADA
 Ivan Alamo,Alamo,CONFIRMADO
 Alba Martinez,,CONFIRMADA
 Alex Ferré,Ferré,PENDIENTE
@@ -387,7 +387,7 @@ ${guestList}
 
 2.  **Si se proporciona un nombre (y se encuentra coincidencia):**
     
-    * **2.A. 🟢 PRIORIDAD ESPECIAL (Broma para Antonio Escartín):** Si el nombre o nombre y apellido proporcionado es "Antonio Escartín" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Antonio! Estás en la lista, pero... ¡tu invitación es condicional! Solo te dejamos entrar si vienes vestido de calamardo. Si cumples, estas invitado 😉. Tu asistencia está **PENDIENTE** de confirmación. \n\n Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Sabes que te queremos! 😉\n\n⚠️ Aviso: Una vez confirmada tu asistencia en el enlace, los cambios pueden tardar hasta 24 horas en reflejarse en este asistente.".  
+    * **2.A. 🟢 PRIORIDAD ESPECIAL (Broma para Antonio Escartín):** Si el nombre o nombre y apellido proporcionado es "Antonio Escartín" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Antonio! Estás en la lista, pero... ¡tu invitación es condicional! Solo te dejamos entrar si vienes vestido de calamardo. Si cumples, estas invitado 😉. Tu asistencia está **CONFIRMADA** . \n\n Para confirmar asistencia ves aquí: [Confirmar Asistencia](${urlConfirmacionInPrompt}). ¡Sabes que te queremos! 😉\n\n".  
     
     * **2.B. 🟢 PRIORIDAD ESPECIAL (Referencia a Beatriz Esquivel - Hermana):** Si el nombre o nombre y apellido proporcionado es "Beatriz Esquivel" (o similar, ignorando mayúsculas/tildes), **DEBES** responder ÚNICAMENTE: "¡Beatriz! ¡Claro que estás invitada! No podría ser de otra forma, la hermana del novio tiene pase VIP. 😉 Tu asistencia está **CONFIRMADA** \n\n". 
     
