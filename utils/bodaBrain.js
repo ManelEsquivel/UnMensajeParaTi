@@ -226,13 +226,13 @@ Joan Marin,,CONFIRMADO
 Josua Bayona,Bayona,CONFIRMADO
 Amandine Liam,Liam,CONFIRMADO
 Sara ytarte,ytarte,PENDIENTE
-Eva Areny,Areny,PENDIENTE
-Jesus,,PENDIENTE
+Eva Areny,Areny,CONFIRMADA
+Jesus Úbeda ,Úbeda,PENDIENTE
 Carla Sardà,Sardà,CONFIRMADA
 Cristian Fernández,Fernández,CONFIRMADO
 Clara Torres,Torres,PENDIENTE
 Pablo,,PENDIENTE
-Anna Gonzalez,Gonzalez,PENDIENTE
+Anna Gonzalez,Gonzalez,CONFIRMADA
 Carlos Oros,,PENDIENTE
 Mujer Oros,,PENDIENTE
 Carlos Rodriguez,Rodriguez,PENDIENTE
@@ -248,8 +248,9 @@ Pau,,PENDIENTE
 Susana,Lopez,PENDIENTE
 Ramon Barberá,Barberá,PENDIENTE
 Natalia Belinguer,Belinguer,PENDIENTE
-Natalia Pellicer,Pellicer,PENDIENTE
-Silvia,,PENDIENTE
+Natalia Pallise,Pallise,PENDIENTE
+Silvia Miravent,,PENDIENTE
+Jaume Zurita,,PENDIENTE
 Gemma Urpina,Urpina,PENDIENTE
 Alexis Postigo,Postigo,PENDIENTE
 Mª Angeles,,PENDIENTE
