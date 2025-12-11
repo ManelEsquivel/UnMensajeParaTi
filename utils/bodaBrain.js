@@ -221,7 +221,7 @@ Alba Martinez,,CONFIRMADA
 Alex Ferré,Ferré,PENDIENTE
 Alexia Galobardes,Galobardes,PENDIENTE
 Marta Oliver,Oliver,PENDIENTE
-Helena Briones,Briones,CONFIRMADA
+Elena Briones,Briones,CONFIRMADA
 Joan Marin,,CONFIRMADO
 Josua Bayona,Bayona,CONFIRMADO
 Amandine Liam,Liam,CONFIRMADO
