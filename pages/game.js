@@ -32,7 +32,7 @@ const ALL_QUESTIONS = [
     // --- NUEVAS PREGUNTAS (EDITAR TEXTOS) ---
     { id: 'q6', entry: ENTRY_Q6, label: '6. ¿En que equipo de baloncesto jugó Carla?', options: ['Esplugues', 'Hospitalet', 'Sant Just', 'Cornellà'] },
     { id: 'q7', entry: ENTRY_Q7, label: '7. ¿(Escribe aquí la pregunta sobre Nueva York)?', options: ['Roma', 'Nueva York', 'París', 'Menorca'] },
-    { id: 'q8', entry: ENTRY_Q8, label: '8. ¿(Escribe aquí la pregunta sobre Tossa de Mar)?', options: ['Tossa de Mar', 'Cadaqués', 'S'Agaró', 'Platja d'Aro'] },
+    { id: 'q8', entry: ENTRY_Q8, label: '8. ¿(Escribe aquí la pregunta sobre Tossa de Mar)?', options: ['Tossa de Mar', 'Cadaqués', "S'Agaró", "Platja d'Aro"] },
     { id: 'q9', entry: ENTRY_Q9, label: '9. ¿(Escribe aquí la pregunta sobre ABaC)?', options: ['ABaC', 'Viena', 'Celler de Can Roca', 'Sushi Buffet'] },
 ];
 
