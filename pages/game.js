@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Head from 'next/head';
 
 // *******************************************************************
-// ⚠️ TUS IDENTIFICADORES REALES (NO CAMBIAN) ⚠️
+// ⚠️ TUS IDENTIFICADORES REALES (ACTUALIZADOS) ⚠️
 // *******************************************************************
 const BASE_FORM_URL = "https://docs.google.com/forms/d/e/1FAIpQLSfd6X0a5VGjQW_y7e3IYqTh64HLrh1yA6CWJEGJZu4HxENr3Q/formResponse";
 
@@ -11,50 +11,67 @@ const ENTRY_Q1 = "entry.1000057";
 const ENTRY_Q2 = "entry.1509074265";   
 const ENTRY_Q3 = "entry.551001831";    
 const ENTRY_Q4 = "entry.1989972928";   
-const ENTRY_Q5 = "entry.694289165";    
+const ENTRY_Q5 = "entry.694289165";
+// --- NUEVOS CAMPOS AÑADIDOS ---
+const ENTRY_Q6 = "entry.1714762635"; // Respuesta en tu enlace: Esplugues
+const ENTRY_Q7 = "entry.2146638638"; // Respuesta en tu enlace: Nueva York
+const ENTRY_Q8 = "entry.691847615";  // Respuesta en tu enlace: Tossa de Mar
+const ENTRY_Q9 = "entry.1700364237"; // Respuesta en tu enlace: ABaC
 
 const QUIZ_COMPLETED_KEY = 'manel_carla_quiz_completed'; 
 
 // --- ESTRUCTURA DE PREGUNTAS ---
+// ⚠️ IMPORTANTE: He añadido las preguntas nuevas abajo. 
+// Debes editar el 'label' y las 'options' de la 6 a la 9.
 const ALL_QUESTIONS = [
     { id: 'q1', entry: ENTRY_Q1, label: '1. ¿De quién fue la idea de tener animales en casa?', options: ['Manel', 'Carla'] },
     { id: 'q2', entry: ENTRY_Q2, label: '2. ¿Cómo se llaman los michis de Manel y Carla?', options: ['Wasabi y Abby', 'Sky y Wasabi', 'Mia y Sombra', 'Mochi y Abby'] },
     { id: 'q3', entry: ENTRY_Q3, label: '3. ¿En qué Provincia/Ciudad se comprometieron?', options: ['Roma/Fontana di trevi', 'París/ Torre eiffel', 'Girona /Cadaques', 'Menorca /Cala turqueta'] },
     { id: 'q4', entry: ENTRY_Q4, label: '4. ¿Dónde fue el primer bautizo de buceo de Carla?', options: ['Tossa de Mar', 'Cadaques', 'Illes Medes', 'Palamos'] },
     { id: 'q5', entry: ENTRY_Q5, label: '5. Número de tatuajes Entre Carla y Manel', options: ['6', '7', '8', '10'] },
+    // --- NUEVAS PREGUNTAS (EDITAR TEXTOS) ---
+    { id: 'q6', entry: ENTRY_Q6, label: '6. ¿En que equipo de baloncesto jugó Carla?', options: ['Esplugues', 'Hospitalet', 'Sant Just', 'Cornellà'] },
+    { id: 'q7', entry: ENTRY_Q7, label: '7. ¿(Escribe aquí la pregunta sobre Nueva York)?', options: ['Nueva York', 'Roma', 'París', 'Menorca'] },
+    { id: 'q8', entry: ENTRY_Q8, label: '8. ¿(Escribe aquí la pregunta sobre Tossa de Mar)?', options: ['Tossa de Mar', 'Begur', 'Roses', 'Sitges'] },
+    { id: 'q9', entry: ENTRY_Q9, label: '9. ¿(Escribe aquí la pregunta sobre ABaC)?', options: ['ABaC', 'Viena', 'Celler de Can Roca', 'Sushi Buffet'] },
 ];
 
 const entryMap = {
     guestName: ENTRY_NAME,
-    q1: ENTRY_Q1,
-    q2: ENTRY_Q2,
-    q3: ENTRY_Q3,
-    q4: ENTRY_Q4,
-    q5: ENTRY_Q5,
+    // Mapeamos dinámicamente las preguntas
+    ...ALL_QUESTIONS.reduce((acc, q) => ({...acc, [q.id]: q.entry}), {})
 };
 
 // *******************************************************************
 
 const QuizBodaPage = () => {
+    // Definimos pasos clave basados en la cantidad de preguntas
+    const TOTAL_QUESTIONS = ALL_QUESTIONS.length;
+    const STEP_WELCOME = 0;
+    const STEP_NAME = 1;
+    const STEP_FIRST_QUESTION = 2;
+    // El último paso de pregunta es: STEP_FIRST_QUESTION + TOTAL_QUESTIONS - 1
+    const STEP_SUBMIT = STEP_FIRST_QUESTION + TOTAL_QUESTIONS; 
+    const STEP_SUCCESS = STEP_SUBMIT + 1;
+
     const [currentStep, setCurrentStep] = useState(0); 
-    const [answers, setAnswers] = useState({
-        guestName: '', 
-        q1: '', q2: '', q3: '', q4: '', q5: '',
-    });
+    
+    // Estado inicial dinámico para todas las preguntas
+    const initialAnswers = { guestName: '' };
+    ALL_QUESTIONS.forEach(q => initialAnswers[q.id] = '');
+    
+    const [answers, setAnswers] = useState(initialAnswers);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isCompleted, setIsCompleted] = useState(false); 
 
-    const currentQuestionIndex = currentStep - 2; 
+    const currentQuestionIndex = currentStep - STEP_FIRST_QUESTION; 
     const currentQuestion = ALL_QUESTIONS[currentQuestionIndex];
 
     useEffect(() => {
         // --- SOLUCIÓN DEFINITIVA PARA EL FONDO ---
-        // 1. Limpiamos cualquier estilo previo
         document.documentElement.removeAttribute('style');
         document.body.removeAttribute('style');
 
-        // 2. Aplicamos estilos INLINE forzosos al montar el componente
-        // Esto asegura que el navegador "pinte" de morado el fondo inmediatamente
         const purpleColor = '#23074d';
         document.documentElement.style.setProperty('background-color', purpleColor, 'important');
         document.body.style.setProperty('background-color', purpleColor, 'important');
@@ -64,7 +81,7 @@ const QuizBodaPage = () => {
 
         if (typeof window !== 'undefined' && localStorage.getItem(QUIZ_COMPLETED_KEY) === 'true') {
             setIsCompleted(true);
-            setCurrentStep(8); 
+            setCurrentStep(STEP_SUCCESS); 
             const storedName = localStorage.getItem('manel_carla_quiz_name') || '';
             setAnswers(prev => ({ ...prev, guestName: storedName }));
         }
@@ -73,7 +90,9 @@ const QuizBodaPage = () => {
     const handleAnswerSelect = (value, questionId) => {
         const newAnswers = { ...answers, [questionId]: value };
         setAnswers(newAnswers);
-        if (currentQuestionIndex === 4) {
+        
+        // Si estamos en la última pregunta, enviamos
+        if (currentQuestionIndex === TOTAL_QUESTIONS - 1) {
             handleSubmit(newAnswers); 
         } else {
             setCurrentStep(prev => prev + 1); 
@@ -88,18 +107,19 @@ const QuizBodaPage = () => {
 
     const handleSubmit = (finalAnswers) => { 
         setIsSubmitting(true);
-        setCurrentStep(7); 
+        setCurrentStep(STEP_SUBMIT); 
         
         let submissionUrl = `${BASE_FORM_URL}?`;
         submissionUrl += `&${entryMap.guestName}=${encodeURIComponent(finalAnswers.guestName)}`; 
-        submissionUrl += `&${entryMap.q1}=${encodeURIComponent(finalAnswers.q1)}`;
-        submissionUrl += `&${entryMap.q2}=${encodeURIComponent(finalAnswers.q2)}`;
-        submissionUrl += `&${entryMap.q3}=${encodeURIComponent(finalAnswers.q3)}`;
-        submissionUrl += `&${entryMap.q4}=${encodeURIComponent(finalAnswers.q4)}`;
-        submissionUrl += `&${entryMap.q5}=${encodeURIComponent(finalAnswers.q5)}`;
-        submissionUrl += `&submit=Submit`; 
+        
+        // Añadimos dinámicamente todas las respuestas de las preguntas al URL
+        ALL_QUESTIONS.forEach(q => {
+             submissionUrl += `&${q.entry}=${encodeURIComponent(finalAnswers[q.id])}`;
+        });
 
-        submissionUrl = submissionUrl.replace('?&', '?');
+        submissionUrl += `&submit=Submit`; 
+        submissionUrl = submissionUrl.replace('?&', '?'); // Limpieza
+        
         window.open(submissionUrl, '_blank');
 
         localStorage.setItem(QUIZ_COMPLETED_KEY, 'true');
@@ -107,12 +127,12 @@ const QuizBodaPage = () => {
         
         setTimeout(() => { 
              setIsSubmitting(false);
-             setCurrentStep(8); 
+             setCurrentStep(STEP_SUCCESS); 
         }, 2000); 
     };
 
     const renderStep = () => {
-        if (isCompleted || currentStep === 8) {
+        if (isCompleted || currentStep === STEP_SUCCESS) {
              return (
                  <div className="step-content success-screen">
                     <h2>¡Respuestas Enviadas con Éxito! 🎉</h2>
@@ -124,72 +144,80 @@ const QuizBodaPage = () => {
              );
         }
 
-        switch (currentStep) {
-            case 0:
-                return (
-                    <div className="step-content welcome-screen">
-                        <h1>💍 ¡Bienvenido/a al Gran Quiz de Manel y Carla!</h1>
-                        <p>Pon a prueba cuánto sabes sobre nosotros. Entre todas las personas que participen, <strong>quienes consigan el mayor número de aciertos recibirán un regalo exclusivo el día de la boda</strong>.</p>
-                        <p>¡Demuestra tu conocimiento y mucha suerte! 🎁✨</p>
-                        <button className="button" onClick={() => setCurrentStep(1)} disabled={isSubmitting}>
-                            ¡EMPEZAR A JUGAR!
-                        </button>
-                    </div>
-                );
-            case 1:
-                 return (
-                    <div className="step-content name-screen">
-                        <h2>Tu Identificación</h2>
-                        <label htmlFor="guestName">Nombre y Apellido (Necesario para identificarte si ganas 🎉)</label>
-                        <br></br>
-                        <input
-                            type="text"
-                            id="guestName"
-                            name="guestName"
-                            value={answers.guestName}
-                            onChange={handleNameChange}
-                            required
-                            placeholder="Escribe aquí..."
-                        />
-                        <button className="button next-button" onClick={() => setCurrentStep(2)} disabled={answers.guestName.trim().length < 3 || isSubmitting}>
-                            SIGUIENTE PREGUNTA »
-                        </button>
-                    </div>
-                );
-            case 2:
-            case 3:
-            case 4:
-            case 5:
-            case 6:
-                return (
-                    <div className="step-content question-screen">
-                        <h2>{currentQuestion.label}</h2>
-                        <div className="options-grid">
-                            {currentQuestion.options.map((option, index) => (
-                                <button
-                                    key={index}
-                                    className="option-button" 
-                                    onClick={() => handleAnswerSelect(option, currentQuestion.id)}
-                                    disabled={isSubmitting}
-                                >
-                                    <span className="option-text">{option}</span>
-                                </button>
-                            ))}
-                        </div>
-                    </div>
-                );
-            case 7:
-                return (
-                    <div className="step-content submit-screen">
-                        <h2>¡Enviando tus Respuestas!</h2>
-                        <div className="spinner"></div>
-                        <p>No cierres la página, estamos registrando tu participación...</p>
-                    </div>
-                );
-            default:
-                return null;
+        // Lógica de renderizado por pasos
+        if (currentStep === STEP_WELCOME) {
+            return (
+                <div className="step-content welcome-screen">
+                    <h1>💍 ¡Bienvenido/a al Gran Quiz de Manel y Carla!</h1>
+                    <p>Pon a prueba cuánto sabes sobre nosotros. Entre todas las personas que participen, <strong>quienes consigan el mayor número de aciertos recibirán un regalo exclusivo el día de la boda</strong>.</p>
+                    <p>¡Demuestra tu conocimiento y mucha suerte! 🎁✨</p>
+                    <button className="button" onClick={() => setCurrentStep(STEP_NAME)} disabled={isSubmitting}>
+                        ¡EMPEZAR A JUGAR!
+                    </button>
+                </div>
+            );
         }
+
+        if (currentStep === STEP_NAME) {
+             return (
+                <div className="step-content name-screen">
+                    <h2>Tu Identificación</h2>
+                    <label htmlFor="guestName">Nombre y Apellido (Necesario para identificarte si ganas 🎉)</label>
+                    <br></br>
+                    <input
+                        type="text"
+                        id="guestName"
+                        name="guestName"
+                        value={answers.guestName}
+                        onChange={handleNameChange}
+                        required
+                        placeholder="Escribe aquí..."
+                    />
+                    <button className="button next-button" onClick={() => setCurrentStep(STEP_FIRST_QUESTION)} disabled={answers.guestName.trim().length < 3 || isSubmitting}>
+                        SIGUIENTE PREGUNTA »
+                    </button>
+                </div>
+            );
+        }
+
+        // Rango de pasos donde se muestran preguntas
+        if (currentStep >= STEP_FIRST_QUESTION && currentStep < STEP_SUBMIT) {
+            return (
+                <div className="step-content question-screen">
+                    <h2>{currentQuestion.label}</h2>
+                    <div className="options-grid">
+                        {currentQuestion.options.map((option, index) => (
+                            <button
+                                key={index}
+                                className="option-button" 
+                                onClick={() => handleAnswerSelect(option, currentQuestion.id)}
+                                disabled={isSubmitting}
+                            >
+                                <span className="option-text">{option}</span>
+                            </button>
+                        ))}
+                    </div>
+                </div>
+            );
+        }
+
+        if (currentStep === STEP_SUBMIT) {
+            return (
+                <div className="step-content submit-screen">
+                    <h2>¡Enviando tus Respuestas!</h2>
+                    <div className="spinner"></div>
+                    <p>No cierres la página, estamos registrando tu participación...</p>
+                </div>
+            );
+        }
+        
+        return null;
     };
+
+    // Cálculo del progreso
+    const progressPercentage = currentStep >= STEP_NAME 
+        ? Math.min(((currentStep) / (TOTAL_QUESTIONS + 1)) * 100, 100) 
+        : 0;
 
     return (
         <>
@@ -202,10 +230,11 @@ const QuizBodaPage = () => {
             <div className="container">
                 <div className="card">
                     {renderStep()}
-                    {(currentStep >= 1 && currentStep <= 6) && (
+                    {/* Barra de progreso: visible desde el nombre hasta la última pregunta */}
+                    {(currentStep >= STEP_NAME && currentStep < STEP_SUBMIT) && (
                         <div className="progress-bar-container">
-                             <div className="progress-bar" style={{ width: `${(currentStep / 6) * 100}%` }} ></div>
-                            <p className="progress-text">Paso {currentStep} de 6</p>
+                             <div className="progress-bar" style={{ width: `${progressPercentage}%` }} ></div>
+                            <p className="progress-text">Paso {currentStep} de {TOTAL_QUESTIONS + 1}</p>
                         </div>
                     )}
                 </div>
@@ -214,21 +243,18 @@ const QuizBodaPage = () => {
             <style jsx global>{`
                 @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700&family=Lato:wght@400;700&display=swap');
 
-                /* --- FIX CRÍTICO PARA EL FONDO COMPLETO --- */
-                /* Apuntamos a html, body Y al contenedor raíz de Next.js (#__next) */
                 html, body, #__next {
                     margin: 0;
                     padding: 0;
                     width: 100%;
-                    min-height: 100vh; /* Asegura altura completa */
-                    background-color: #23074d !important; /* Color sólido de respaldo */
+                    min-height: 100vh;
+                    background-color: #23074d !important;
                     background: linear-gradient(135deg, #23074d, #440a5b) !important;
                     color: #fff;
                     font-family: 'Lato', sans-serif;
                     overflow-x: hidden;
                 }
 
-                /* CONTENEDOR PRINCIPAL */
                 .container {
                     display: flex;
                     justify-content: center;
@@ -236,10 +262,8 @@ const QuizBodaPage = () => {
                     min-height: 100vh;
                     padding: 20px;
                     box-sizing: border-box;
-                    /* Quitamos el background de aquí porque ya está en el body */
                 }
 
-                /* TARJETA DEL JUEGO */
                 .card {
                     background: #1f2937;
                     color: #fff;
@@ -266,7 +290,6 @@ const QuizBodaPage = () => {
                 
                 p { line-height: 1.6; }
 
-                /* BOTÓN PRINCIPAL */
                 .button {
                     display: inline-block;
                     padding: 1rem 2rem;
@@ -289,7 +312,6 @@ const QuizBodaPage = () => {
                 @keyframes pulse-gold { 0% { transform: scale(1);} 50% { transform: scale(1.05);} 100% { transform: scale(1);} }
                 .button:active { transform: scale(0.95); }
 
-                /* INPUT TEXTO */
                 input[type="text"] {
                     width: 100%;
                     padding: 15px;
@@ -302,7 +324,6 @@ const QuizBodaPage = () => {
                     box-sizing: border-box;
                 }
 
-                /* BOTÓN SIGUIENTE */
                 .next-button {
                     background: #f3f4f6; 
                     color: #1f2937; 
@@ -312,7 +333,6 @@ const QuizBodaPage = () => {
                     font-family: 'Lato', sans-serif;
                 }
 
-                /* BOTONES DE RESPUESTA */
                 .options-grid { 
                     display: grid; 
                     grid-template-columns: 1fr; 
