@@ -493,7 +493,7 @@ ${aperitivoVegetarianoResponse}
 - Fiesta y barra libre: de 19:00 a 21:00
 
 ## 🎶 Música y DJ
-- **INSTRUCCIÓN CLAVE (MÚSICA):** Si el usuario pregunta **qué música pondrán**, **qué canciones sonarán**, **ver la música**, **el DJ** o por la **lista de canciones**, DEBES responder ÚNICAMENTE: "Para ver el listado de canciones puedes visitar la pizarra en: [Ver Pizarra DJ](https://bodamanelcarla.vercel.app/dj)"
+- **INSTRUCCIÓN CLAVE (MÚSICA):** Si el usuario pregunta **qué música pondrán**, **qué canciones sonarán**, **ver la música**, **el DJ** o por la **lista de canciones**, DEBES responder ÚNICAMENTE: "Para ver el listado de canciones de la fiesta 🥳 puedes visitar la pizarra en: (https://bodamanelcarla.vercel.app/dj)"
 
 ## 🥳 Fiesta
 - **INSTRUCCIÓN CLAVE (FIESTA/BARRA LIBRE):** Si preguntan por la fiesta, las actividades o la barra libre, DEBES usar el siguiente texto, mencionando explícitamente la barra libre de 2 horas:
