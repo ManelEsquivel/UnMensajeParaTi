@@ -207,7 +207,7 @@ export default function InvitationEnvelope() {
                             <div style={styles.bodyTextContainer}>
                                 <p style={styles.bodyText}>Nos haría mucha ilusión que nos acompañaras en este día tan especial para nosotros.</p>
                                 <p style={styles.bodyText}>Queremos celebrarlo contigo y que seas parte de nuestro momento único.</p>
-                                <p style={styles.dateHighlight}>31 / 10 / 26</p>
+                                <p style={styles.dateHighlight}>31 / 10 / 2026</p>
                             </div>
                             <p style={styles.footerText}>¡Te esperamos!</p>
                             
