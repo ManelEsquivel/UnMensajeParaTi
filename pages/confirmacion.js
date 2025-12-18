@@ -207,7 +207,6 @@ export default function InvitationEnvelope() {
                             <div style={styles.bodyTextContainer}>
                                 <p style={styles.bodyText}>Nos haría mucha ilusión que nos acompañaras en este día tan especial para nosotros.</p>
                                 <p style={styles.bodyText}>Queremos celebrarlo contigo y que seas parte de nuestro momento único.</p>
-                                {/* --- FECHA AÑADIDA --- */}
                                 <p style={styles.dateHighlight}>31 / 10 / 26</p>
                             </div>
                             <p style={styles.footerText}>¡Te esperamos!</p>
@@ -282,7 +281,7 @@ export default function InvitationEnvelope() {
     );
 }
 
-// --- ESTILOS ---
+// --- ESTILOS AJUSTADOS (Más compactos) ---
 const styles = {
     container: {
         width: '100vw', height: '100dvh', 
@@ -306,25 +305,25 @@ const styles = {
     },
     topText: { fontFamily: '"Montserrat", sans-serif', fontSize: '11px', letterSpacing: '3px', color: '#888', textTransform: 'uppercase', marginBottom: '5px' },
     names: { fontFamily: '"Great Vibes", cursive', fontSize: '2.2rem', color: '#222', margin: '10px 0', lineHeight: 1, whiteSpace: 'nowrap' },
-    divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '15px 0' },
-    bodyTextContainer: { width: '90%', marginBottom: '15px' },
-    bodyText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '15px', color: '#444', lineHeight: '1.4', margin: '8px 0' },
+    divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '10px 0' }, // Margen reducido (era 15)
+    bodyTextContainer: { width: '90%', marginBottom: '5px' }, // Margen reducido (era 15)
+    bodyText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '15px', color: '#444', lineHeight: '1.4', margin: '6px 0' }, // Margen reducido (era 8)
     
-    // --- ESTILO NUEVO PARA LA FECHA ---
+    // --- ESTILO FECHA AJUSTADO ---
     dateHighlight: { 
         fontFamily: '"Cormorant Garamond", serif', 
         fontSize: '22px', 
         fontWeight: '600', 
         color: '#d4af37', 
-        marginTop: '15px',
+        marginTop: '8px',      // Reducido (era 15)
         letterSpacing: '2px',
         borderTop: '1px solid rgba(212, 175, 55, 0.3)',
-        paddingTop: '10px',
+        paddingTop: '6px',     // Reducido (era 10)
         display: 'inline-block' 
     },
 
-    footerText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontWeight: 'bold', color: '#333', margin: '10px 0' },
-    button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '12px 30px', fontSize: '11px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', marginTop: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' },
+    footerText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontWeight: 'bold', color: '#333', margin: '5px 0' }, // Reducido (era 10)
+    button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '12px 30px', fontSize: '11px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', marginTop: '10px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' }, // Reducido margin (era 15)
     envelope: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', pointerEvents: 'none' },
     layer: { position: 'absolute', top: 0, left: 0, width: '100%', height: '100%', pointerEvents: 'none' },
     flapLeft: { clipPath: 'polygon(0 0, 0% 100%, 55% 55%)', zIndex: 10, filter: 'drop-shadow(2px 0 5px rgba(0,0,0,0.2))' },
