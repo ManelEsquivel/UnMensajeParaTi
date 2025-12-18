@@ -188,9 +188,6 @@ export default function InvitationEnvelope() {
                 
                 <div style={{
                     ...styles.wrapper,
-                    // === CAMBIO CLAVE ===
-                    // translateY(75vh): Bajamos mucho más el sobre para que la tarjeta llegue "hasta el final".
-                    // scale(1.25): Mantenemos el zoom que se ve bien.
                     transform: animationStep === 3 ? 'translateY(75vh) scale(1.25)' : 'translateY(5vh) scale(1)',
                     transition: 'transform 1.5s cubic-bezier(0.25, 1, 0.5, 1)'
                 }}>
@@ -210,6 +207,8 @@ export default function InvitationEnvelope() {
                             <div style={styles.bodyTextContainer}>
                                 <p style={styles.bodyText}>Nos haría mucha ilusión que nos acompañaras en este día tan especial para nosotros.</p>
                                 <p style={styles.bodyText}>Queremos celebrarlo contigo y que seas parte de nuestro momento único.</p>
+                                {/* --- FECHA AÑADIDA --- */}
+                                <p style={styles.dateHighlight}>31 / 10 / 26</p>
                             </div>
                             <p style={styles.footerText}>¡Te esperamos!</p>
                             
@@ -310,6 +309,20 @@ const styles = {
     divider: { width: '40px', height: '1px', backgroundColor: '#d4af37', margin: '15px 0' },
     bodyTextContainer: { width: '90%', marginBottom: '15px' },
     bodyText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '15px', color: '#444', lineHeight: '1.4', margin: '8px 0' },
+    
+    // --- ESTILO NUEVO PARA LA FECHA ---
+    dateHighlight: { 
+        fontFamily: '"Cormorant Garamond", serif', 
+        fontSize: '22px', 
+        fontWeight: '600', 
+        color: '#d4af37', 
+        marginTop: '15px',
+        letterSpacing: '2px',
+        borderTop: '1px solid rgba(212, 175, 55, 0.3)',
+        paddingTop: '10px',
+        display: 'inline-block' 
+    },
+
     footerText: { fontFamily: '"Cormorant Garamond", serif', fontSize: '16px', fontWeight: 'bold', color: '#333', margin: '10px 0' },
     button: { backgroundColor: '#222', color: '#fff', border: 'none', padding: '12px 30px', fontSize: '11px', fontFamily: '"Montserrat", sans-serif', textTransform: 'uppercase', letterSpacing: '2px', cursor: 'pointer', marginTop: '15px', boxShadow: '0 4px 10px rgba(0,0,0,0.1)' },
     envelope: { width: '100%', height: '100%', position: 'relative', transformStyle: 'preserve-3d', pointerEvents: 'none' },
