@@ -94,10 +94,9 @@ Además, tendremos Showcooking y Corte:
   * **Bicolor de Hummus clásico y de remolacha con AOVE**
   * **Cremoso de risotto de setas cepts y parmesano regianno**
   
-  Si tienes alguna intolerancia alimentaria o alergia específica (gluten, lactosa, etc.), por favor, ponte en contacto con Manel o Carla directamente antes del día de la boda para que puedan asegurar un menú adaptado y seguro para ti. ¡Gracias!
-  `;
+  Si tienes alguna intolerancia alimentaria o alergia específica (gluten, lactosa, etc.), por favor, ponte en contacto con Manel o Carla directamente antes del día de la boda para que puedan asegurar un menú adaptado y seguro para ti. ¡Gracias!`;
 
-  const menuPrincipalResponse = `El banquete comenzará tras el aperitivo (cuya lista puedes consultar por separado preguntandome por el aperitivo). Respecto a los **platos principales**, los novios están pendientes de realizar la prueba de menú entre las siguientes opciones. ¡Estarán deliciosas!
+ const menuPrincipalResponse = `El banquete comenzará tras el aperitivo (cuya lista puedes consultar por separado preguntándome por el aperitivo). Los platos que hemos elegido para el gran día son:
   
 **PRIMER PLATO:**
 * Filete de dorada con carne de vieira, reducción de cítricos con albahaca y chips de remolacha
@@ -106,9 +105,11 @@ Además, tendremos Showcooking y Corte:
 * Costillar black angus a baja temperatura envuelto en crujiente de pasta brick, salsa tártara y orejones
 
 **POSTRE:**
-* Lingote de Ferrero Rocher con pralinè, esferas de chocolate al Frangelico y tierra de galleta;
+* Lingote de Ferrero Rocher con praliné, esferas de chocolate al Frangelico y tierra de galleta
 
-  const menuCompletoResponse = `¡Claro! Aquí tienes la información completa sobre la comida de la boda:
+¡Esperamos que os guste nuestra elección!`;
+
+const menuCompletoResponse = `¡Claro! Aquí tienes la información completa sobre la comida de la boda:
   
 ${aperitivoCompletoResponse}
   
