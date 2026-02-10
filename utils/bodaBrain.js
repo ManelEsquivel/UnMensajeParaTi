@@ -102,12 +102,11 @@ Además, tendremos Showcooking y Corte:
 **PRIMER PLATO:**
 * Filete de dorada con carne de vieira, reducción de cítricos con albahaca y chips de remolacha
 
-
 **SEGUNDO PLATO:**
 * Costillar black angus a baja temperatura envuelto en crujiente de pasta brick, salsa tártara y orejones
 
 **POSTRE:**
-* Lingote de Ferrero Rocher con pralinè, esferas de chocolate al Frangelico y tierra de galleta
+* Lingote de Ferrero Rocher con pralinè, esferas de chocolate al Frangelico y tierra de galleta;
 
   const menuCompletoResponse = `¡Claro! Aquí tienes la información completa sobre la comida de la boda:
   
@@ -157,7 +156,7 @@ ${partyDrinksResponse}`;
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
 
-  const confirmedGuestsCountInPrompt = 50; // Manel y Carla
+  const confirmedGuestsCountInPrompt = 40; // Manel y Carla
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
   const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl;
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
@@ -211,41 +210,41 @@ Antonio Escartín,Escartin,CONFIRMADO
 Sandra Gano,Gano,CONFIRMADA
 Ivan Alamo,Alamo,CONFIRMADO
 Alba Martinez,,CONFIRMADA
-Alex Ferré,Ferré,CONFIRMADO
-Alexia Galobardes,Galobardes,CONFIRMADA
-Marta Oliver,Oliver,CONFIRMADA
+Alex Ferré,Ferré,PENDIENTE
+Alexia Galobardes,Galobardes,PENDIENTE
+Marta Oliver,Oliver,PENDIENTE
 Elena Briones,Briones,CONFIRMADA
 Joan Marin,,CONFIRMADO
 Josua Bayona,Bayona,CONFIRMADO
 Amandine Liam,Liam,CONFIRMADO
 Sara ytarte,ytarte,PENDIENTE
 Eva Areny,Areny,CONFIRMADA
-Jesus Úbeda ,Úbeda,CONFIRMADO
+Jesus Úbeda ,Úbeda,PENDIENTE
 Carla Sardà,Sardà,CONFIRMADA
 Cristian Fernández,Fernández,CONFIRMADO
-Clara Torres,Torres,CONFIRMADA
-Pablo,,CONFIRMADO
+Clara Torres,Torres,PENDIENTE
+Pablo,,PENDIENTE
 Anna Gonzalez,Gonzalez,CONFIRMADA
 Carlos Oros,,PENDIENTE
 Mujer Oros,,PENDIENTE
 Carlos Rodriguez,Rodriguez,PENDIENTE
-Dunia Mascaro,Mascaro,CONFIRMADA
-Gonzalo Blanco,Blanco,CONFIRMADO
+Dunia Mascaro,Mascaro,PENDIENTE
+Gonzalo Blanco,Blanco,PENDIENTE
 Marta Bartual,Bartual,CONFIRMADO
 Iker Zarate,Zarate,CONFIRMADO
 Alfonso Zarate,Zarate,CONFIRMADO
 Jaime Lopez,Lopez,PENDIENTE
-Rosario Ambrosio,Ambrosio,CONFIRMADA
-Natalia Balcells,Balcells,CONFIRMADA
-Pau,,CONFIRMADO
-Susana,Lopez,CONFIRMADA
-Ramon Barberá,Barberá,CONFIRMADO
+Rosario Ambrosio,Ambrosio,PENDIENTE
+Natalia Balcells,Balcells,PENDIENTE
+Pau,,PENDIENTE
+Susana,Lopez,PENDIENTE
+Ramon Barberá,Barberá,PENDIENTE
 Natalia Belinguer,Belinguer,PENDIENTE
 Natalia Pallise,Pallise,PENDIENTE
 Silvia Miravent,,PENDIENTE
 Jaume Zurita,,PENDIENTE
-Gemma Urpina,Urpina,CONFIRMADA
-Alexis Postigo,Postigo,CONFIRMADO
+Gemma Urpina,Urpina,PENDIENTE
+Alexis Postigo,Postigo,PENDIENTE
 Mª Angeles,,PENDIENTE
 Carles Castañe,Castañe,PENDIENTE
 Teodoro Lopez,Lopez,PENDIENTE
@@ -259,7 +258,7 @@ Laura Cester,Cester,PENDIENTE
 Monica Falguera,Falguera,PENDIENTE
 Noa Pallares,,CONFIRMADA
 Mujer Carlos Rodrigu,,PENDIENTE
-Narcis Vidal,Vidal,CONFIRMADO
+Narcis Vidal,Vidal,PENDIENTE
 Montse Arroyo,Arroyo,PENDIENTE
 Pau Sanchez,Sanchez,PENDIENTE
 Didac Sanchez,Sanchez,PENDIENTE
