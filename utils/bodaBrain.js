@@ -99,22 +99,15 @@ Además, tendremos Showcooking y Corte:
 
   const menuPrincipalResponse = `El banquete comenzará tras el aperitivo (cuya lista puedes consultar por separado preguntandome por el aperitivo). Respecto a los **platos principales**, los novios están pendientes de realizar la prueba de menú entre las siguientes opciones. ¡Estarán deliciosas!
   
-**PRIMEROS PLATOS (a elegir por los novios):**
-* Caldereta de bogavante con patata confitada y crujiente de puerro
+**PRIMER PLATO:**
 * Filete de dorada con carne de vieira, reducción de cítricos con albahaca y chips de remolacha
-* Suquet de rape con langostinos, cigalas y almejas
 
-**SEGUNDOS PLATOS (a elegir por los novios):**
-* Entrecotte de Nebraska con salsa café París infusionada con hierbas frescas, ajo y mantequilla aromatizada
+
+**SEGUNDO PLATO:**
 * Costillar black angus a baja temperatura envuelto en crujiente de pasta brick, salsa tártara y orejones
-* Medallón de solomillo de ternera relleno de foie y reducción de Oporto
 
-**POSTRES (a elegir por los novios):**
-* Semifrío de pasión y crumble de Oreo con lágrima de pistacho
+**POSTRE:**
 * Lingote de Ferrero Rocher con pralinè, esferas de chocolate al Frangelico y tierra de galleta
-* Cheesecake de galleta lotus con su ganache cremoso
-
-**IMPORTANTE:** Los platos definitivos (primero, segundo y postre) **aún están pendientes de la decisión final de los novios** tras la prueba de menú.`;
 
   const menuCompletoResponse = `¡Claro! Aquí tienes la información completa sobre la comida de la boda:
   
@@ -164,7 +157,7 @@ ${partyDrinksResponse}`;
     urlRegalos: "https://wwwas.net/web/manel-y-carla/regalos-8"
   };
 
-  const confirmedGuestsCountInPrompt = 40; // Manel y Carla
+  const confirmedGuestsCountInPrompt = 50; // Manel y Carla
   const urlConfirmacionInPrompt = weddingInfo.urlConfirmacion;
   const detailUbisUrlInPrompt = weddingInfo.detailUbisUrl;
   const urlRegalosdebodaInPrompt = weddingInfo.urlRegalosdeboda;
@@ -218,41 +211,41 @@ Antonio Escartín,Escartin,CONFIRMADO
 Sandra Gano,Gano,CONFIRMADA
 Ivan Alamo,Alamo,CONFIRMADO
 Alba Martinez,,CONFIRMADA
-Alex Ferré,Ferré,PENDIENTE
-Alexia Galobardes,Galobardes,PENDIENTE
-Marta Oliver,Oliver,PENDIENTE
+Alex Ferré,Ferré,CONFIRMADO
+Alexia Galobardes,Galobardes,CONFIRMADA
+Marta Oliver,Oliver,CONFIRMADA
 Elena Briones,Briones,CONFIRMADA
 Joan Marin,,CONFIRMADO
 Josua Bayona,Bayona,CONFIRMADO
 Amandine Liam,Liam,CONFIRMADO
 Sara ytarte,ytarte,PENDIENTE
 Eva Areny,Areny,CONFIRMADA
-Jesus Úbeda ,Úbeda,PENDIENTE
+Jesus Úbeda ,Úbeda,CONFIRMADO
 Carla Sardà,Sardà,CONFIRMADA
 Cristian Fernández,Fernández,CONFIRMADO
-Clara Torres,Torres,PENDIENTE
-Pablo,,PENDIENTE
+Clara Torres,Torres,CONFIRMADA
+Pablo,,CONFIRMADO
 Anna Gonzalez,Gonzalez,CONFIRMADA
 Carlos Oros,,PENDIENTE
 Mujer Oros,,PENDIENTE
 Carlos Rodriguez,Rodriguez,PENDIENTE
-Dunia Mascaro,Mascaro,PENDIENTE
-Gonzalo Blanco,Blanco,PENDIENTE
+Dunia Mascaro,Mascaro,CONFIRMADA
+Gonzalo Blanco,Blanco,CONFIRMADO
 Marta Bartual,Bartual,CONFIRMADO
 Iker Zarate,Zarate,CONFIRMADO
 Alfonso Zarate,Zarate,CONFIRMADO
 Jaime Lopez,Lopez,PENDIENTE
-Rosario Ambrosio,Ambrosio,PENDIENTE
-Natalia Balcells,Balcells,PENDIENTE
-Pau,,PENDIENTE
-Susana,Lopez,PENDIENTE
-Ramon Barberá,Barberá,PENDIENTE
+Rosario Ambrosio,Ambrosio,CONFIRMADA
+Natalia Balcells,Balcells,CONFIRMADA
+Pau,,CONFIRMADO
+Susana,Lopez,CONFIRMADA
+Ramon Barberá,Barberá,CONFIRMADO
 Natalia Belinguer,Belinguer,PENDIENTE
 Natalia Pallise,Pallise,PENDIENTE
 Silvia Miravent,,PENDIENTE
 Jaume Zurita,,PENDIENTE
-Gemma Urpina,Urpina,PENDIENTE
-Alexis Postigo,Postigo,PENDIENTE
+Gemma Urpina,Urpina,CONFIRMADA
+Alexis Postigo,Postigo,CONFIRMADO
 Mª Angeles,,PENDIENTE
 Carles Castañe,Castañe,PENDIENTE
 Teodoro Lopez,Lopez,PENDIENTE
@@ -266,7 +259,7 @@ Laura Cester,Cester,PENDIENTE
 Monica Falguera,Falguera,PENDIENTE
 Noa Pallares,,CONFIRMADA
 Mujer Carlos Rodrigu,,PENDIENTE
-Narcis Vidal,Vidal,PENDIENTE
+Narcis Vidal,Vidal,CONFIRMADO
 Montse Arroyo,Arroyo,PENDIENTE
 Pau Sanchez,Sanchez,PENDIENTE
 Didac Sanchez,Sanchez,PENDIENTE
