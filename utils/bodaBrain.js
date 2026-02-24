@@ -159,8 +159,8 @@ ${partyDrinksResponse}`;
 
   // --- 3. OPTIMIZACIÓN DE VELOCIDAD (RESPUESTAS FIJAS) ---
   
-  // 📸 NUEVA REGLA DE PRIORIDAD PARA FOTOS
-  const fotoKeywords = ["foto", "imagenes", "galeria", "compartir fotos", "subir fotos"];
+  // 📸 REGLA DE PRIORIDAD PARA FOTOS (INTERCEPTACIÓN POR CÓDIGO)
+  const fotoKeywords = ["foto", "fotos", "imagenes", "galeria", "compartir fotos", "subir fotos"];
   if (fotoKeywords.some(keyword => normalizedMessage.includes(keyword))) {
     return `¡Qué ilusión! 🥳📸 ¡Me encanta la idea! 
 
@@ -212,32 +212,32 @@ Josua Bayona,Bayona,CONFIRMADO
 Amandine Liam,Liam,CONFIRMADO
 Sara ytarte,ytarte,PENDIENTE
 Eva Areny,Areny,CONFIRMADA
-Jesus Úbeda ,Úbeda,CONFIRMADO
+Jesus Úbeda ,Úbeda,PENDIENTE
 Carla Sardà,Sardà,CONFIRMADA
 Cristian Fernández,Fernández,CONFIRMADO
-Clara Torres,Torres,CONFIRMADA
-Pablo,,CONFIRMADO
+Clara Torres,Torres,PENDIENTE
+Pablo,,PENDIENTE
 Anna Gonzalez,Gonzalez,CONFIRMADA
-Carlos Oros,,CONFIRMADO
+Carlos Oros,,PENDIENTE
 Mujer Oros,,PENDIENTE
-Carlos Rodriguez,Rodriguez,CONFIRMADO
-Dunia Mascaro,Mascaro,CONFIRMADA
-Gonzalo Blanco,Blanco,CONFIRMADO
+Carlos Rodriguez,Rodriguez,PENDIENTE
+Dunia Mascaro,Mascaro,PENDIENTE
+Gonzalo Blanco,Blanco,PENDIENTE
 Marta Bartual,Bartual,CONFIRMADO
 Iker Zarate,Zarate,CONFIRMADO
 Alfonso Zarate,Zarate,CONFIRMADO
 Jaime Lopez,Lopez,PENDIENTE
-Rosario Ambrosio,Ambrosio,CONFIRMADA
-Natalia Balcells,Balcells,CONFIRMADA
-Pau,,CONFIRMADO
-Susana,Lopez,CONFIRMADA
-Ramon Barberá,Barberá,CONFIRMADA
-Natalia Belinguer,Belinguer,CONFIRMADA
+Rosario Ambrosio,Ambrosio,PENDIENTE
+Natalia Balcells,Balcells,PENDIENTE
+Pau,,PENDIENTE
+Susana,Lopez,PENDIENTE
+Ramon Barberá,Barberá,PENDIENTE
+Natalia Belinguer,Belinguer,PENDIENTE
 Natalia Pallise,Pallise,PENDIENTE
-Silvia Miravent,,CONFIRMADA
+Silvia Miravent,,PENDIENTE
 Jaume Zurita,,PENDIENTE
-Gemma Urpina,Urpina,CONFIRMADA
-Alexis Postigo,Postigo,CONFIRMADO
+Gemma Urpina,Urpina,PENDIENTE
+Alexis Postigo,Postigo,PENDIENTE
 Mª Angeles,,PENDIENTE
 Carles Castañe,Castañe,PENDIENTE
 Teodoro Lopez,Lopez,PENDIENTE
@@ -251,7 +251,7 @@ Laura Cester,Cester,PENDIENTE
 Monica Falguera,Falguera,PENDIENTE
 Noa Pallares,,CONFIRMADA
 Mujer Carlos Rodrigu,,PENDIENTE
-Narcis Vidal,Vidal,CONFIRMADO
+Narcis Vidal,Vidal,PENDIENTE
 Montse Arroyo,Arroyo,PENDIENTE
 Pau Sanchez,Sanchez,PENDIENTE
 Didac Sanchez,Sanchez,PENDIENTE
@@ -315,7 +315,7 @@ ${aiForcedInstruction}
 - Regalos: [Información](${urlRegalosdebodaInPrompt})
 
 ## ⚠️ IMPORTANTE
-- Si mencionan "foto", redirige SIEMPRE a la galería de fotos.`;
+- Si mencionan "foto" o "fotos", redirige SIEMPRE a la galería de fotos y NO a la pizarra de música.`;
 
   // --- 6. LLAMADA A OPENAI ---
   try {
