@@ -247,8 +247,8 @@ async function enviarUbicacionNativa(to) {
     to: to,
     type: "location",
     location: {
-      latitude: "41.503940", 
-      longitude: "2.246410",
+      latitude: "41.50218567011168", 
+      longitude: "2.2398807840017856",
       name: "Masia Mas Llombart",
       address: "Sant Fost de Campsentelles, Barcelona"
     }
