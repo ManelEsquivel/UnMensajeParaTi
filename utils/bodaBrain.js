@@ -161,6 +161,7 @@ REGLAS IMPORTANTES:
 4. BEBIDA: ${allDrinksResponse}
 5. QUIZ: Jugar aquí: https://bodamanelcarla.vercel.app/game
 6. REGALOS: Los novios tendrán un detalle con los invitados. Info regalos: ${weddingInfo.urlRegalosdeboda}
+7. CEREMONIA: La ceremonia empezará a las 13:00
 
 ${aiInstruction}`;
 
