@@ -162,7 +162,7 @@ REGLAS IMPORTANTES:
 5. QUIZ: Jugar aquí: https://bodamanelcarla.vercel.app/game
 6. REGALOS: Los novios tendrán un detalle con los invitados. Info regalos: ${weddingInfo.urlRegalosdeboda}
 7. CEREMONIA: La ceremonia empezará a las 13:00
-8. HORARIOS: La ceremonia será de 13:00 a 14:00. El aperitivo es de 14:00 a a 15:30. El banquete es de 15:30 a 19:00 y la fiesta de 19:00 a 21:00
+8. HORARIOS: La ceremonia será de 13:00 a 14:00. El aperitivo es de 14:00 a a 16:00. El banquete es de 16:00 a 19:00 y la fiesta de 19:00 a 21:00
 
 ${aiInstruction}`;
 
