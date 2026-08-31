@@ -67,8 +67,7 @@ Soy una Inteligencia Artificial entrenada para ayudarte con todos los detalles d
 * Risotto de setas ceps y parmesano
 * Gamba crujiente con jamón ibérico
 * Perla de bacalao con all i oli
-
-Además, tendremos Showcooking: Jamón al corte, carnes a la brasa, zamburiñas, almejas y navajas.`;
+Además, tendremos Showcooking: Jamón al corte,Rincon gallego,carnes a la brasa, zamburiñas, almejas y navajas.`;
 
   const menuPrincipalResponse = `El banquete principal consiste en:
   
