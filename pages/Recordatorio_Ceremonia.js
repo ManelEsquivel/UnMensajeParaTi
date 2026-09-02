@@ -1,9 +1,8 @@
 import Head from 'next/head';
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useRef } from 'react';
 
 export default function IntroPage() {
   const playerRef = useRef(null);
-  const [isStarted, setIsStarted] = useState(false);
 
   const pageTitle = "Boda de Manel & Carla";
   const pageDescription = "Bienvenidos a nuestra boda.";
@@ -24,14 +23,18 @@ export default function IntroPage() {
       playerRef.current = new window.YT.Player('youtube-player', {
         videoId: '_uNx7FNU6Fo',
         playerVars: {
-          autoplay: 0,
-          controls: 1, // Cambiado a 1 para que puedan pausar/adelantar si lo desean
+          autoplay: 1, // 1 = Reproducción automática
+          mute: 1,     // 1 = Silenciado (Obligatorio para que funcione el autoplay)
+          controls: 1, // Muestra los controles para que puedan activar el sonido
           showinfo: 0,
           rel: 0,
           playsinline: 1,
           modestbranding: 1,
           loop: 0,
           fs: 1
+        },
+        events: {
+          'onReady': onPlayerReady
         }
       });
     };
@@ -41,13 +44,10 @@ export default function IntroPage() {
     };
   }, []);
 
-  const handleStart = () => {
-    if (playerRef.current && playerRef.current.playVideo) {
-      setIsStarted(true);
-      playerRef.current.unMute();
-      playerRef.current.setVolume(100);
-      playerRef.current.playVideo();
-    }
+  // Nos aseguramos de que empiece a reproducirse en cuanto cargue
+  const onPlayerReady = (event) => {
+    event.target.mute(); 
+    event.target.playVideo();
   };
 
   return (
@@ -72,38 +72,13 @@ export default function IntroPage() {
             background-color: #000000 !important;
             margin: 0; padding: 0; height: 100%; overflow: hidden;
           }
-          @keyframes cheers {
-            0% { transform: scale(1) rotate(0deg); }
-            25% { transform: scale(1.1) rotate(-5deg); }
-            50% { transform: scale(1.1) rotate(5deg); }
-            75% { transform: scale(1.1) rotate(-5deg); }
-            100% { transform: scale(1) rotate(0deg); }
-          }
         `}</style>
       </Head>
 
       <div style={{ position: 'fixed', top: 0, left: 0, width: '100vw', height: '100vh', backgroundColor: 'black', zIndex: 9999, overflow: 'hidden', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
         
-        {/* Pantalla inicial de bienvenida */}
-        {!isStarted && (
-          <div 
-            onClick={handleStart} 
-            style={{ position: 'absolute', zIndex: 100, top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'black', display: 'flex', flexDirection: 'column', justifyContent: 'center', alignItems: 'center', color: 'white', cursor: 'pointer' }}
-          >
-            <div style={{ fontSize: '50px', marginBottom: '15px', display: 'inline-block', animation: 'cheers 1.5s ease-in-out infinite', textShadow: '0 0 10px rgba(255, 255, 255, 0.5)' }}>
-              🥂
-            </div>
-            
-            <h1 style={{ fontFamily: 'serif', fontSize: '2rem', marginBottom: '20px', textAlign: 'center' }}>Manel & Carla</h1>
-            <div style={{ padding: '12px 24px', border: '1px solid white', borderRadius: '4px', textTransform: 'uppercase', letterSpacing: '2px', fontSize: '0.9rem', textAlign: 'center' }}>
-              Bienvenidos
-            </div>
-            <p style={{ marginTop: '20px', fontSize: '0.8rem', opacity: 0.6 }}>(Toca para comenzar)</p>
-          </div>
-        )}
-
-        {/* Reproductor de Video */}
-        <div style={{ width: '100%', height: '100%', opacity: isStarted ? 1 : 0, transition: 'opacity 1s' }}>
+        {/* Reproductor de Video directo */}
+        <div style={{ width: '100%', height: '100%' }}>
           <div id="youtube-player" style={{ width: '100%', height: '100%' }}></div>
         </div>
 
