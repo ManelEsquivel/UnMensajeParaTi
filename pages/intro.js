@@ -61,7 +61,7 @@ export default function IntroPage() {
 
         window.onYouTubeIframeAPIReady = () => {
           playerRef.current = new window.YT.Player('youtube-player', {
-            videoId: 'XZ8ktV9YgCQ', 
+            videoId: '_uNx7FNU6Fo', 
             playerVars: { autoplay: 0, controls: 0, showinfo: 0, rel: 0, playsinline: 1, modestbranding: 1, loop: 0, fs: 0 },
             events: { 'onStateChange': onPlayerStateChange }
           });
